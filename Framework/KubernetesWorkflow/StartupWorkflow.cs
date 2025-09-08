@@ -1,4 +1,4 @@
-﻿using KubernetesWorkflow.Recipe;
+using KubernetesWorkflow.Recipe;
 using KubernetesWorkflow.Types;
 using Logging;
 using Newtonsoft.Json;

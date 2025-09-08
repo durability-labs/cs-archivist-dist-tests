@@ -1,4 +1,4 @@
-﻿using CodexClient;
+using ArchivistClient;
 using Logging;
 using Utils;
 
@@ -38,7 +38,7 @@ namespace AutoClient.Modes.FolderStore
 
         public void Process()
         {
-            if (string.IsNullOrEmpty(entry.CodexNodeId))
+            if (string.IsNullOrEmpty(entry.ArchivistNodeId))
             {
                 DispatchToAny();
             }
@@ -50,9 +50,9 @@ namespace AutoClient.Modes.FolderStore
 
         private void DispatchToAny()
         {
-            loadBalancer.DispatchOnCodex(instance =>
+            loadBalancer.DispatchOnArchivist(instance =>
             {
-                entry.CodexNodeId = instance.Node.GetName();
+                entry.ArchivistNodeId = instance.Node.GetName();
                 saveHandler.SaveChanges();
 
                 var run = new FileSaverRun(log, instance, stats, folderFile, entry, saveHandler, resultHandler);
@@ -62,18 +62,18 @@ namespace AutoClient.Modes.FolderStore
 
         private void DispatchToSpecific()
         {
-            loadBalancer.DispatchOnSpecificCodex(instance =>
+            loadBalancer.DispatchOnSpecificArchivist(instance =>
             {
                 var run = new FileSaverRun(log, instance, stats, folderFile, entry, saveHandler, resultHandler);
                 run.Process();
-            }, entry.CodexNodeId);
+            }, entry.ArchivistNodeId);
         }
     }
 
     public class FileSaverRun
     {
         private readonly ILog log;
-        private readonly CodexWrapper instance;
+        private readonly ArchivistWrapper instance;
         private readonly Stats stats;
         private readonly string folderFile;
         private readonly FileStatus entry;
@@ -81,7 +81,7 @@ namespace AutoClient.Modes.FolderStore
         private readonly IFileSaverResultHandler resultHandler;
         private readonly QuotaCheck quotaCheck;
 
-        public FileSaverRun(ILog log, CodexWrapper instance, Stats stats, string folderFile, FileStatus entry, IFileSaverEventHandler saveHandler, IFileSaverResultHandler resultHandler)
+        public FileSaverRun(ILog log, ArchivistWrapper instance, Stats stats, string folderFile, FileStatus entry, IFileSaverEventHandler saveHandler, IFileSaverResultHandler resultHandler)
         {
             this.log = log;
             this.instance = instance;

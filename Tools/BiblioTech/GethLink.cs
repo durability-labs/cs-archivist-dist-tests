@@ -1,18 +1,18 @@
-﻿using CodexContractsPlugin;
+using ArchivistContractsPlugin;
 using GethPlugin;
 
 namespace BiblioTech
 {
     public class GethLink
     {
-        private GethLink(IGethNode node, ICodexContracts contracts)
+        private GethLink(IGethNode node, IArchivistContracts contracts)
         {
             Node = node;
             Contracts = contracts;
         }
 
         public IGethNode Node { get; }
-        public ICodexContracts Contracts { get; }
+        public IArchivistContracts Contracts { get; }
 
         public static GethLink? Create()
         {
@@ -20,7 +20,7 @@ namespace BiblioTech
             if (gethConnector == null) return null;
 
             var gethNode = gethConnector.GethNode;
-            var contracts = gethConnector.CodexContracts;
+            var contracts = gethConnector.ArchivistContracts;
             return new GethLink(gethNode, contracts);
         }
 

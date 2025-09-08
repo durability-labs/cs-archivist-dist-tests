@@ -1,4 +1,4 @@
-﻿using Discord.WebSocket;
+using Discord.WebSocket;
 
 namespace BiblioTech.Options
 {
@@ -56,7 +56,7 @@ namespace BiblioTech.Options
             var filename = Guid.NewGuid().ToString() + ".tmp";
             File.WriteAllText(filename, fileContent);
 
-            await Command.FollowupWithFileAsync(filename, "Codex_UploadCheckFile.txt", text: message, ephemeral: true);
+            await Command.FollowupWithFileAsync(filename, "Archivist_UploadCheckFile.txt", text: message, ephemeral: true);
 
             // Detached task for cleaning up the stream resources.
             _ = Task.Run(() =>

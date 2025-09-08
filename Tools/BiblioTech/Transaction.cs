@@ -1,4 +1,4 @@
-﻿namespace BiblioTech
+namespace BiblioTech
 {
     public class Transaction<T>
     {

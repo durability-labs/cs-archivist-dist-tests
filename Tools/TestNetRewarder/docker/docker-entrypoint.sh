@@ -10,7 +10,7 @@ if [[ -n "${MARKETPLACE_ADDRESS_FROM_URL}" ]]; then
     MARKETPLACE_ADDRESS=($(curl -s -f -m 5 "${MARKETPLACE_ADDRESS_FROM_URL}"))
     # Check if exit code is 0 and returned value is not empty
     if [[ $? -eq 0 && -n "${MARKETPLACE_ADDRESS}" ]]; then
-      export CODEXCONTRACTS_MARKETPLACEADDRESS="${MARKETPLACE_ADDRESS}"
+      export ARCHIVISTCONTRACTS_MARKETPLACEADDRESS="${MARKETPLACE_ADDRESS}"
       break
     else
       # Sleep and check again
@@ -22,8 +22,8 @@ fi
 
 # Show
 echo -e "\nRun parameters:"
-vars=$(env | grep "CODEX" | grep -v -e "[0-9]_SERVICE_" -e "[0-9]_NODEPORT_")
-echo -e "${vars//CODEX/   - CODEX}"
+vars=$(env | grep "ARCHIVIST" | grep -v -e "[0-9]_SERVICE_" -e "[0-9]_NODEPORT_")
+echo -e "${vars//ARCHIVIST/   - ARCHIVIST}"
 echo -e "   - $@\n"
 
 # Run

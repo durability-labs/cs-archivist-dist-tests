@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using Discord.WebSocket;
 using DiscordRewards;
 using k8s.KubeConfigModels;

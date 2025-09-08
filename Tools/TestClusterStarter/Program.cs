@@ -1,4 +1,4 @@
-﻿using ArgsUniform;
+using ArgsUniform;
 using Core;
 using DeployAndRunPlugin;
 using KubernetesWorkflow.Types;
@@ -39,7 +39,7 @@ public class Program
                 filter: spec.Filter,
                 duration: TimeSpan.FromSeconds(spec.DurationSeconds),
                 replications: spec.Replication,
-                codexImageOverride: spec.CodexImageOverride));
+                archivistImageOverride: spec.ArchivistImageOverride));
 
             rcs.Add(rc);
         }

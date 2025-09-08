@@ -1,11 +1,11 @@
-﻿using ArgsUniform;
+using ArgsUniform;
 
 namespace AutoClient
 {
     public class Configuration
     {
-        [Uniform("codex-endpoints", "ce", "CODEXENDPOINTS", false, "Codex endpoints. Semi-colon separated. (default 'http://localhost:8080')")]
-        public string CodexEndpoints { get; set; } =
+        [Uniform("archivist-endpoints", "ce", "ARCHIVISTENDPOINTS", false, "Archivist endpoints. Semi-colon separated. (default 'http://localhost:8080')")]
+        public string ArchivistEndpoints { get; set; } =
             "http://localhost:8080" + ";" +
             "http://localhost:8081" + ";" +
             "http://localhost:8082" + ";" +
@@ -48,16 +48,16 @@ namespace AutoClient
         [Uniform("folderToStore", "fts", "FOLDERTOSTORE", false, "When set, autoclient will attempt to upload and purchase storage for every non-JSON file in the provided folder.")]
         public string FolderToStore { get; set; } = "/data/EthereumMainnetPreMergeEraFiles";
 
-        [Uniform("ethAddressFile", "eaf", "ETHADDRESSFILE", false, "File(s) with eth address used by codex node. Used for balance checking if geth/contracts information is provided. Semi-colon separated.")]
+        [Uniform("ethAddressFile", "eaf", "ETHADDRESSFILE", false, "File(s) with eth address used by archivist node. Used for balance checking if geth/contracts information is provided. Semi-colon separated.")]
         public string EthAddressFile { get; set; } = 
-            "/root/codex-testnet-starter/scripts/eth.address" + ";" +
-            "/root/codex-testnet-starter/scripts/eth_2.address" + ";" +
-            "/root/codex-testnet-starter/scripts/eth_3.address" + ";" +
-            "/root/codex-testnet-starter/scripts/eth_4.address" + ";" +
-            "/root/codex-testnet-starter/scripts/eth_5.address" + ";" +
-            "/root/codex-testnet-starter/scripts/eth_6.address" + ";" +
-            "/root/codex-testnet-starter/scripts/eth_7.address" + ";" +
-            "/root/codex-testnet-starter/scripts/eth_8.address";
+            "/root/archivist-testnet-starter/scripts/eth.address" + ";" +
+            "/root/archivist-testnet-starter/scripts/eth_2.address" + ";" +
+            "/root/archivist-testnet-starter/scripts/eth_3.address" + ";" +
+            "/root/archivist-testnet-starter/scripts/eth_4.address" + ";" +
+            "/root/archivist-testnet-starter/scripts/eth_5.address" + ";" +
+            "/root/archivist-testnet-starter/scripts/eth_6.address" + ";" +
+            "/root/archivist-testnet-starter/scripts/eth_7.address" + ";" +
+            "/root/archivist-testnet-starter/scripts/eth_8.address";
 
         [Uniform("slowModeDelayMinutes", "smdm", "SLOWMODEDELAYMINUTES", false, "When contract failure threshold is reached, slow down process for each file by this amount of minutes.")]
         public int SlowModeDelayMinutes { get; set; } = 60 * 1;

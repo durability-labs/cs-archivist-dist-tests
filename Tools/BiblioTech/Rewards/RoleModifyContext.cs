@@ -1,4 +1,4 @@
-﻿using Discord.WebSocket;
+using Discord.WebSocket;
 using Discord;
 using DiscordRewards;
 using Nethereum.Model;

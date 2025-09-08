@@ -14,9 +14,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Framework\DiscordRewards\DiscordRewards.csproj" />
-    <ProjectReference Include="..\..\ProjectPlugins\CodexContractsPlugin\CodexContractsPlugin.csproj" />
-    <ProjectReference Include="..\..\ProjectPlugins\CodexDiscordBotPlugin\CodexDiscordBotPlugin.csproj" />
-    <ProjectReference Include="..\..\ProjectPlugins\CodexPlugin\CodexPlugin.csproj" />
+    <ProjectReference Include="..\..\ProjectPlugins\ArchivistContractsPlugin\ArchivistContractsPlugin.csproj" />
+    <ProjectReference Include="..\..\ProjectPlugins\ArchivistDiscordBotPlugin\ArchivistDiscordBotPlugin.csproj" />
+    <ProjectReference Include="..\..\ProjectPlugins\ArchivistPlugin\ArchivistPlugin.csproj" />
     <ProjectReference Include="..\..\ProjectPlugins\GethPlugin\GethPlugin.csproj" />
     <ProjectReference Include="..\..\ProjectPlugins\MetricsPlugin\MetricsPlugin.csproj" />
     <ProjectReference Include="..\..\Tools\TestNetRewarder\TestNetRewarder.csproj" />

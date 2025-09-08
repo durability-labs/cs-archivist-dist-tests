@@ -1,4 +1,4 @@
-﻿namespace MetricsPlugin
+namespace MetricsPlugin
 {
     public class PrometheusStartupConfig
     {

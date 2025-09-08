@@ -1,4 +1,4 @@
-﻿using FileUtils;
+using FileUtils;
 using Logging;
 using Utils;
 

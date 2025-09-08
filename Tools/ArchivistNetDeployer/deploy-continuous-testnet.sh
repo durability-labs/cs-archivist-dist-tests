@@ -1,0 +1,21 @@
+dotnet run \
+    --project "${DEPLOYMENT_ARCHIVISTNETDEPLOYER_PATH:-Tools/ArchivistNetDeployer}" \
+    --deploy-name="${DEPLOYMENT_NAME:-archivist-continuous-test-deployment}" \
+    --kube-config="${KUBECONFIG:-/opt/kubeconfig.yaml}" \
+    --kube-namespace="${DEPLOYMENT_NAMESPACE:-archivist-continuous-tests}" \
+    --deploy-file="${DEPLOYMENT_FILE:-archivist-deployment.json}" \
+    --nodes=${DEPLOYMENT_NODES:-5} \
+    --validators=${DEPLOYMENT_VALIDATORS:-3} \
+    --log-level="${ARCHIVIST_LOG_LEVEL:-Trace}" \
+    --storage-quota=${ARCHIVIST_STORAGE_QUOTA:-2048} \
+    --storage-sell=${ARCHIVIST_STORAGE_SELL:-1024} \
+    --min-price=${ARCHIVIST_MIN_PRICE:-1024} \
+    --max-collateral=${ARCHIVIST_MAX_COLLATERAL:-1024} \
+    --max-duration=${ARCHIVIST_MAX_DURATION:-3600000} \
+    --block-ttl=${ARCHIVIST_BLOCK_TTL:-180} \
+    --block-mi=${ARCHIVIST_BLOCK_MI:-120} \
+    --block-mn=${ARCHIVIST_BLOCK_MN:-10000} \
+    --metrics-endpoints=${ARCHIVIST_METRICS:-1} \
+    --metrics-scraper=${ARCHIVIST_METRICS:-1} \
+    --check-connect=${DEPLOYMENT_CHECK_CONNECT:-1} \
+    -y

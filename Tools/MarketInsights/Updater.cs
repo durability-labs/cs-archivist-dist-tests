@@ -1,4 +1,4 @@
-﻿using CodexContractsPlugin;
+using ArchivistContractsPlugin;
 using GethPlugin;
 using TestNetRewarder;
 
@@ -12,7 +12,7 @@ namespace MarketInsights
         private readonly Tracker[] trackers;
         private readonly AverageHistory averageHistory;
 
-        public Updater(AppState appState, IGethNode geth, ICodexContracts contracts, CancellationToken ct)
+        public Updater(AppState appState, IGethNode geth, IArchivistContracts contracts, CancellationToken ct)
         {
             this.appState = appState;
             this.ct = ct;

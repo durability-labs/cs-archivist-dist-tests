@@ -1,16 +1,16 @@
-﻿using CodexPlugin.OverwatchSupport;
+using ArchivistPlugin.OverwatchSupport;
 using OverwatchTranscript;
 
 namespace TranscriptAnalysis.Receivers
 {
-    public class DuplicateBlocksReceived : BaseReceiver<OverwatchCodexEvent>
+    public class DuplicateBlocksReceived : BaseReceiver<OverwatchArchivistEvent>
     {
         public static List<int> Counts = new List<int>();
         private long uploadSize;
 
         public override string Name => "BlocksReceived";
 
-        public override void Receive(ActivateEvent<OverwatchCodexEvent> @event)
+        public override void Receive(ActivateEvent<OverwatchArchivistEvent> @event)
         {
             if (@event.Payload.BlockReceived != null)
             {
@@ -65,7 +65,7 @@ namespace TranscriptAnalysis.Receivers
         private int seen = 0;
         private readonly Dictionary<string, Dictionary<string, int>> peerIdBlockAddrCount = new Dictionary<string, Dictionary<string, int>>();
 
-        private void Handle(OverwatchCodexEvent payload, BlockReceivedEvent blockReceived)
+        private void Handle(OverwatchArchivistEvent payload, BlockReceivedEvent blockReceived)
         {
             var receiverPeerId = GetPeerId(payload.NodeIdentity);
             if (receiverPeerId == null) return;

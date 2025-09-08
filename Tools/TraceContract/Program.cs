@@ -1,6 +1,6 @@
-﻿using BlockchainUtils;
-using CodexContractsPlugin;
-using CodexContractsPlugin.Marketplace;
+using BlockchainUtils;
+using ArchivistContractsPlugin;
+using ArchivistContractsPlugin.Marketplace;
 using Core;
 using GethPlugin;
 using Logging;
@@ -13,7 +13,7 @@ namespace TraceContract
         public static void Main(string[] args)
         {
             ProjectPlugin.Load<GethPlugin.GethPlugin>();
-            ProjectPlugin.Load<CodexContractsPlugin.CodexContractsPlugin>();
+            ProjectPlugin.Load<ArchivistContractsPlugin.ArchivistContractsPlugin>();
 
             var p = new Program();
             p.Run();
@@ -48,7 +48,7 @@ namespace TraceContract
             entryPoint.Announce();
             var ci = entryPoint.CreateInterface();
             var geth = ConnectGethNode();
-            var contracts = ConnectCodexContracts(ci, geth);
+            var contracts = ConnectArchivistContracts(ci, geth);
 
             var chainTracer = new ChainTracer(log, geth, contracts, input, output);
             var requestTimeRange = chainTracer.TraceChainTimeline();
@@ -69,15 +69,15 @@ namespace TraceContract
             return new CustomGethNode(log, blockCache, config.RpcEndpoint, config.GethPort, account.PrivateKey);
         }
 
-        private ICodexContracts ConnectCodexContracts(CoreInterface ci, IGethNode geth)
+        private IArchivistContracts ConnectArchivistContracts(CoreInterface ci, IGethNode geth)
         {
-            var deployment = new CodexContractsDeployment(
+            var deployment = new ArchivistContractsDeployment(
                 config: new MarketplaceConfig(),
                 marketplaceAddress: config.MarketplaceAddress,
                 abi: config.Abi,
                 tokenAddress: config.TokenAddress
             );
-            return ci.WrapCodexContractsDeployment(geth, deployment);
+            return ci.WrapArchivistContractsDeployment(geth, deployment);
         }
 
         private void DownloadStorageNodeLogs(TimeRange requestTimeRange, IPluginTools tools)

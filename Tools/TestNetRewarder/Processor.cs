@@ -1,5 +1,5 @@
-﻿using CodexContractsPlugin;
-using CodexContractsPlugin.ChainMonitor;
+using ArchivistContractsPlugin;
+using ArchivistContractsPlugin.ChainMonitor;
 using GethPlugin;
 using Logging;
 using Utils;
@@ -16,7 +16,7 @@ namespace TestNetRewarder
         private readonly ILog log;
         private DateTime lastPeriodUpdateUtc;
 
-        public Processor(Configuration config, BotClient client, IGethNode geth, ICodexContracts contracts, ILog log)
+        public Processor(Configuration config, BotClient client, IGethNode geth, IArchivistContracts contracts, ILog log)
         {
             this.config = config;
             this.client = client;

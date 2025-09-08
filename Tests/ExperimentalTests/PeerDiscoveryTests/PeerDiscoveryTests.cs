@@ -1,8 +1,8 @@
-﻿using CodexContractsPlugin;
-using CodexClient;
+using ArchivistContractsPlugin;
+using ArchivistClient;
 using NUnit.Framework;
 using Utils;
-using CodexTests;
+using ArchivistTests;
 
 namespace ExperimentalTests.PeerDiscoveryTests
 {
@@ -13,7 +13,7 @@ namespace ExperimentalTests.PeerDiscoveryTests
         public void CanReportUnknownPeerId()
         {
             var unknownId = "16Uiu2HAkv2CHWpff3dj5iuVNERAp8AGKGNgpGjPexJZHSqUstfsK";
-            var node = StartCodex();
+            var node = StartArchivist();
 
             var result = node.GetDebugPeer(unknownId);
             Assert.That(result.IsPeerFound, Is.False);
@@ -22,7 +22,7 @@ namespace ExperimentalTests.PeerDiscoveryTests
         [Test]
         public void MetricsDoesNotInterfereWithPeerDiscovery()
         {
-            var nodes = StartCodex(2, s => s.EnableMetrics());
+            var nodes = StartArchivist(2, s => s.EnableMetrics());
 
             AssertAllNodesConnected(nodes);
         }
@@ -31,8 +31,8 @@ namespace ExperimentalTests.PeerDiscoveryTests
         public void MarketplaceDoesNotInterfereWithPeerDiscovery()
         {
             var geth = StartGethNode(s => s.IsMiner());
-            var contracts = Ci.StartCodexContracts(geth, BootstrapNode.Version);
-            var nodes = StartCodex(2, s => s.EnableMarketplace(geth, contracts, m => m
+            var contracts = Ci.StartArchivistContracts(geth, BootstrapNode.Version);
+            var nodes = StartArchivist(2, s => s.EnableMarketplace(geth, contracts, m => m
                 .WithInitial(10.Eth(), 1000.TstWei())));
 
             AssertAllNodesConnected(nodes);
@@ -43,12 +43,12 @@ namespace ExperimentalTests.PeerDiscoveryTests
         [TestCase(10)]
         public void VariableNodes(int number)
         {
-            var nodes = StartCodex(number);
+            var nodes = StartArchivist(number);
 
             AssertAllNodesConnected(nodes);
         }
 
-        private void AssertAllNodesConnected(IEnumerable<ICodexNode> nodes)
+        private void AssertAllNodesConnected(IEnumerable<IArchivistNode> nodes)
         {
             nodes = nodes.Concat(new[] { BootstrapNode }).ToArray()!;
 
@@ -56,7 +56,7 @@ namespace ExperimentalTests.PeerDiscoveryTests
             CheckRoutingTable(nodes);
         }
 
-        private void CheckRoutingTable(IEnumerable<ICodexNode> allNodes)
+        private void CheckRoutingTable(IEnumerable<IArchivistNode> allNodes)
         {
             var allResponses = allNodes.Select(n => n.GetDebugInfo()).ToArray();
 

@@ -1,4 +1,4 @@
-﻿using Logging;
+using Logging;
 using Utils;
 
 namespace AutoClient.Modes.FolderStore
@@ -7,9 +7,9 @@ namespace AutoClient.Modes.FolderStore
     {
         private readonly ILog log;
         private readonly string filepath;
-        private readonly CodexWrapper instance;
+        private readonly ArchivistWrapper instance;
 
-        public QuotaCheck(ILog log, string filepath, CodexWrapper instance)
+        public QuotaCheck(ILog log, string filepath, ArchivistWrapper instance)
         {
             this.log = log;
             this.filepath = filepath;

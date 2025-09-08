@@ -1,4 +1,4 @@
-﻿namespace FrameworkTests.Utils
+namespace FrameworkTests.Utils
 {
     public class Run
     {

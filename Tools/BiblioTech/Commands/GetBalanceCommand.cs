@@ -1,5 +1,5 @@
-﻿using BiblioTech.Options;
-using CodexContractsPlugin;
+using BiblioTech.Options;
+using ArchivistContractsPlugin;
 using GethPlugin;
 using Utils;
 
@@ -22,7 +22,7 @@ namespace BiblioTech.Commands
         public override string Description => "Shows Eth and TestToken balance of an eth address.";
         public override CommandOption[] Options => new[] { optionalUser };
 
-        protected override async Task Execute(CommandContext context, IGethNode gethNode, ICodexContracts contracts)
+        protected override async Task Execute(CommandContext context, IGethNode gethNode, IArchivistContracts contracts)
         {
             var userId = GetUserFromCommand(optionalUser, context);
             var addr = Program.UserRepo.GetCurrentAddressForUser(userId);

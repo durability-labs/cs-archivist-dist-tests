@@ -1,20 +1,20 @@
-﻿namespace Logging
+namespace Logging
 {
     public class ApplicationIds
     {
-        public ApplicationIds(string codexId, string gethId, string prometheusId, string codexContractsId, string grafanaId)
+        public ApplicationIds(string archivistId, string gethId, string prometheusId, string archivistContractsId, string grafanaId)
         {
-            CodexId = codexId;
+            ArchivistId = archivistId;
             GethId = gethId;
             PrometheusId = prometheusId;
-            CodexContractsId = codexContractsId;
+            ArchivistContractsId = archivistContractsId;
             GrafanaId = grafanaId;
         }
 
-        public string CodexId { get; }
+        public string ArchivistId { get; }
         public string GethId { get; }
         public string PrometheusId { get; }
-        public string CodexContractsId { get; }
+        public string ArchivistContractsId { get; }
         public string GrafanaId { get; }
     }
 }

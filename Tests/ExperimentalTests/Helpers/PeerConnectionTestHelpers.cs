@@ -1,8 +1,8 @@
-﻿using CodexClient;
+using ArchivistClient;
 using Logging;
-using static CodexTests.Helpers.FullConnectivityHelper;
+using static ArchivistTests.Helpers.FullConnectivityHelper;
 
-namespace CodexTests.Helpers
+namespace ArchivistTests.Helpers
 {
     public class PeerConnectionTestHelpers : IFullConnectivityImplementation
     {
@@ -13,7 +13,7 @@ namespace CodexTests.Helpers
             helper = new FullConnectivityHelper(log, this);
         }
 
-        public void AssertFullyConnected(IEnumerable<ICodexNode> nodes)
+        public void AssertFullyConnected(IEnumerable<IArchivistNode> nodes)
         {
             helper.AssertFullyConnected(nodes);
         }

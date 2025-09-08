@@ -1,4 +1,4 @@
-﻿namespace KeyMaker
+namespace KeyMaker
 {
     public class KeyResponse
     {

@@ -1,4 +1,4 @@
-﻿namespace OverwatchTranscript
+namespace OverwatchTranscript
 {
     [Serializable]
     public class OverwatchTranscript

@@ -1,10 +1,10 @@
-﻿using CodexClient;
-using CodexPlugin.OverwatchSupport;
+using ArchivistClient;
+using ArchivistPlugin.OverwatchSupport;
 using OverwatchTranscript;
 
 namespace TranscriptAnalysis.Receivers
 {
-    public class NodesDegree : BaseReceiver<OverwatchCodexEvent>
+    public class NodesDegree : BaseReceiver<OverwatchArchivistEvent>
     {
         public class Dial
         {
@@ -50,7 +50,7 @@ namespace TranscriptAnalysis.Receivers
 
         public override string Name => "NodesDegree";
 
-        public override void Receive(ActivateEvent<OverwatchCodexEvent> @event)
+        public override void Receive(ActivateEvent<OverwatchArchivistEvent> @event)
         {
             if (@event.Payload.DialSuccessful != null)
             {
@@ -109,8 +109,8 @@ namespace TranscriptAnalysis.Receivers
 
         private void AddDial(string peerId, string targetPeerId)
         {
-            peerId = CodexUtils.ToShortId(peerId);
-            targetPeerId = CodexUtils.ToShortId(targetPeerId);
+            peerId = ArchivistUtils.ToShortId(peerId);
+            targetPeerId = ArchivistUtils.ToShortId(targetPeerId);
 
             var peer = GetNode(peerId);
             var target = GetNode(targetPeerId); ;

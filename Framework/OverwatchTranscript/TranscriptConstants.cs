@@ -1,4 +1,4 @@
-﻿namespace OverwatchTranscript
+namespace OverwatchTranscript
 {
     public static class TranscriptConstants
     {

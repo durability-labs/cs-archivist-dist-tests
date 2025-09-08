@@ -1,5 +1,5 @@
-﻿using CodexClient;
-using CodexTests;
+using ArchivistClient;
+using ArchivistTests;
 using NUnit.Framework;
 using Utils;
 
@@ -12,8 +12,8 @@ namespace ExperimentalTests.UtilityTests
         [Ignore("Used to find the most common log messages.")]
         public void FindMostCommonLogMessages()
         {
-            var uploader = StartCodex(s => s.WithName("uploader").WithLogLevel(CodexLogLevel.Trace));
-            var downloader = StartCodex(s => s.WithName("downloader").WithLogLevel(CodexLogLevel.Trace));
+            var uploader = StartArchivist(s => s.WithName("uploader").WithLogLevel(ArchivistLogLevel.Trace));
+            var downloader = StartArchivist(s => s.WithName("downloader").WithLogLevel(ArchivistLogLevel.Trace));
 
             var cid = uploader.UploadFile(GenerateTestFile(100.MB()));
 
@@ -34,13 +34,13 @@ namespace ExperimentalTests.UtilityTests
             }
         }
 
-        private Dictionary<string, int> GetLogMap(ICodexNode node, DateTime? startUtc = null)
+        private Dictionary<string, int> GetLogMap(IArchivistNode node, DateTime? startUtc = null)
         {
             var log = node.DownloadLog();
             var map = new Dictionary<string, int>();
             log.IterateLines(line =>
             {
-                var log = CodexLogLine.Parse(line);
+                var log = ArchivistLogLine.Parse(line);
                 if (log == null) return;
 
                 if (startUtc.HasValue)

@@ -1,4 +1,4 @@
-﻿using Logging;
+using Logging;
 using System.Collections.Concurrent;
 
 namespace OverwatchTranscript

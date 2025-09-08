@@ -1,4 +1,4 @@
-﻿using k8s;
+using k8s;
 using k8s.Models;
 using KubernetesWorkflow.Recipe;
 using KubernetesWorkflow.Types;

@@ -1,9 +1,9 @@
-﻿using CodexClient;
-using CodexPlugin;
+using ArchivistClient;
+using ArchivistPlugin;
 using Logging;
 using NUnit.Framework;
 
-namespace CodexTests.Helpers
+namespace ArchivistTests.Helpers
 {
     public interface IFullConnectivityImplementation
     {
@@ -24,12 +24,12 @@ namespace CodexTests.Helpers
             this.implementation = implementation;
         }
 
-        public void AssertFullyConnected(IEnumerable<ICodexNode> nodes)
+        public void AssertFullyConnected(IEnumerable<IArchivistNode> nodes)
         {
             AssertFullyConnected(nodes.ToArray());
         }
 
-        private void AssertFullyConnected(ICodexNode[] nodes)
+        private void AssertFullyConnected(IArchivistNode[] nodes)
         {
             Log($"Asserting '{implementation.Description()}' for nodes: '{nodes.Names()}'...");
             Assert.That(nodes.Length, Is.GreaterThan(1));
@@ -70,7 +70,7 @@ namespace CodexTests.Helpers
             Log($"Connections successful:{Nl}{string.Join(Nl, results)}");
         }
 
-        private Entry[] CreateEntries(ICodexNode[] nodes)
+        private Entry[] CreateEntries(IArchivistNode[] nodes)
         {
             var entries = nodes.Select(n => new Entry(n)).ToArray();
 
@@ -110,13 +110,13 @@ namespace CodexTests.Helpers
 
         public class Entry
         {
-            public Entry(ICodexNode node)
+            public Entry(IArchivistNode node)
             {
                 Node = node;
                 Response = node.GetDebugInfo();
             }
 
-            public ICodexNode Node { get; }
+            public IArchivistNode Node { get; }
             public DebugInfo Response { get; }
 
             public override string ToString()

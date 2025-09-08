@@ -1,4 +1,4 @@
-﻿using Core;
+using Core;
 using KubernetesWorkflow;
 
 namespace DistTestCore
@@ -12,7 +12,7 @@ namespace DistTestCore
         public Configuration()
         {
             kubeConfigFile = GetNullableEnvVarOrDefault("KUBECONFIG", null);
-            logPath = GetEnvVarOrDefault("LOGPATH", "CodexTestLogs");
+            logPath = GetEnvVarOrDefault("LOGPATH", "ArchivistTestLogs");
             dataFilesPath = GetEnvVarOrDefault("DATAFILEPATH", "TestDataFiles");
             AlwaysDownloadContainerLogs = !string.IsNullOrEmpty(GetEnvVarOrDefault("ALWAYS_LOGS", ""));
         }

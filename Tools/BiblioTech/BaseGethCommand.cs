@@ -1,5 +1,5 @@
-﻿using BiblioTech.Options;
-using CodexContractsPlugin;
+using BiblioTech.Options;
+using ArchivistContractsPlugin;
 using GethPlugin;
 
 namespace BiblioTech
@@ -19,13 +19,13 @@ namespace BiblioTech
 
             if (!contracts.IsDeployed())
             {
-                await context.Followup("I'm sorry, the Codex SmartContracts are not currently deployed.");
+                await context.Followup("I'm sorry, the Archivist SmartContracts are not currently deployed.");
                 return;
             }
 
             await Execute(context, gethNode, contracts);
         }
 
-        protected abstract Task Execute(CommandContext context, IGethNode gethNode, ICodexContracts contracts);
+        protected abstract Task Execute(CommandContext context, IGethNode gethNode, IArchivistContracts contracts);
     }
 }

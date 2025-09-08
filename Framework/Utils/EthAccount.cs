@@ -1,4 +1,4 @@
-﻿namespace Utils
+namespace Utils
 {
     [Serializable]
     public class EthAccount : IComparable<EthAccount>

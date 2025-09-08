@@ -1,4 +1,4 @@
-﻿using Logging;
+using Logging;
 
 namespace AutoClient
 {
@@ -10,13 +10,13 @@ namespace AutoClient
         private class Cdx
         {
             private readonly ILog log;
-            private readonly CodexWrapper instance;
-            private readonly List<Action<CodexWrapper>> queue = new List<Action<CodexWrapper>>();
+            private readonly ArchivistWrapper instance;
+            private readonly List<Action<ArchivistWrapper>> queue = new List<Action<ArchivistWrapper>>();
             private readonly object queueLock = new object();
             private bool running = true;
             private Task worker = Task.CompletedTask;
 
-            public Cdx(App app, CodexWrapper instance)
+            public Cdx(App app, ArchivistWrapper instance)
             {
                 Id = instance.Node.GetName();
                 log = new LogPrefixer(app.Log, $"[Queue-{Id}]");
@@ -41,7 +41,7 @@ namespace AutoClient
                 if (worker.IsFaulted) throw worker.Exception;
             }
 
-            public void Queue(Action<CodexWrapper> action)
+            public void Queue(Action<ArchivistWrapper> action)
             {
                 if (queue.Count > 2) log.Log("Queue full. Waiting...");
                 while (queue.Count > 2)
@@ -63,7 +63,7 @@ namespace AutoClient
                     {
                         while (queue.Count == 0) Thread.Sleep(TimeSpan.FromSeconds(5.0));
 
-                        Action<CodexWrapper> action = w => { };
+                        Action<ArchivistWrapper> action = w => { };
                         lock (queueLock)
                         {
                             action = queue[0];
@@ -81,7 +81,7 @@ namespace AutoClient
             }
         }
 
-        public LoadBalancer(App app, CodexWrapper[] instances)
+        public LoadBalancer(App app, ArchivistWrapper[] instances)
         {
             this.instances = instances.Select(i => new Cdx(app, i)).ToList();
         }
@@ -96,7 +96,7 @@ namespace AutoClient
             foreach (var i in instances) i.Stop();
         }
 
-        public void DispatchOnCodex(Action<CodexWrapper> action)
+        public void DispatchOnArchivist(Action<ArchivistWrapper> action)
         {
             lock (instanceLock)
             {
@@ -108,7 +108,7 @@ namespace AutoClient
             }
         }
 
-        public void DispatchOnSpecificCodex(Action<CodexWrapper> action, string id)
+        public void DispatchOnSpecificArchivist(Action<ArchivistWrapper> action, string id)
         {
             lock (instanceLock)
             {

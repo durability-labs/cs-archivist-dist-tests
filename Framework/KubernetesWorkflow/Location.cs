@@ -1,4 +1,4 @@
-﻿using KubernetesWorkflow.Types;
+using KubernetesWorkflow.Types;
 
 namespace KubernetesWorkflow
 {

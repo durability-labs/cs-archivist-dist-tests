@@ -1,5 +1,5 @@
-﻿using ArgsUniform;
-using BiblioTech.CodexChecking;
+using ArgsUniform;
+using BiblioTech.ArchivistChecking;
 using BiblioTech.Commands;
 using BiblioTech.Rewards;
 using Discord;
@@ -47,7 +47,7 @@ namespace BiblioTech
 
         public async Task MainAsync(string[] args)
         {
-            Log.Log("Starting Codex Discord Bot...");
+            Log.Log("Starting Archivist Discord Bot...");
             try
             {
                 replacement = new CustomReplacement(Config);
@@ -89,8 +89,8 @@ namespace BiblioTech
             client.Log += ClientLog;
 
             var checkRepo = new CheckRepo(Log, Config);
-            var codexWrapper = new CodexWrapper(Log, Config);
-            var checker = new CodexTwoWayChecker(Log, Config, checkRepo, codexWrapper);
+            var archivistWrapper = new ArchivistWrapper(Log, Config);
+            var checker = new ArchivistTwoWayChecker(Log, Config, checkRepo, archivistWrapper);
             var notifyCommand = new NotifyCommand();
             var associateCommand = new UserAssociateCommand(notifyCommand);
             var roleRemover = new ActiveP2pRoleRemover(Config, Log, checkRepo);
@@ -111,7 +111,7 @@ namespace BiblioTech
 
         private static void PrintHelp()
         {
-            Log.Log("BiblioTech - Codex Discord Bot");
+            Log.Log("BiblioTech - Archivist Discord Bot");
         }
 
         private Task ClientLog(LogMessage msg)

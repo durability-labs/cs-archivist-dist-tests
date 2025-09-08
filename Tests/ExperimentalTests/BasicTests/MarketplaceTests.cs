@@ -1,8 +1,8 @@
-﻿using CodexClient;
-using CodexContractsPlugin;
-using CodexContractsPlugin.Marketplace;
-using CodexPlugin;
-using CodexTests;
+using ArchivistClient;
+using ArchivistContractsPlugin;
+using ArchivistContractsPlugin.Marketplace;
+using ArchivistPlugin;
+using ArchivistTests;
 using FileUtils;
 using GethPlugin;
 using NUnit.Framework;
@@ -31,14 +31,14 @@ namespace ExperimentalTests.BasicTests
             );
 
             var geth = StartGethNode(s => s.IsMiner().WithName("disttest-geth"));
-            var contracts = Ci.StartCodexContracts(geth, BootstrapNode.Version);
+            var contracts = Ci.StartArchivistContracts(geth, BootstrapNode.Version);
 
             var numberOfHosts = 5;
-            var hosts = StartCodex(numberOfHosts, s => s
+            var hosts = StartArchivist(numberOfHosts, s => s
                 .WithName("Host")
-                .WithLogLevel(CodexLogLevel.Trace, new CodexLogCustomTopics(CodexLogLevel.Error, CodexLogLevel.Error, CodexLogLevel.Warn)
+                .WithLogLevel(ArchivistLogLevel.Trace, new ArchivistLogCustomTopics(ArchivistLogLevel.Error, ArchivistLogLevel.Error, ArchivistLogLevel.Warn)
                 {
-                    ContractClock = CodexLogLevel.Trace,
+                    ContractClock = ArchivistLogLevel.Trace,
                 })
                 .WithStorageQuota(11.GB())
                 .EnableMarketplace(geth, contracts, m => m
@@ -61,7 +61,7 @@ namespace ExperimentalTests.BasicTests
 
             var testFile = CreateFile(fileSize);
 
-            var client = StartCodex(s => s
+            var client = StartArchivist(s => s
                 .WithName("Client")
                 .EnableMarketplace(geth, contracts, m => m
                     .WithInitial(10.Eth(), clientInitialBalance)));
@@ -91,7 +91,7 @@ namespace ExperimentalTests.BasicTests
             testFile.AssertIsEqual(client.DownloadContent(contractCid));
 
             // Download both from another node.
-            var downloader = StartCodex(s => s.WithName("Downloader"));
+            var downloader = StartArchivist(s => s.WithName("Downloader"));
             testFile.AssertIsEqual(downloader.DownloadContent(uploadCid));
             testFile.AssertIsEqual(downloader.DownloadContent(contractCid));
 
@@ -111,7 +111,7 @@ namespace ExperimentalTests.BasicTests
 
             purchaseContract.WaitForStorageContractFinished();
 
-            // todo: removed from codexclient:
+            // todo: removed from archivistclient:
             //contracts.WaitUntilNextPeriod();
             //contracts.WaitUntilNextPeriod();
 
@@ -135,7 +135,7 @@ namespace ExperimentalTests.BasicTests
             );
         }
 
-        private void WaitForAllSlotFilledEvents(ICodexContracts contracts, StoragePurchaseRequest purchase, IGethNode geth)
+        private void WaitForAllSlotFilledEvents(IArchivistContracts contracts, StoragePurchaseRequest purchase, IGethNode geth)
         {
             Time.Retry(() =>
             {
@@ -148,7 +148,7 @@ namespace ExperimentalTests.BasicTests
             }, purchase.Expiry + TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(5), "Checking SlotFilled events");
         }
 
-        private void AssertStorageRequest(StorageRequestedEventDTO request, StoragePurchaseRequest purchase, ICodexContracts contracts, ICodexNode buyer)
+        private void AssertStorageRequest(StorageRequestedEventDTO request, StoragePurchaseRequest purchase, IArchivistContracts contracts, IArchivistNode buyer)
         {
             Assert.That(contracts.GetRequestState(request.RequestId), Is.EqualTo(RequestState.Started));
             var r = contracts.GetRequest(request.RequestId);
@@ -156,7 +156,7 @@ namespace ExperimentalTests.BasicTests
             Assert.That(request.Ask.Slots, Is.EqualTo(purchase.MinRequiredNumberOfNodes));
         }
 
-        private StorageRequestedEventDTO GetOnChainStorageRequest(ICodexContracts contracts, IGethNode geth)
+        private StorageRequestedEventDTO GetOnChainStorageRequest(IArchivistContracts contracts, IGethNode geth)
         {
             var events = contracts.GetEvents(GetTestRunTimeRange());
             var requests = events.GetStorageRequestedEvents();
@@ -164,7 +164,7 @@ namespace ExperimentalTests.BasicTests
             return requests.Single();
         }
 
-        private void AssertContractSlot(ICodexContracts contracts, StorageRequestedEventDTO request, int contractSlotIndex)
+        private void AssertContractSlot(IArchivistContracts contracts, StorageRequestedEventDTO request, int contractSlotIndex)
         {
             var slotHost = contracts.GetSlotHost(request.RequestId, contractSlotIndex);
             Assert.That(slotHost?.Address, Is.Not.Null);

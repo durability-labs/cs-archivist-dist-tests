@@ -118,7 +118,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "builder",
-          "expr": "codexApiUploads_total",
+          "expr": "archivistApiUploads_total",
           "instant": false,
           "range": true,
           "refId": "A"
@@ -210,7 +210,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "builder",
-          "expr": "codexApiDownloads_total",
+          "expr": "archivistApiDownloads_total",
           "instant": false,
           "range": true,
           "refId": "A"
@@ -315,7 +315,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "builder",
-          "expr": "codexRepostoreBlocks",
+          "expr": "archivistRepostoreBlocks",
           "instant": false,
           "range": true,
           "refId": "A"
@@ -408,7 +408,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "builder",
-          "expr": "codexRepostoreBytesReserved",
+          "expr": "archivistRepostoreBytesReserved",
           "instant": false,
           "range": true,
           "refId": "A"
@@ -432,7 +432,7 @@
             "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
-            "axisSoftMax": "<CODEX_BYTESUSED_SOFTMAX>",
+            "axisSoftMax": "<ARCHIVIST_BYTESUSED_SOFTMAX>",
             "axisSoftMin": 0,
             "barAlignment": 0,
             "drawStyle": "line",
@@ -469,7 +469,7 @@
               },
               {
                 "color": "red",
-                "value": "<CODEX_STORAGEQUOTA>"
+                "value": "<ARCHIVIST_STORAGEQUOTA>"
               }
             ]
           },
@@ -503,7 +503,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "builder",
-          "expr": "codexRepostoreBytesUsed",
+          "expr": "archivistRepostoreBytesUsed",
           "instant": false,
           "range": true,
           "refId": "A"
@@ -805,7 +805,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "builder",
-          "expr": "codexBlockExchangeBlocksSent_total",
+          "expr": "archivistBlockExchangeBlocksSent_total",
           "instant": false,
           "range": true,
           "refId": "A"
@@ -897,7 +897,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "builder",
-          "expr": "codexBlockExchangeBlocksReceived_total",
+          "expr": "archivistBlockExchangeBlocksReceived_total",
           "instant": false,
           "range": true,
           "refId": "A"
@@ -989,7 +989,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "builder",
-          "expr": "codexBlockExchangeWantHaveListsSent_total",
+          "expr": "archivistBlockExchangeWantHaveListsSent_total",
           "instant": false,
           "range": true,
           "refId": "A"
@@ -1081,7 +1081,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "builder",
-          "expr": "codexBlockExchangeWantBlockListsSent_total",
+          "expr": "archivistBlockExchangeWantBlockListsSent_total",
           "instant": false,
           "range": true,
           "refId": "A"
@@ -1173,7 +1173,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "builder",
-          "expr": "codexBlockExchangeWantHaveListsReceived_total",
+          "expr": "archivistBlockExchangeWantHaveListsReceived_total",
           "instant": false,
           "range": true,
           "refId": "A"
@@ -1265,7 +1265,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "builder",
-          "expr": "codexBlockExchangeWantBlockListsReceived_total",
+          "expr": "archivistBlockExchangeWantBlockListsReceived_total",
           "instant": false,
           "range": true,
           "refId": "A"
@@ -1370,7 +1370,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "builder",
-          "expr": "codexPurchasesPending_total",
+          "expr": "archivistPurchasesPending_total",
           "instant": false,
           "range": true,
           "refId": "A"
@@ -1462,7 +1462,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "builder",
-          "expr": "codexPurchasesSubmitted_total",
+          "expr": "archivistPurchasesSubmitted_total",
           "instant": false,
           "range": true,
           "refId": "A"
@@ -1554,7 +1554,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "builder",
-          "expr": "codexPurchasesStarted_total",
+          "expr": "archivistPurchasesStarted_total",
           "instant": false,
           "range": true,
           "refId": "A"
@@ -1646,7 +1646,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "builder",
-          "expr": "codexPurchasesFinished_total",
+          "expr": "archivistPurchasesFinished_total",
           "instant": false,
           "range": true,
           "refId": "A"
@@ -1738,7 +1738,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "builder",
-          "expr": "codexPurchasesFailed_total",
+          "expr": "archivistPurchasesFailed_total",
           "instant": false,
           "range": true,
           "refId": "A"
@@ -1830,7 +1830,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "builder",
-          "expr": "codexPurchasesCancelled_total",
+          "expr": "archivistPurchasesCancelled_total",
           "instant": false,
           "range": true,
           "refId": "A"
@@ -1922,7 +1922,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "builder",
-          "expr": "codexPurchasesUnknown_total",
+          "expr": "archivistPurchasesUnknown_total",
           "instant": false,
           "range": true,
           "refId": "A"
@@ -2014,7 +2014,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "builder",
-          "expr": "codexPurchasesError_total",
+          "expr": "archivistPurchasesError_total",
           "instant": false,
           "range": true,
           "refId": "A"
@@ -2057,7 +2057,7 @@
   },
   "timepicker": {},
   "timezone": "",
-  "title": "Codex",
+  "title": "Archivist",
   "uid": "ca93f344-dd41-48c4-95a7-876c340e3005",
   "version": 6,
   "weekStart": ""

@@ -1,4 +1,4 @@
-﻿using CodexContractsPlugin.ChainMonitor;
+using ArchivistContractsPlugin.ChainMonitor;
 using Utils;
 using YamlDotNet.Core;
 

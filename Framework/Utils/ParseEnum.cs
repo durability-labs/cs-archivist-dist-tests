@@ -1,4 +1,4 @@
-﻿namespace Utils
+namespace Utils
 {
     public static class ParseEnum
     {

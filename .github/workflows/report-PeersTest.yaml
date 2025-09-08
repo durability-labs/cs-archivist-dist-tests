@@ -12,7 +12,7 @@ jobs:
     uses: ./.github/workflows/run-continuous-tests.yaml
     with:
       source: ${{ format('{0}/{1}', github.server_url, github.repository) }}
-      branch: master
+      branch: main
       nameprefix: c-tests-report-peerstest-48h
       tests_target_duration: 48h
       tests_filter: PeersTest

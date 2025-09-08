@@ -1,6 +1,6 @@
-﻿using CodexClient;
-using CodexContractsPlugin;
-using CodexTests;
+using ArchivistClient;
+using ArchivistContractsPlugin;
+using ArchivistTests;
 using NUnit.Framework;
 using Utils;
 
@@ -12,7 +12,7 @@ namespace ExperimentalTests.DownloadConnectivityTests
         [Test]
         public void MetricsDoesNotInterfereWithPeerDownload()
         {
-            var nodes = StartCodex(2, s => s.EnableMetrics());
+            var nodes = StartArchivist(2, s => s.EnableMetrics());
 
             AssertAllNodesConnected(nodes);
         }
@@ -21,8 +21,8 @@ namespace ExperimentalTests.DownloadConnectivityTests
         public void MarketplaceDoesNotInterfereWithPeerDownload()
         {
             var geth = StartGethNode(s => s.IsMiner());
-            var contracts = Ci.StartCodexContracts(geth, BootstrapNode.Version);
-            var nodes = StartCodex(2, s => s.EnableMarketplace(geth, contracts, m => m
+            var contracts = Ci.StartArchivistContracts(geth, BootstrapNode.Version);
+            var nodes = StartArchivist(2, s => s.EnableMarketplace(geth, contracts, m => m
                 .WithInitial(10.Eth(), 1000.TstWei())));
 
             AssertAllNodesConnected(nodes);
@@ -34,12 +34,12 @@ namespace ExperimentalTests.DownloadConnectivityTests
             [Values(2, 5)] int numberOfNodes,
             [Values(1, 10)] int sizeMBs)
         {
-            var nodes = StartCodex(numberOfNodes);
+            var nodes = StartArchivist(numberOfNodes);
 
             AssertAllNodesConnected(nodes, sizeMBs);
         }
 
-        private void AssertAllNodesConnected(IEnumerable<ICodexNode> nodes, int sizeMBs = 10)
+        private void AssertAllNodesConnected(IEnumerable<IArchivistNode> nodes, int sizeMBs = 10)
         {
             CreatePeerDownloadTestHelpers().AssertFullDownloadInterconnectivity(nodes, sizeMBs.MB());
         }

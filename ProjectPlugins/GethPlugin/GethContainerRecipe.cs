@@ -1,11 +1,11 @@
-﻿using KubernetesWorkflow;
+using KubernetesWorkflow;
 using KubernetesWorkflow.Recipe;
 
 namespace GethPlugin
 {
     public class GethContainerRecipe : ContainerRecipeFactory
     {
-        public static string DockerImage { get; } = "codexstorage/dist-tests-geth:latest";
+        public static string DockerImage { get; } = "durabilitylabs/dist-tests-geth:latest";
         public static TimeSpan BlockInterval { get; } = TimeSpan.FromSeconds(1.0);
         private const string defaultArgs = "--ipcdisable --syncmode full";
 

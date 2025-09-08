@@ -1,4 +1,4 @@
-﻿namespace KubernetesWorkflow.Recipe
+namespace KubernetesWorkflow.Recipe
 {
     public class PodAnnotations
     {

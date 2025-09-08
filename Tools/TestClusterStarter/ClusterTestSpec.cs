@@ -1,4 +1,4 @@
-﻿using KubernetesWorkflow.Types;
+using KubernetesWorkflow.Types;
 
 namespace TestClusterStarter
 {
@@ -14,20 +14,20 @@ namespace TestClusterStarter
 
     public class ClusterTestSpec
     {
-        public ClusterTestSpec(string name, string filter, int replication, int durationSeconds, string? codexImageOverride)
+        public ClusterTestSpec(string name, string filter, int replication, int durationSeconds, string? archivistImageOverride)
         {
             Name = name;
             Filter = filter;
             Replication = replication;
             DurationSeconds = durationSeconds;
-            CodexImageOverride = codexImageOverride;
+            ArchivistImageOverride = archivistImageOverride;
         }
 
         public string Name { get; }
         public string Filter { get; }
         public int Replication { get; }
         public int DurationSeconds { get; }
-        public string? CodexImageOverride { get; }
+        public string? ArchivistImageOverride { get; }
     }
 
     public class ClusterTestDeployment

@@ -1,7 +1,7 @@
-﻿namespace KubernetesWorkflow
+namespace KubernetesWorkflow
 {
     public static class PublicIpService
     {
-        public static string Address { get; } = "ip.codex.storage";
+        public static string Address { get; } = "ip.archivist.storage";
     }
 }

@@ -1,4 +1,4 @@
-﻿using k8s;
+using k8s;
 using Logging;
 
 namespace KubernetesWorkflow

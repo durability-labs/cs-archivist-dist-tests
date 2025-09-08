@@ -1,4 +1,4 @@
-﻿using ArgsUniform;
+using ArgsUniform;
 using Logging;
 using Utils;
 
@@ -31,7 +31,7 @@ namespace TestNetRewarder
             if (connector == null) throw new Exception("Invalid Geth information");
 
             BotClient = new BotClient(Config, Log);
-            processor = new Processor(Config, BotClient, connector.GethNode, connector.CodexContracts, Log);
+            processor = new Processor(Config, BotClient, connector.GethNode, connector.ArchivistContracts, Log);
 
             EnsurePath(Config.DataPath);
             EnsurePath(Config.LogPath);

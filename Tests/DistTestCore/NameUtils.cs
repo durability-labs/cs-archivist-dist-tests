@@ -1,4 +1,4 @@
-﻿using Logging;
+using Logging;
 using NUnit.Framework;
 
 namespace DistTestCore
@@ -76,7 +76,7 @@ namespace DistTestCore
         private static string ReplaceInvalidCharacters(string name)
         {
             return name
-                .Replace("codexstorage/nim-codex:", "")
+                .Replace("durabilitylabs/archivist-node:", "")
                 .Replace("-dist-tests", "")
                 .Replace(":", "_")
                 .Replace("/", "_")

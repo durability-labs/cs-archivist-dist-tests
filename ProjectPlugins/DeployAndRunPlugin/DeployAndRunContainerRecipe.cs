@@ -1,4 +1,4 @@
-﻿using KubernetesWorkflow;
+using KubernetesWorkflow;
 using KubernetesWorkflow.Recipe;
 
 namespace DeployAndRunPlugin
@@ -12,9 +12,9 @@ namespace DeployAndRunPlugin
         {
             var setup = config.Get<RunConfig>();
 
-            if (setup.CodexImageOverride != null)
+            if (setup.ArchivistImageOverride != null)
             {
-                AddEnvVar("CODEXDOCKERIMAGE", setup.CodexImageOverride);
+                AddEnvVar("ARCHIVISTDOCKERIMAGE", setup.ArchivistImageOverride);
             }
 
             AddEnvVar("DNR_REP", setup.Replications.ToString());
@@ -23,28 +23,28 @@ namespace DeployAndRunPlugin
             AddEnvVar("DNR_DURATION", setup.Duration.TotalSeconds.ToString());
 
             AddEnvVar("KUBECONFIG", "/opt/kubeconfig.yaml");
-            AddEnvVar("LOGPATH", "/var/log/codex-continuous-tests");
+            AddEnvVar("LOGPATH", "/var/log/archivist-continuous-tests");
 
-            AddVolume(name: "kubeconfig", mountPath: "/opt/kubeconfig.yaml", subPath: "kubeconfig.yaml", secret: "codex-dist-tests-app-kubeconfig");
-            AddVolume(name: "logs", mountPath: "/var/log/codex-continuous-tests", hostPath: "/var/log/codex-continuous-tests");
+            AddVolume(name: "kubeconfig", mountPath: "/opt/kubeconfig.yaml", subPath: "kubeconfig.yaml", secret: "archivist-dist-tests-app-kubeconfig");
+            AddVolume(name: "logs", mountPath: "/var/log/archivist-continuous-tests", hostPath: "/var/log/archivist-continuous-tests");
         }
     }
 
     public class RunConfig
     {
-        public RunConfig(string name, string filter, TimeSpan duration, int replications, string? codexImageOverride = null)
+        public RunConfig(string name, string filter, TimeSpan duration, int replications, string? archivistImageOverride = null)
         {
             Name = name;
             Filter = filter;
             Duration = duration;
             Replications = replications;
-            CodexImageOverride = codexImageOverride;
+            ArchivistImageOverride = archivistImageOverride;
         }
 
         public string Name { get; }
         public string Filter { get; }
         public TimeSpan Duration { get; }
         public int Replications { get; }
-        public string? CodexImageOverride { get; }
+        public string? ArchivistImageOverride { get; }
     }
 }

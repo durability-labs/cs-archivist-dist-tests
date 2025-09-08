@@ -1,20 +1,20 @@
-﻿using CodexClient;
-using CodexPlugin;
+using ArchivistClient;
+using ArchivistPlugin;
 using NUnit.Framework;
 
-namespace CodexTests
+namespace ArchivistTests
 {
-    public class AutoBootstrapDistTest : CodexDistTest
+    public class AutoBootstrapDistTest : ArchivistDistTest
     {
         private bool isBooting = false;
 
-        public ICodexNode BootstrapNode { get; private set; } = null!;
+        public IArchivistNode BootstrapNode { get; private set; } = null!;
 
         [SetUp]
         public void SetupBootstrapNode()
         {
             isBooting = true;
-            BootstrapNode = StartCodex(s => s.WithName("BOOTSTRAP_" + GetTestNamespace()));
+            BootstrapNode = StartArchivist(s => s.WithName("BOOTSTRAP_" + GetTestNamespace()));
             isBooting = false;
         }
 
@@ -24,7 +24,7 @@ namespace CodexTests
             BootstrapNode.Stop(waitTillStopped: false);
         }
 
-        protected override void OnCodexSetup(ICodexSetup setup)
+        protected override void OnArchivistSetup(IArchivistSetup setup)
         {
             if (isBooting) return;
 

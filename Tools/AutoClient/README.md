@@ -1,4 +1,4 @@
-# Codex auto-client
+# Archivist auto-client
 
 This thing will generate files, upload them, and purchase storage for them in an endless loop.
 
@@ -6,16 +6,16 @@ Can generate random images or random data of a specified size.
 
 ## How to run
 
-- dotnet 8.0 and CLI arguments: `dotnet run -- --codex-host=... --codex-port=...`
-- docker and env-vars: `codexstorage/codex-autoclient:sha-88daab3`
+- dotnet 8.0 and CLI arguments: `dotnet run -- --archivist-host=... --archivist-port=...`
+- docker and env-vars: `durabilitylabs/archivist-autoclient:sha-f5ae024`
 
 ## Configuration options
 Options can be configured via CLI option or environment variable.
 
 | CLI option              | Environment variable | Description                                                                                                         |
 |-------------------------|----------------------|---------------------------------------------------------------------------------------------------------------------|
-| "--codex-host"          | "CODEXHOST"          | Codex Host address. (default 'http://localhost')                                                                    |
-| "--codex-port"          | "CODEXPORT"          | port number of Codex API. (8080 by default)                                                                         |
+| "--archivist-host"      | "ARCHIVISTHOST"      | Archivist Host address. (default 'http://localhost')                                                                |
+| "--archivist-port"      | "ARCHIVISTPORT"      | port number of Archivist API. (8080 by default)                                                                     |
 | "--datapath"            | "DATAPATH"           | Root path where all data files will be saved.                                                                       |
 | "--purchases"           | "PURCHASES"          | Number of concurrent purchases.                                                                                     |
 | "--contract-duration"   | "CONTRACTDURATION"   | contract duration in minutes. (default 6 hours)                                                                     |

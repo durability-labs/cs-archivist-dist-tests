@@ -1,4 +1,4 @@
-﻿using GethPlugin;
+using GethPlugin;
 using NUnit.Framework;
 
 namespace FrameworkTests.Utils

@@ -1,4 +1,4 @@
-﻿using ArgsUniform;
+using ArgsUniform;
 
 namespace TestClusterStarter
 {

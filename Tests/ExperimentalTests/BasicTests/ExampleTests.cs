@@ -1,6 +1,6 @@
-﻿using CodexClient;
-using CodexPlugin;
-using CodexTests;
+using ArchivistClient;
+using ArchivistPlugin;
+using ArchivistTests;
 using DistTestCore;
 using MetricsPlugin;
 using NUnit.Framework;
@@ -9,12 +9,12 @@ using Utils;
 namespace ExperimentalTests.BasicTests
 {
     [TestFixture]
-    public class ExampleTests : CodexDistTest
+    public class ExampleTests : ArchivistDistTest
     {
         [Test]
-        public void CodexLogExample()
+        public void ArchivistLogExample()
         {
-            var primary = StartCodex(s => s.WithLogLevel(CodexLogLevel.Trace, new CodexLogCustomTopics(CodexLogLevel.Warn, CodexLogLevel.Warn)));
+            var primary = StartArchivist(s => s.WithLogLevel(ArchivistLogLevel.Trace, new ArchivistLogCustomTopics(ArchivistLogLevel.Warn, ArchivistLogLevel.Warn)));
 
             var cid = primary.UploadFile(GenerateTestFile(5.MB()));
 
@@ -29,8 +29,8 @@ namespace ExperimentalTests.BasicTests
         [Test]
         public void TwoMetricsExample()
         {
-            var group = StartCodex(2, s => s.EnableMetrics());
-            var group2 = StartCodex(2, s => s.EnableMetrics());
+            var group = StartArchivist(2, s => s.EnableMetrics());
+            var group2 = StartArchivist(2, s => s.EnableMetrics());
 
             var primary = group[0];
             var secondary = group[1];

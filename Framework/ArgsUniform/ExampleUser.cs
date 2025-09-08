@@ -1,4 +1,4 @@
-﻿namespace ArgsUniform
+namespace ArgsUniform
 {
     public class ExampleUser
     {

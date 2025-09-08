@@ -1,4 +1,4 @@
-﻿using FileUtils;
+using FileUtils;
 using KubernetesWorkflow;
 using Logging;
 using WebUtils;

@@ -1,4 +1,4 @@
-﻿using Logging;
+using Logging;
 using Utils;
 
 namespace AutoClient.Modes.FolderStore
@@ -70,7 +70,7 @@ namespace AutoClient.Modes.FolderStore
         private void PerformCheck(EthAddress address)
         {
             var geth = connector!.GethNode;
-            var contracts = connector!.CodexContracts;
+            var contracts = connector!.ArchivistContracts;
 
             var eth = geth.GetEthBalance(address);
             var tst = contracts.GetTestTokenBalance(address);
@@ -95,7 +95,7 @@ namespace AutoClient.Modes.FolderStore
             }
         }
 
-        private void TryAddTst(CodexContractsPlugin.ICodexContracts contracts, EthAddress addr)
+        private void TryAddTst(ArchivistContractsPlugin.IArchivistContracts contracts, EthAddress addr)
         {
             try
             {

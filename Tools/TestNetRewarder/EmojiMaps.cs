@@ -1,4 +1,4 @@
-﻿namespace TestNetRewarder
+namespace TestNetRewarder
 {
     public class EmojiMaps
     {

@@ -1,4 +1,4 @@
-﻿using KubernetesWorkflow;
+using KubernetesWorkflow;
 using KubernetesWorkflow.Recipe;
 
 namespace MetricsPlugin
@@ -6,7 +6,7 @@ namespace MetricsPlugin
     public class PrometheusContainerRecipe : ContainerRecipeFactory
     {
         public override string AppName => "prometheus";
-        public override string Image => "codexstorage/dist-tests-prometheus:latest";
+        public override string Image => "durabilitylabs/dist-tests-prometheus:latest";
 
         public const string PortTag = "prometheus_port_tag";
 
