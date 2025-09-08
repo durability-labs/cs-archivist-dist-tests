@@ -1,6 +1,6 @@
-﻿using NUnit.Framework;
+using NUnit.Framework;
 
 [assembly: LevelOfParallelism(1)]
-namespace CodexTests
+namespace ArchivistTests
 {
 }

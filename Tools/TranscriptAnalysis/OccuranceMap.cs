@@ -1,4 +1,4 @@
-﻿namespace TranscriptAnalysis
+namespace TranscriptAnalysis
 {
     public class OccuranceMap
     {

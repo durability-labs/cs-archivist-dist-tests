@@ -1,5 +1,5 @@
-﻿using CodexContractsPlugin;
-using CodexContractsPlugin.ChainMonitor;
+using ArchivistContractsPlugin;
+using ArchivistContractsPlugin.ChainMonitor;
 using GethPlugin;
 using TestNetRewarder;
 using Utils;
@@ -14,7 +14,7 @@ namespace MarketInsights
         private readonly int maxContributions;
         private readonly ChainState chainState;
 
-        public AverageHistory(AppState appState, IGethNode geth, ICodexContracts contracts, int maxContributions)
+        public AverageHistory(AppState appState, IGethNode geth, IArchivistContracts contracts, int maxContributions)
         {
             this.appState = appState;
             this.maxContributions = maxContributions;

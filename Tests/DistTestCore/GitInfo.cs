@@ -1,4 +1,4 @@
-﻿using KubernetesWorkflow;
+using KubernetesWorkflow;
 using LibGit2Sharp;
 using System.Reflection;
 

@@ -1,4 +1,4 @@
-﻿namespace MarketInsights
+namespace MarketInsights
 {
     public class MarketOverview
     {

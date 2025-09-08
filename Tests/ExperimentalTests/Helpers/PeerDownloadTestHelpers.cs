@@ -1,10 +1,10 @@
-﻿using CodexClient;
+using ArchivistClient;
 using FileUtils;
 using Logging;
 using Utils;
-using static CodexTests.Helpers.FullConnectivityHelper;
+using static ArchivistTests.Helpers.FullConnectivityHelper;
 
-namespace CodexTests.Helpers
+namespace ArchivistTests.Helpers
 {
     public class PeerDownloadTestHelpers : IFullConnectivityImplementation
     {
@@ -19,7 +19,7 @@ namespace CodexTests.Helpers
             this.fileManager = fileManager;
         }
 
-        public void AssertFullDownloadInterconnectivity(IEnumerable<ICodexNode> nodes, ByteSize testFileSize)
+        public void AssertFullDownloadInterconnectivity(IEnumerable<IArchivistNode> nodes, ByteSize testFileSize)
         {
             this.testFileSize = testFileSize;
             helper.AssertFullyConnected(nodes);
@@ -60,12 +60,12 @@ namespace CodexTests.Helpers
             // Should an exception occur during upload, then this try is inconclusive and we try again next loop.
         }
 
-        private TrackedFile? DownloadFile(ICodexNode node, ContentId contentId, string label)
+        private TrackedFile? DownloadFile(IArchivistNode node, ContentId contentId, string label)
         {
             return node.DownloadContent(contentId, label);
         }
 
-        private TrackedFile GenerateTestFile(ICodexNode uploader, ICodexNode downloader)
+        private TrackedFile GenerateTestFile(IArchivistNode uploader, IArchivistNode downloader)
         {
             var up = uploader.GetName().Replace("<", "").Replace(">", "");
             var down = downloader.GetName().Replace("<", "").Replace(">", "");

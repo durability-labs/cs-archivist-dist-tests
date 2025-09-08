@@ -1,4 +1,4 @@
-﻿using Nethereum.Hex.HexTypes;
+using Nethereum.Hex.HexTypes;
 using System.Numerics;
 
 namespace BlockchainUtils

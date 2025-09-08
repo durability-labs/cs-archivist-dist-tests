@@ -1,4 +1,4 @@
-﻿using BlockchainUtils;
+using BlockchainUtils;
 using Logging;
 using Nethereum.Web3;
 using Utils;

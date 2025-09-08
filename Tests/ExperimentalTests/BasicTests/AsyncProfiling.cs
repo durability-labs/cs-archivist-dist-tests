@@ -1,17 +1,17 @@
-﻿using NUnit.Framework;
+using NUnit.Framework;
 using MetricsPlugin;
 using Utils;
-using CodexTests;
+using ArchivistTests;
 
 namespace ExperimentalTests.BasicTests
 {
     [TestFixture]
-    public class AsyncProfiling : CodexDistTest
+    public class AsyncProfiling : ArchivistDistTest
     {
         [Test]
         public void AsyncProfileMetricsPlz()
         {
-            var node = StartCodex(s => s.EnableMetrics());
+            var node = StartArchivist(s => s.EnableMetrics());
             var metrics = Ci.GetMetricsFor(scrapeInterval: TimeSpan.FromSeconds(3.0), node).Single();
 
             var file = GenerateTestFile(100.MB());

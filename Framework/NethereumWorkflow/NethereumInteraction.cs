@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using System.Numerics;
 using BlockchainUtils;
 using Logging;
 using Nethereum.ABI.FunctionEncoding.Attributes;

@@ -1,5 +1,5 @@
-﻿using System.Linq;
-using BiblioTech.CodexChecking;
+using System.Linq;
+using BiblioTech.ArchivistChecking;
 using BiblioTech.Options;
 using Discord;
 
@@ -26,15 +26,15 @@ namespace BiblioTech.Commands
             await context.Followup("Could not download the CID.");
         }
 
-        public async Task CodexUnavailable()
+        public async Task ArchivistUnavailable()
         {
-            await context.Followup("Couldn't perform check: Our Codex node appears unavailable. Try again later?");
+            await context.Followup("Couldn't perform check: Our Archivist node appears unavailable. Try again later?");
         }
 
         public async Task GiveCidToUser(string cid)
         {
             await context.Followup(
-                FormatCatchyMessage("[💾] Please download this CID using your Codex node.",
+                FormatCatchyMessage("[💾] Please download this CID using your Archivist node.",
                 $"👉 `{cid}`.",
                 "👉 Then provide the *content of the downloaded file* as argument to this command."));
         }
@@ -43,7 +43,7 @@ namespace BiblioTech.Commands
         {
             await context.SendFile(fileContent,
                 FormatCatchyMessage("[💿] Please download the attached file.",
-                "👉 Upload it to your Codex node.",
+                "👉 Upload it to your Archivist node.",
                 "👉 Then provide the *CID* as argument to this command."));
         }
 
@@ -87,7 +87,7 @@ namespace BiblioTech.Commands
             {
                 await context.Followup($"Successfully completed the check!{Environment.NewLine}" +
                     $"You haven't yet set your ethereum address. Consider using '/set' to set it.{Environment.NewLine}" +
-                    $"(You can find your address in the 'eth.address' file of your Codex node.)");
+                    $"(You can find your address in the 'eth.address' file of your Archivist node.)");
 
                 await Program.AdminChecker.SendInAdminChannel($"User <@{user.Id}> has completed check: {checkName}" +
                     $" - EthAddress not set for user. User was reminded.");

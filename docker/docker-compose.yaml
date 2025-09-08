@@ -4,7 +4,7 @@ services:
       context: ..
       dockerfile: docker/Dockerfile
     environment:
-      - CODEXDOCKERIMAGE=codexstorage/nim-codex:sha-14c5270
+      - ARCHIVISTDOCKERIMAGE=durabilitylabs/archivist-node:sha-9817b12
       - BRANCH="feature/docker-image-testruns"
       - KUBECONFIG=/opt/kubeconfig
       - LOGPATH=/opt/logs
@@ -13,7 +13,7 @@ services:
   continuous-test-run:
     image: thatbenbierens/dist-tests-deployandrun:initial
     environment:
-      # - CODEXDOCKERIMAGE=imageoverride
+      # - ARCHIVISTDOCKERIMAGE=imageoverride
       - DNR_REP=3
       - DNR_NAME=Tryout
       - DNR_FILTER=PeernBeer

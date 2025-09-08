@@ -1,4 +1,4 @@
-﻿using Logging;
+using Logging;
 using Utils;
 
 namespace TestNetRewarder

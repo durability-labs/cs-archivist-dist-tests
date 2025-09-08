@@ -1,10 +1,10 @@
-﻿using Discord.Net;
+using Discord.Net;
 using Discord.WebSocket;
 using Discord;
 using Newtonsoft.Json;
 using BiblioTech.Rewards;
 using Logging;
-using BiblioTech.CodexChecking;
+using BiblioTech.ArchivistChecking;
 using Nethereum.Model;
 
 namespace BiblioTech

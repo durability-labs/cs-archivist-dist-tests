@@ -1,9 +1,9 @@
-﻿using DistTestCore.Helpers;
+using DistTestCore.Helpers;
 using Logging;
 using MetricsPlugin;
 using NUnit.Framework.Constraints;
 
-namespace CodexTests
+namespace ArchivistTests
 {
     public static class MetricsAccessExtensions
     {

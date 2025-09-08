@@ -1,4 +1,4 @@
-﻿using BlockchainUtils;
+using BlockchainUtils;
 using Logging;
 using Nethereum.RPC.Eth.DTOs;
 using Nethereum.Web3;

@@ -9,11 +9,11 @@ on:
         required: false
         type: string
       branch:
-        description: Branch with tests (master)
+        description: Branch with tests (main)
         required: false
         type: string
-      codexdockerimage:
-        description: Codex Docker image (codexstorage/nim-codex:latest-dist-tests)
+      archivistdockerimage:
+        description: Archivist Docker image (durabilitylabs/archivist-node:latest-dist-tests)
         required: false
         type: string
       nameprefix:
@@ -40,11 +40,11 @@ on:
         required: false
         type: string
       branch:
-        description: Branch with tests (master)
+        description: Branch with tests (main)
         required: false
         type: string
-      codexdockerimage:
-        description: Codex Docker image (codexstorage/nim-codex:latest-dist-tests)
+      archivistdockerimage:
+        description: Archivist Docker image (durabilitylabs/archivist-node:latest-dist-tests)
         required: false
         type: string
       nameprefix:
@@ -74,7 +74,7 @@ on:
 env:
   SOURCE: ${{ format('{0}/{1}', github.server_url, github.repository) }}
   BRANCH: ${{ github.ref_name }}
-  CODEXDOCKERIMAGE: codexstorage/nim-codex:latest-dist-tests
+  ARCHIVISTDOCKERIMAGE: durabilitylabs/archivist-node:latest-dist-tests
   NAMEPREFIX: c-tests
   NAMESPACE: default
   TESTS_TARGET_DURATION: 2d
@@ -102,7 +102,7 @@ jobs:
           echo "TESTID=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
           [[ -n "${{ inputs.source }}" ]] && echo "SOURCE=${{ inputs.source }}" >>"$GITHUB_ENV" || echo "SOURCE=${{ env.SOURCE }}" >>"$GITHUB_ENV"
           [[ -n "${{ inputs.branch }}" ]] && echo "BRANCH=${{ inputs.branch }}" >>"$GITHUB_ENV" || echo "BRANCH=${{ env.BRANCH }}" >>"$GITHUB_ENV"
-          [[ -n "${{ inputs.codexdockerimage }}" ]] && echo "CODEXDOCKERIMAGE=${{ inputs.codexdockerimage }}" >>"$GITHUB_ENV" || echo "CODEXDOCKERIMAGE=${{ env.CODEXDOCKERIMAGE }}" >>"$GITHUB_ENV"
+          [[ -n "${{ inputs.archivistdockerimage }}" ]] && echo "ARCHIVISTDOCKERIMAGE=${{ inputs.archivistdockerimage }}" >>"$GITHUB_ENV" || echo "ARCHIVISTDOCKERIMAGE=${{ env.ARCHIVISTDOCKERIMAGE }}" >>"$GITHUB_ENV"
           [[ -n "${{ inputs.nameprefix }}" ]] && NAMEPREFIX="`awk '{ print tolower($0) }' <<< ${{ inputs.nameprefix }}`" || NAMEPREFIX="`awk '{ print tolower($0) }' <<< ${{ env.NAMEPREFIX }}`"
           echo "NAMEPREFIX=${NAMEPREFIX}-${RUNID}" >>"$GITHUB_ENV"
           echo "DEPLOYMENT_NAMESPACE=${NAMEPREFIX}-${RUNID}" >>"$GITHUB_ENV"
@@ -135,7 +135,7 @@ jobs:
           echo "Runner namespace: ${{ env.NAMESPACE }}"
           echo "----"
           echo "Tests runid: ${{ env.RUNID }}"
-          echo "Tests codexdockerimage: ${{ env.CODEXDOCKERIMAGE }}"
+          echo "Tests archivistdockerimage: ${{ env.ARCHIVISTDOCKERIMAGE }}"
           echo "Tests namespace: ${{ env.DEPLOYMENT_NAMESPACE }}"
           echo "Tests duration: ${{ env.TESTS_TARGET_DURATION }}"
           echo "Tests filter: ${{ env.TESTS_FILTER }}"

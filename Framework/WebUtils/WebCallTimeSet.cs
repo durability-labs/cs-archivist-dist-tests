@@ -1,4 +1,4 @@
-﻿namespace WebUtils
+namespace WebUtils
 {
     public interface IWebCallTimeSet
     {

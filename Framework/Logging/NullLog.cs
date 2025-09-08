@@ -1,4 +1,4 @@
-﻿namespace Logging
+namespace Logging
 {
     public class NullLog : BaseLog
     {

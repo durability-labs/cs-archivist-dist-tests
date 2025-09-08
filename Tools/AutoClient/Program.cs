@@ -1,7 +1,7 @@
-﻿using ArgsUniform;
+using ArgsUniform;
 using AutoClient;
 using AutoClient.Modes;
-using CodexClient;
+using ArchivistClient;
 using GethPlugin;
 using Utils;
 using WebUtils;
@@ -36,8 +36,8 @@ public class Program
     public void Run()
     {
         if (app.Config.ContractDurationMinutes - 1 < 5) throw new Exception("Contract duration config option not long enough!");
-        var codexNodes = CreateCodexWrappers();
-        var loadBalancer = new LoadBalancer(app, codexNodes);
+        var archivistNodes = CreateArchivistWrappers();
+        var loadBalancer = new LoadBalancer(app, archivistNodes);
         loadBalancer.Start();
 
         var folderStore = new FolderStoreMode(app, loadBalancer);
@@ -51,15 +51,15 @@ public class Program
         app.Log.Log("Done");
     }
 
-    private CodexWrapper[] CreateCodexWrappers()
+    private ArchivistWrapper[] CreateArchivistWrappers()
     {
-        var endpointStrs = app.Config.CodexEndpoints.Split(";", StringSplitOptions.RemoveEmptyEntries);
-        var result = new List<CodexWrapper>();
+        var endpointStrs = app.Config.ArchivistEndpoints.Split(";", StringSplitOptions.RemoveEmptyEntries);
+        var result = new List<ArchivistWrapper>();
 
         var i = 1;
         foreach (var e in endpointStrs)
         {
-            result.Add(CreateCodexWrapper(e, i));
+            result.Add(CreateArchivistWrapper(e, i));
             i++;
         }
 
@@ -68,7 +68,7 @@ public class Program
 
     private readonly string LogLevel = "TRACE;info:discv5,providers,routingtable,manager,cache;warn:libp2p,multistream,switch,transport,tcptransport,semaphore,asyncstreamwrapper,lpstream,mplex,mplexchannel,noise,bufferstream,mplexcoder,secure,chronosstream,connection,websock,ws-session,muxedupgrade,upgrade,identify,contracts,clock,serde,json,serialization,JSONRPC-WS-CLIENT,JSONRPC-HTTP-CLIENT,repostore";
 
-    private CodexWrapper CreateCodexWrapper(string endpoint, int number)
+    private ArchivistWrapper CreateArchivistWrapper(string endpoint, int number)
     {
         var splitIndex = endpoint.LastIndexOf(':');
         var host = endpoint.Substring(0, splitIndex);
@@ -83,16 +83,16 @@ public class Program
         var numberStr = number.ToString().PadLeft(3, '0');
         var log = new LogPrefixer(app.Log, $"[{numberStr}] ");
         var httpFactory = new HttpFactory(log, new AutoClientWebTimeSet());
-        var codexNodeFactory = new CodexNodeFactory(log: log, httpFactory: httpFactory, dataDir: app.Config.DataPath);
-        var instance = CodexInstance.CreateFromApiEndpoint($"[AC-{numberStr}]", address, EthAccountGenerator.GenerateNew());
-        var node = codexNodeFactory.CreateCodexNode(instance);
+        var archivistNodeFactory = new ArchivistNodeFactory(log: log, httpFactory: httpFactory, dataDir: app.Config.DataPath);
+        var instance = ArchivistInstance.CreateFromApiEndpoint($"[AC-{numberStr}]", address, EthAccountGenerator.GenerateNew());
+        var node = archivistNodeFactory.CreateArchivistNode(instance);
 
         node.SetLogLevel(LogLevel);
-        return new CodexWrapper(app, node);
+        return new ArchivistWrapper(app, node);
     }
 
     private static void PrintHelp()
     {
-        Console.WriteLine("Generates fake data and creates Codex storage contracts for it.");
+        Console.WriteLine("Generates fake data and creates Archivist storage contracts for it.");
     }
 }

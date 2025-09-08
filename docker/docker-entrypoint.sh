@@ -2,14 +2,14 @@
 
 # Variables
 ## Common
-SOURCE="${SOURCE:-https://github.com/codex-storage/cs-codex-dist-tests.git}"
-BRANCH="${BRANCH:-master}"
-FOLDER="${FOLDER:-/opt/cs-codex-dist-tests}"
+SOURCE="${SOURCE:-https://github.com/durability-labs/cs-archivist-dist-tests.git}"
+BRANCH="${BRANCH:-main}"
+FOLDER="${FOLDER:-/opt/cs-archivist-dist-tests}"
 
 ## Tests specific
-DEPLOYMENT_CODEXNETDEPLOYER_PATH="${DEPLOYMENT_CODEXNETDEPLOYER_PATH:-Tools/CodexNetDeployer}"
-DEPLOYMENT_CODEXNETDEPLOYER_RUNNER="${DEPLOYMENT_CODEXNETDEPLOYER_RUNNER:-deploy-continuous-testnet.sh}"
-CONTINUOUS_TESTS_FOLDER="${CONTINUOUS_TESTS_FOLDER:-Tests/CodexContinuousTests}"
+DEPLOYMENT_ARCHIVISTNETDEPLOYER_PATH="${DEPLOYMENT_ARCHIVISTNETDEPLOYER_PATH:-Tools/ArchivistNetDeployer}"
+DEPLOYMENT_ARCHIVISTNETDEPLOYER_RUNNER="${DEPLOYMENT_ARCHIVISTNETDEPLOYER_RUNNER:-deploy-continuous-testnet.sh}"
+CONTINUOUS_TESTS_FOLDER="${CONTINUOUS_TESTS_FOLDER:-Tests/ArchivistContinuousTests}"
 CONTINUOUS_TESTS_RUNNER="${CONTINUOUS_TESTS_RUNNER:-run.sh}"
 
 # Get code
@@ -22,8 +22,8 @@ cd "${FOLDER}"
 echo -e "Running tests from branch '$(git branch --show-current) ($(git rev-parse --short HEAD))'\n"
 
 if [[ "${TESTS_TYPE}" == "continuous-tests" ]]; then
-  echo -e "Running CodexNetDeployer\n"
-  bash "${DEPLOYMENT_CODEXNETDEPLOYER_PATH}"/"${DEPLOYMENT_CODEXNETDEPLOYER_RUNNER}"
+  echo -e "Running ArchivistNetDeployer\n"
+  bash "${DEPLOYMENT_ARCHIVISTNETDEPLOYER_PATH}"/"${DEPLOYMENT_ARCHIVISTNETDEPLOYER_RUNNER}"
   echo
   echo -e "Running continuous-tests\n"
   bash "${CONTINUOUS_TESTS_FOLDER}"/"${CONTINUOUS_TESTS_RUNNER}"

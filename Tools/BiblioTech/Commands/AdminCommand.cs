@@ -1,4 +1,4 @@
-﻿using BiblioTech.Options;
+using BiblioTech.Options;
 using BiblioTech.Rewards;
 
 namespace BiblioTech.Commands

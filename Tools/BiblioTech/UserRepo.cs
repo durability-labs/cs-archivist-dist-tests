@@ -1,4 +1,4 @@
-﻿using CodexContractsPlugin;
+using ArchivistContractsPlugin;
 using Discord;
 using GethPlugin;
 using Newtonsoft.Json;

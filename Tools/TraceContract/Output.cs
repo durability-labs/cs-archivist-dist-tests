@@ -1,7 +1,7 @@
-﻿using System.Numerics;
+using System.Numerics;
 using BlockchainUtils;
-using CodexContractsPlugin.ChainMonitor;
-using CodexContractsPlugin.Marketplace;
+using ArchivistContractsPlugin.ChainMonitor;
+using ArchivistContractsPlugin.Marketplace;
 using Logging;
 using Newtonsoft.Json;
 using Utils;

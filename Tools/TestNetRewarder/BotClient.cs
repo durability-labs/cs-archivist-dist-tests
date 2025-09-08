@@ -1,4 +1,4 @@
-﻿using DiscordRewards;
+using DiscordRewards;
 using Logging;
 using System.Net.Http.Json;
 

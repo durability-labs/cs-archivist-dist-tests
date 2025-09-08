@@ -1,13 +1,13 @@
-﻿namespace GethConnector
+namespace GethConnector
 {
     public static class GethInput
     {
         private const string GethHostVar = "GETH_HOST";
         private const string GethPortVar = "GETH_HTTP_PORT";
         private const string GethPrivKeyVar = "GETH_PRIVATE_KEY";
-        private const string MarketplaceAddressVar = "CODEXCONTRACTS_MARKETPLACEADDRESS";
-        private const string TokenAddressVar = "CODEXCONTRACTS_TOKENADDRESS";
-        private const string AbiVar = "CODEXCONTRACTS_ABI";
+        private const string MarketplaceAddressVar = "ARCHIVISTCONTRACTS_MARKETPLACEADDRESS";
+        private const string TokenAddressVar = "ARCHIVISTCONTRACTS_TOKENADDRESS";
+        private const string AbiVar = "ARCHIVISTCONTRACTS_ABI";
 
         static GethInput()
         {

@@ -1,4 +1,4 @@
-﻿namespace KubernetesWorkflow.Types
+namespace KubernetesWorkflow.Types
 {
     public class RunningDeployment
     {

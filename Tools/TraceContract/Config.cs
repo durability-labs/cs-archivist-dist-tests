@@ -1,8 +1,8 @@
-﻿namespace TraceContract
+namespace TraceContract
 {
     public class Config
     {
-        public string RpcEndpoint { get; } = "https://rpc.testnet.codex.storage";
+        public string RpcEndpoint { get; } = "https://rpc.testnet.archivist.storage";
         public int GethPort { get; } = 443;
         public string MarketplaceAddress { get; } = "0x5378a4EA5dA2a548ce22630A3AE74b052000C62D";
         public string TokenAddress { get; } = "0x34a22f3911De437307c6f4485931779670f78764";
@@ -24,31 +24,31 @@
         }
 
         public string[] StorageNodesKubernetesPodNames = [
-            "codex-1-1",
-            "codex-2-1",
-            "codex-3-1",
-            "codex-4-1",
-            "codex-5-1",
-            "codex-6-1",
-            "codex-7-1",
-            "codex-8-1",
-            "codex-9-1",
-            "codex-10-1",
-            // "codex-validator-1-1",
+            "archivist-1-1",
+            "archivist-2-1",
+            "archivist-3-1",
+            "archivist-4-1",
+            "archivist-5-1",
+            "archivist-6-1",
+            "archivist-7-1",
+            "archivist-8-1",
+            "archivist-9-1",
+            "archivist-10-1",
+            // "archivist-validator-1-1",
         ];
 
         public Dictionary<string, string> LogReplacements = new()
         {
-            { "0x3620ec38d88e9f0cf7feceebf97864f27676aa3e", "codex-01" },
-            { "0xd80dc50af2a826f2cddc13840d05aed4ee6536c3", "codex-02" },
-            { "0x2d1cd0fa0c7e0d29e7b2482b9ff87d5e7b76b905", "codex-03" },
-            { "0xd47063bb6e56c9a6edb7612d33ad7d49eeb55ee0", "codex-04" },
-            { "0x069da63e29b12a3828984379fcbd7dd3ee3774aa", "codex-05" },
-            { "0x43fcceb2a9ce4761ccaa4c9f8d390c7581c190aa", "codex-06" },
-            { "0x1a30cef06dbbf8ec25062e4e8d22e8df292f5054", "codex-07" },
-            { "0xe169b5dcbae9a7392072323aaf5a677a33d67ecd", "codex-08" },
-            { "0x21f7428619ef9f53addc5dab6723c822a8a96b42", "codex-09" },
-            { "0xf9bd20512de2d5ca0dcfd8d3cd08a2821917797a", "codex-10" }
+            { "0x3620ec38d88e9f0cf7feceebf97864f27676aa3e", "archivist-01" },
+            { "0xd80dc50af2a826f2cddc13840d05aed4ee6536c3", "archivist-02" },
+            { "0x2d1cd0fa0c7e0d29e7b2482b9ff87d5e7b76b905", "archivist-03" },
+            { "0xd47063bb6e56c9a6edb7612d33ad7d49eeb55ee0", "archivist-04" },
+            { "0x069da63e29b12a3828984379fcbd7dd3ee3774aa", "archivist-05" },
+            { "0x43fcceb2a9ce4761ccaa4c9f8d390c7581c190aa", "archivist-06" },
+            { "0x1a30cef06dbbf8ec25062e4e8d22e8df292f5054", "archivist-07" },
+            { "0xe169b5dcbae9a7392072323aaf5a677a33d67ecd", "archivist-08" },
+            { "0x21f7428619ef9f53addc5dab6723c822a8a96b42", "archivist-09" },
+            { "0xf9bd20512de2d5ca0dcfd8d3cd08a2821917797a", "archivist-10" }
         };
 
         public string GetElasticSearchUsername()

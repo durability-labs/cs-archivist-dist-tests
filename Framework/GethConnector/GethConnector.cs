@@ -1,6 +1,6 @@
-﻿using BlockchainUtils;
-using CodexContractsPlugin;
-using CodexContractsPlugin.Marketplace;
+using BlockchainUtils;
+using ArchivistContractsPlugin;
+using ArchivistContractsPlugin.Marketplace;
 using GethPlugin;
 using Logging;
 
@@ -9,7 +9,7 @@ namespace GethConnector
     public class GethConnector
     {
         public IGethNode GethNode { get; }
-        public ICodexContracts CodexContracts { get; }
+        public IArchivistContracts ArchivistContracts { get; }
 
         public static GethConnector? Initialize(ILog log)
         {
@@ -22,31 +22,31 @@ namespace GethConnector
 
             var gethNode = new CustomGethNode(log, new BlockCache(), GethInput.GethHost, GethInput.GethPort, GethInput.PrivateKey);
 
-            var config = GetCodexMarketplaceConfig(gethNode, GethInput.MarketplaceAddress);
+            var config = GetArchivistMarketplaceConfig(gethNode, GethInput.MarketplaceAddress);
 
-            var contractsDeployment = new CodexContractsDeployment(
+            var contractsDeployment = new ArchivistContractsDeployment(
                 config: config,
                 marketplaceAddress: GethInput.MarketplaceAddress,
                 abi: GethInput.ABI,
                 tokenAddress: GethInput.TokenAddress
             );
 
-            var contracts = new CodexContractsAccess(log, gethNode, contractsDeployment);
+            var contracts = new ArchivistContractsAccess(log, gethNode, contractsDeployment);
 
             return new GethConnector(gethNode, contracts);
         }
 
-        private static MarketplaceConfig GetCodexMarketplaceConfig(IGethNode gethNode, string marketplaceAddress)
+        private static MarketplaceConfig GetArchivistMarketplaceConfig(IGethNode gethNode, string marketplaceAddress)
         {
             var func = new ConfigurationFunctionBase();
             var response = gethNode.Call<ConfigurationFunctionBase, ConfigurationOutputDTO>(marketplaceAddress, func);
             return response.ReturnValue1;
         }
 
-        private GethConnector(IGethNode gethNode, ICodexContracts codexContracts)
+        private GethConnector(IGethNode gethNode, IArchivistContracts archivistContracts)
         {
             GethNode = gethNode;
-            CodexContracts = codexContracts;
+            ArchivistContracts = archivistContracts;
         }
     }
 }

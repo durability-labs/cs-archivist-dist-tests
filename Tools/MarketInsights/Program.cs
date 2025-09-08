@@ -22,7 +22,7 @@ namespace MarketInsights
             var connector = GethConnector.GethConnector.Initialize(appState.Log);
             if (connector == null) throw new Exception("Invalid Geth information");
 
-            var updater = new Updater(appState, connector.GethNode, connector.CodexContracts, cts.Token);
+            var updater = new Updater(appState, connector.GethNode, connector.ArchivistContracts, cts.Token);
 
             var builder = WebApplication.CreateBuilder(args);
 
@@ -68,15 +68,15 @@ namespace MarketInsights
 
         private static void PrintHelp()
         {
-            Console.WriteLine("WebAPI for generating market overview for Codex network. Comes with OpenAPI swagger endpoint.");
+            Console.WriteLine("WebAPI for generating market overview for Archivist network. Comes with OpenAPI swagger endpoint.");
 
             var nl = Environment.NewLine;
             Console.WriteLine($"Required environment variables: {nl}" +
                 $"'GETH_HOST'{nl}",
                 $"'GETH_HTTP_PORT'{nl}",
-                $"'CODEXCONTRACTS_MARKETPLACEADDRESS'{nl}",
-                $"'CODEXCONTRACTS_TOKENADDRESS'{nl}",
-                $"'CODEXCONTRACTS_ABI'{nl}");
+                $"'ARCHIVISTCONTRACTS_MARKETPLACEADDRESS'{nl}",
+                $"'ARCHIVISTCONTRACTS_TOKENADDRESS'{nl}",
+                $"'ARCHIVISTCONTRACTS_ABI'{nl}");
         }
     }
 }

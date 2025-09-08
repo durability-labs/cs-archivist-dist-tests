@@ -1,25 +1,25 @@
-﻿using BiblioTech.CodexChecking;
+using BiblioTech.ArchivistChecking;
 using BiblioTech.Options;
 
 namespace BiblioTech.Commands
 {
     public class CheckUploadCommand : BaseCommand
     {
-        private readonly CodexTwoWayChecker checker;
+        private readonly ArchivistTwoWayChecker checker;
 
         private readonly StringOption cidOption = new StringOption(
             name: "cid",
-            description: "Codex Content-Identifier",
+            description: "Archivist Content-Identifier",
             isRequired: false);
 
-        public CheckUploadCommand(CodexTwoWayChecker checker)
+        public CheckUploadCommand(ArchivistTwoWayChecker checker)
         {
             this.checker = checker;
         }
 
         public override string Name => "checkupload";
         public override string StartingMessage => "Connecting to the testnet... Please be patient... " + RandomBusyMessage.Get();
-        public override string Description => "Checks the upload connectivity of your Codex node.";
+        public override string Description => "Checks the upload connectivity of your Archivist node.";
         public override CommandOption[] Options => [cidOption];
 
         protected override async Task Invoke(CommandContext context)

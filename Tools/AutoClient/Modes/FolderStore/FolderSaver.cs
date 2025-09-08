@@ -1,4 +1,4 @@
-﻿using Logging;
+using Logging;
 using Utils;
 
 namespace AutoClient.Modes.FolderStore
@@ -111,15 +111,15 @@ namespace AutoClient.Modes.FolderStore
             }
         }
 
-        private const int MinCodexStorageFilesize = 262144;
-        private readonly string paddingMessage = $"Codex currently requires a minimum filesize of {MinCodexStorageFilesize} bytes for datasets used in storage contracts. " +
+        private const int MinArchivistStorageFilesize = 262144;
+        private readonly string paddingMessage = $"Archivist currently requires a minimum filesize of {MinArchivistStorageFilesize} bytes for datasets used in storage contracts. " +
             $"Anything smaller, and the erasure-coding algorithms used for data durability won't function. Therefore, we apply this padding field to make sure this " +
             $"file is larger than the minimal size. The following is pseudo-random: ";
 
         private void ApplyPadding(string folderFile)
         {
             var info = new FileInfo(folderFile);
-            var min = MinCodexStorageFilesize * 2;
+            var min = MinArchivistStorageFilesize * 2;
             if (info.Length < min)
             {
                 var required = Math.Max(1024, min - info.Length);

@@ -1,4 +1,4 @@
-﻿using BiblioTech.Options;
+using BiblioTech.Options;
 using Discord;
 using Discord.WebSocket;
 

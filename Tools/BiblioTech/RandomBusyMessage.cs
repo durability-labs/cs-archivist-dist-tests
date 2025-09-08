@@ -1,4 +1,4 @@
-﻿namespace BiblioTech
+namespace BiblioTech
 {
     public static class RandomBusyMessage
     {

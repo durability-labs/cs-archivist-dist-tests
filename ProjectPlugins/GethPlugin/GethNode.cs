@@ -1,4 +1,4 @@
-﻿using BlockchainUtils;
+using BlockchainUtils;
 using Core;
 using KubernetesWorkflow.Types;
 using Logging;

@@ -1,4 +1,4 @@
-﻿namespace DiscordRewards
+namespace DiscordRewards
 {
     public class EventsAndErrors
     {

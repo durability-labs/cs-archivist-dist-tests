@@ -1,4 +1,4 @@
-﻿namespace AutoClient.Modes.FolderStore
+namespace AutoClient.Modes.FolderStore
 {
     public class SlowModeHandler : IFileSaverResultHandler
     {

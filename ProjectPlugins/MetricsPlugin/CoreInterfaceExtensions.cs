@@ -1,4 +1,4 @@
-﻿using Core;
+using Core;
 using KubernetesWorkflow.Types;
 using Logging;
 using Utils;

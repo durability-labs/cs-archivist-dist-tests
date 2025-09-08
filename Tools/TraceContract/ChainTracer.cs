@@ -1,6 +1,6 @@
-﻿using CodexContractsPlugin;
-using CodexContractsPlugin.ChainMonitor;
-using CodexContractsPlugin.Marketplace;
+using ArchivistContractsPlugin;
+using ArchivistContractsPlugin.ChainMonitor;
+using ArchivistContractsPlugin.Marketplace;
 using GethPlugin;
 using Logging;
 using Nethereum.Hex.HexConvertors.Extensions;
@@ -13,11 +13,11 @@ namespace TraceContract
     {
         private readonly ILog log;
         private readonly IGethNode geth;
-        private readonly ICodexContracts contracts;
+        private readonly IArchivistContracts contracts;
         private readonly Input input;
         private readonly Output output;
 
-        public ChainTracer(ILog log, IGethNode geth, ICodexContracts contracts, Input input, Output output)
+        public ChainTracer(ILog log, IGethNode geth, IArchivistContracts contracts, Input input, Output output)
         {
             this.log = log;
             this.geth = geth;

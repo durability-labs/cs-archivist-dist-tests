@@ -1,4 +1,4 @@
-﻿using AutoClient.Modes.FolderStore;
+using AutoClient.Modes.FolderStore;
 
 namespace AutoClient.Modes
 {

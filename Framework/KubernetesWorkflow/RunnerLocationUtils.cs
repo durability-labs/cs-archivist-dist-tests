@@ -1,4 +1,4 @@
-﻿namespace KubernetesWorkflow
+namespace KubernetesWorkflow
 {
     internal enum RunnerLocation
     {

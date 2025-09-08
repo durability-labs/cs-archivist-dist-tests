@@ -1,4 +1,4 @@
-﻿using Logging;
+using Logging;
 using OverwatchTranscript;
 
 namespace TranscriptAnalysis

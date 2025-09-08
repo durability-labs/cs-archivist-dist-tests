@@ -1,4 +1,4 @@
-﻿using DistTestCore;
+using DistTestCore;
 using Logging;
 using NUnit.Framework;
 using Utils;

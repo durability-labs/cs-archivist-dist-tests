@@ -1,4 +1,4 @@
-﻿using Core;
+using Core;
 using DistTestCore.Logs;
 using FileUtils;
 using Logging;

@@ -1,4 +1,4 @@
-﻿namespace KubernetesWorkflow
+namespace KubernetesWorkflow
 {
     public static class K8sNameUtils
     {

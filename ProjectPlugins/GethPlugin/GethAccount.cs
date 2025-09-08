@@ -1,4 +1,4 @@
-﻿namespace GethPlugin
+namespace GethPlugin
 {
     public class GethAccount
     {

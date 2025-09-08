@@ -1,5 +1,5 @@
-﻿using CodexClient;
-using CodexTests;
+using ArchivistClient;
+using ArchivistTests;
 using NUnit.Framework;
 using Utils;
 
@@ -19,8 +19,8 @@ namespace ExperimentalTests.DownloadConnectivityTests
         )
         {
             var file = GenerateTestFile(fileSizeMb.MB());
-            var uploader = StartCodex(n => n.WithName("uploader"));
-            var downloaders = StartCodex(numDownloaders, n => n.WithName("downloader"));
+            var uploader = StartArchivist(n => n.WithName("uploader"));
+            var downloaders = StartArchivist(numDownloaders, n => n.WithName("downloader"));
 
             var cid = uploader.UploadFile(file);
 
@@ -40,14 +40,14 @@ namespace ExperimentalTests.DownloadConnectivityTests
 
         public class TransferPlan
         {
-            public ICodexNode Uploader { get; set; } = null!;
+            public IArchivistNode Uploader { get; set; } = null!;
             public ContentId Cid { get; set; } = null!;
             public List<DownloaderPlan> Downloaders { get; } = new List<DownloaderPlan>();
         }
 
         public class DownloaderPlan
         {
-            public ICodexNode Node { get; set; } = null!;
+            public IArchivistNode Node { get; set; } = null!;
             public List<TransferPlan> TransferPlans { get; } = new List<TransferPlan>();
         }
 
@@ -102,7 +102,7 @@ namespace ExperimentalTests.DownloadConnectivityTests
         )
         {
             var plans = new List<TransferPlan>();
-            var uploaders = StartCodex(numDatasets, n => n.WithName("uploader"));
+            var uploaders = StartArchivist(numDatasets, n => n.WithName("uploader"));
             foreach (var n in uploaders)
             {
                 plans.Add(new TransferPlan
@@ -122,7 +122,7 @@ namespace ExperimentalTests.DownloadConnectivityTests
             var allDownloaderPlans = available.GetAll();
             Assert.That(allDownloaderPlans.Length, Is.LessThan(100));
             Log($"Using {allDownloaderPlans.Length} downloaders...");
-            var nodes = StartCodex(allDownloaderPlans.Length, n => n.WithName("downloader"));
+            var nodes = StartArchivist(allDownloaderPlans.Length, n => n.WithName("downloader"));
             for (var i = 0; i < allDownloaderPlans.Length; i++)
             {
                 allDownloaderPlans[i].Node = nodes[i];

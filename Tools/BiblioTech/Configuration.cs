@@ -1,4 +1,4 @@
-﻿using ArgsUniform;
+using ArgsUniform;
 using System.Numerics;
 
 namespace BiblioTech
@@ -41,14 +41,14 @@ namespace BiblioTech
         [Uniform("no-discord", "nd", "NODISCORD", false, "For debugging: Bypasses all Discord API calls.")]
         public int NoDiscord { get; set; } = 0;
 
-        [Uniform("codex-endpoint", "ce", "CODEXENDPOINT", false, "Codex endpoint. (default 'http://localhost:8080')")]
-        public string CodexEndpoint { get; set; } = "http://localhost:8080";
+        [Uniform("archivist-endpoint", "ce", "ARCHIVISTENDPOINT", false, "Archivist endpoint. (default 'http://localhost:8080')")]
+        public string ArchivistEndpoint { get; set; } = "http://localhost:8080";
 
-        [Uniform("codex-endpoint-auth", "cea", "CODEXENDPOINTAUTH", false, "Codex endpoint basic auth. Colon separated username and password. (default: empty, no auth used.)")]
-        public string CodexEndpointAuth { get; set; } = "";
+        [Uniform("archivist-endpoint-auth", "cea", "ARCHIVISTENDPOINTAUTH", false, "Archivist endpoint basic auth. Colon separated username and password. (default: empty, no auth used.)")]
+        public string ArchivistEndpointAuth { get; set; } = "";
 
-        [Uniform("transaction-link-format", "tlf", "TRANSACTIONLINKFORMAT", false, "Format of links to transactions on the blockchain. Use '<ID>' to inject the transaction ID into this string. (default 'https://explorer.testnet.codex.storage/tx/<ID>')")]
-        public string TransactionLinkFormat { get; set; } = "https://explorer.testnet.codex.storage/tx/<ID>";
+        [Uniform("transaction-link-format", "tlf", "TRANSACTIONLINKFORMAT", false, "Format of links to transactions on the blockchain. Use '<ID>' to inject the transaction ID into this string. (default 'https://explorer.testnet.archivist.storage/tx/<ID>')")]
+        public string TransactionLinkFormat { get; set; } = "https://explorer.testnet.archivist.storage/tx/<ID>";
 
         #region Role Rewards
 

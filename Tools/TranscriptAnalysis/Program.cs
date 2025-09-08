@@ -1,4 +1,4 @@
-﻿using CodexPlugin.OverwatchSupport;
+using ArchivistPlugin.OverwatchSupport;
 using Logging;
 using OverwatchTranscript;
 using TranscriptAnalysis;
@@ -30,7 +30,7 @@ public static class Program
             CloseReader(reader);
         };
 
-        var header = reader.GetHeader<OverwatchCodexHeader>("cdx_h");
+        var header = reader.GetHeader<OverwatchArchivistHeader>("cdx_h");
         var receivers = new ReceiverSet(args[0], log, reader, header);
         receivers.InitAll();
 

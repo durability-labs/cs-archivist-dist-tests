@@ -1,4 +1,4 @@
-﻿using Core;
+using Core;
 using KubernetesWorkflow.Recipe;
 using KubernetesWorkflow.Types;
 using Newtonsoft.Json;

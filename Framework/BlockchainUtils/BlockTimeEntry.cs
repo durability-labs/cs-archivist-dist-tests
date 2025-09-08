@@ -1,4 +1,4 @@
-﻿namespace BlockchainUtils
+namespace BlockchainUtils
 {
     public class BlockTimeEntry
     {

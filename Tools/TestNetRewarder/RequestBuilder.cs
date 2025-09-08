@@ -1,4 +1,4 @@
-﻿using CodexContractsPlugin.ChainMonitor;
+using ArchivistContractsPlugin.ChainMonitor;
 using DiscordRewards;
 using Utils;
 
@@ -37,7 +37,7 @@ namespace TestNetRewarder
 
         private void CollectAddresses(IChainStateRequest request, List<string> hosts, List<string> clients)
         {
-            if (request.State != CodexContractsPlugin.RequestState.Started) return;
+            if (request.State != ArchivistContractsPlugin.RequestState.Started) return;
 
             AddIfNew(clients, request.Client);
             foreach (var host in request.Hosts.GetHosts())

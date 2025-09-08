@@ -1,6 +1,6 @@
-﻿using BlockchainUtils;
-using CodexContractsPlugin.ChainMonitor;
-using CodexContractsPlugin.Marketplace;
+using BlockchainUtils;
+using ArchivistContractsPlugin.ChainMonitor;
+using ArchivistContractsPlugin.Marketplace;
 using DiscordRewards;
 using Nethereum.Hex.HexConvertors.Extensions;
 using System.Globalization;

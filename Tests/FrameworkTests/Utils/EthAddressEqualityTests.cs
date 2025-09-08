@@ -1,4 +1,4 @@
-﻿using GethPlugin;
+using GethPlugin;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;

@@ -1,4 +1,4 @@
-﻿namespace AutoClient.Modes.FolderStore
+namespace AutoClient.Modes.FolderStore
 {
     [Serializable]
     public class FolderStatus
@@ -11,7 +11,7 @@
     [Serializable]
     public class FileStatus
     {
-        public string CodexNodeId { get; set; } = string.Empty;
+        public string ArchivistNodeId { get; set; } = string.Empty;
         public string Filename { get; set; } = string.Empty;
         public string BasicCid { get; set; } = string.Empty;
         public string EncodedCid { get; set; } = string.Empty;
