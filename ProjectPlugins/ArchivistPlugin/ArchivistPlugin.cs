@@ -70,7 +70,7 @@ namespace ArchivistPlugin
 
         public IArchivistNodeGroup WrapArchivistContainers(IArchivistInstance[] instances)
         {
-            instances = instances.Select(c => SerializeGate.Gate(c as ArchivistInstance)).ToArray();
+            instances = instances.Select(c => SerializeGate.Gate(c as ArchivistInstance)!).ToArray();
             return archivistWrapper.WrapArchivistInstances(instances);
         }
 

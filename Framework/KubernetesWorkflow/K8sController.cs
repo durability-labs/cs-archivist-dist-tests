@@ -642,10 +642,10 @@ namespace KubernetesWorkflow
             };
         }
 
-        private V1ResourceRequirements CreateVolumeResourceRequirements(VolumeMount v)
+        private V1VolumeResourceRequirements CreateVolumeResourceRequirements(VolumeMount v)
         {
             if (v.ResourceQuantity == null) return null!;
-            return new V1ResourceRequirements
+            return new V1VolumeResourceRequirements
             {
                 Requests = new Dictionary<string, ResourceQuantity>()
                 {

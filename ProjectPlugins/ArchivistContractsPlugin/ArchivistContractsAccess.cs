@@ -142,8 +142,7 @@ namespace ArchivistContractsPlugin
 
         public ulong GetPeriodNumber(DateTime utc)
         {
-            DateTimeOffset utco = DateTime.SpecifyKind(utc, DateTimeKind.Utc);
-            var now = utco.ToUnixTimeSeconds();
+            var now = Time.ToUnixTimeSeconds(utc);
             var periodSeconds = (int)Deployment.Config.Proofs.Period;
             var result = now / periodSeconds;
             return Convert.ToUInt64(result);
@@ -151,11 +150,11 @@ namespace ArchivistContractsPlugin
 
         public TimeRange GetPeriodTimeRange(ulong periodNumber)
         {
-            var periodSeconds = (ulong)Deployment.Config.Proofs.Period;
+            var periodSeconds = Deployment.Config.Proofs.Period;
             var startUtco = Convert.ToInt64(periodSeconds * periodNumber);
             var endUtco = Convert.ToInt64(periodSeconds * (periodNumber + 1));
-            var start = DateTimeOffset.FromUnixTimeSeconds(startUtco).UtcDateTime;
-            var end = DateTimeOffset.FromUnixTimeSeconds(endUtco).UtcDateTime;
+            var start = Time.ToUtcDateTime(startUtco);
+            var end = Time.ToUtcDateTime(endUtco);
             return new TimeRange(start, end);
         }
 

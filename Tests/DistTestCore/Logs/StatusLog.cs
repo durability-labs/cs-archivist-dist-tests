@@ -41,7 +41,6 @@ namespace DistTestCore.Logs
             data.Add("testid", NameUtils.GetTestId());
             data.Add("testtype", testType);
             data.Add("testduration", testDuration);
-            data.Add("testframeworkrevision", GitInfo.GetStatus());
             Write(data);
         }
 

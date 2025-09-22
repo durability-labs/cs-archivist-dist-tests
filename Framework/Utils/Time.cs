@@ -18,6 +18,17 @@ namespace Utils
             task.Wait();
         }
 
+        public static long ToUnixTimeSeconds(DateTime utc)
+        {
+            DateTimeOffset utco = DateTime.SpecifyKind(utc, DateTimeKind.Utc);
+            return utco.ToUnixTimeSeconds();
+        }
+
+        public static DateTime ToUtcDateTime(long unixTimeSeconds)
+        {
+            return DateTimeOffset.FromUnixTimeSeconds(unixTimeSeconds).UtcDateTime;
+        }
+
         public static string FormatDuration(TimeSpan? d)
         {
             if (d == null) return "[NULL]";

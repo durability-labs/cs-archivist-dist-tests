@@ -18,8 +18,7 @@ namespace ArchivistDiscordBotPlugin
             AddEnvVar("DISCORDBOTHOST", config.DiscordBotHost);
             AddEnvVar("DISCORDBOTPORT", config.DiscordBotPort.ToString());
             AddEnvVar("INTERVALMINUTES", config.IntervalMinutes.ToString());
-            var offset = new DateTimeOffset(config.HistoryStartUtc);
-            AddEnvVar("CHECKHISTORY", offset.ToUnixTimeSeconds().ToString());
+            AddEnvVar("CHECKHISTORY", Time.ToUnixTimeSeconds(config.HistoryStartUtc).ToString());
 
             var gethInfo = config.GethInfo;
             AddEnvVar("GETH_HOST", gethInfo.Host);

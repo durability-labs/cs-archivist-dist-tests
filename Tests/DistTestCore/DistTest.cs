@@ -28,8 +28,6 @@ namespace DistTestCore
             fixtureLog = FixtureLog.Create(logConfig, startTime, deployId);
             statusLog = new StatusLog(logConfig, startTime, "dist-tests", deployId);
 
-            fixtureLog.Log("Test framework revision: " + GitInfo.GetStatus());
-
             lifecycle = new TestLifecycle(fixtureLog.CreateTestLog(startTime), global.Configuration,
                 GetWebCallTimeSet(),
                 GetK8sTimeSet(),
