@@ -2,7 +2,6 @@ using ArchivistClient;
 using GethPlugin;
 using KubernetesWorkflow;
 using KubernetesWorkflow.Recipe;
-using Logging;
 
 namespace ArchivistContractsPlugin
 {
@@ -14,15 +13,13 @@ namespace ArchivistContractsPlugin
         public const int PeriodSeconds = 60;
         public const int TimeoutSeconds = 30;
         public const int DowntimeSeconds = 128;
-        private readonly ILog log;
         private readonly DebugInfoVersion versionInfo;
 
         public override string AppName => "archivist-contracts";
         public override string Image => GetContractsDockerImage();
 
-        public ArchivistContractsContainerRecipe(ILog log, DebugInfoVersion versionInfo)
+        public ArchivistContractsContainerRecipe(DebugInfoVersion versionInfo)
         {
-            this.log = log;
             this.versionInfo = versionInfo;
         }
 
@@ -41,7 +38,7 @@ namespace ArchivistContractsPlugin
             AddEnvVar("DISTTEST_MAXSLASHES", 2);
             AddEnvVar("DISTTEST_SLASHPERCENTAGE", 20);
             AddEnvVar("DISTTEST_VALIDATORREWARD", 20);
-            AddEnvVar("DISTTEST_DOWNTIMEPRODUCT", 67);
+            AddEnvVar("DISTTEST_DOWNTIMEPRODUCT", 131);
             AddEnvVar("DISTTEST_MAXRESERVATIONS", 3);
             AddEnvVar("DISTTEST_MAXDURATION", Convert.ToInt32(TimeSpan.FromDays(30).TotalSeconds));
 
@@ -58,12 +55,7 @@ namespace ArchivistContractsPlugin
 
         private string GetContractsDockerImage()
         {
-            log.Log("Warning! Using hard-coded image for contracts. compatibility not guaranteed!");
-
-            // Fix this as soon as the sha-lookup works
-            return $"durabilitylabs/archivist-contracts:sha-d3ce852-dist-tests";
-
-            //return $"durabilitylabs/archivist-contracts:sha-{versionInfo.Contracts}-dist-tests";
+            return $"durabilitylabs/archivist-contracts:sha-{versionInfo.Contracts}-dist-tests";
         }
     }
 }

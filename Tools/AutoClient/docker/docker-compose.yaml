@@ -1,0 +1,136 @@
+services:
+  autoclient:
+    image: durabilitylabs/archivist-autoclient:latest
+    pull_policy: always
+    restart: always
+    container_name: autoclient
+    environment:
+      - ARCHIVISTENDPOINTS=|
+          http://archivist1:8080
+          http://archivist2:8080
+          http://archivist3:8080
+          # http://archivist4:8080
+          # http://archivist5:8080
+          # http://archivist6:8080
+          # http://archivist7:8080
+          # http://archivist8:8080
+          # http://archivist9:8080
+          # http://archivist10:8080
+      - DATAPATH=/data
+      - CONTRACTDURATION=7200,9360
+      - CONTRACTEXPIRY=20
+      - DURABILITYVALUES=(4,2,500);(8,4,500);(16,8,500);(4,1,10);(8,1,10);(16,1,10);
+      - PRICE=1000
+      - COLLATERAL=1
+      - FOLDERTOSTORE=/target
+      - SLOWMODEDELAYMINUTES=20
+    volumes:
+      - ./volumes/autoclient-data:/data
+      - ./volumes/target:/target
+    logging:
+      driver: json-file
+      options:
+        max-size: 100m
+        max-file: 5
+    # May be necessary on some host machines:
+    # network_mode: host
+
+  archivist-1:
+    extends:
+      file: archivist-node.yaml
+      service: archivist-base
+    environment:
+      # Address: 0x9bc1b45de7a67a064932a4f18a415d0adce4ca56
+      - ETH_PRIVATE_KEY=0x7c8ebb5a5c63ba549f7ea44d0f763f37642727ac0d772b8c783ac03ba82b6ea6
+    volumes:
+      - ./volumes/arch1-data:/data
+
+  archivist-2:
+    extends:
+      file: archivist-node.yaml
+      service: archivist-base
+    environment:
+      # Address: 0x5a2170d0701e5dc8b8010749c060c0c6035fd262
+      - ETH_PRIVATE_KEY=0x26c18f0b03aa1a8e1d5bd4dfec55a4e98204d567790053fcc0ecc6e19d5b63cb
+    volumes:
+      - ./volumes/arch2-data:/data
+
+  archivist-3:
+    extends:
+      file: archivist-node.yaml
+      service: archivist-base
+    environment:
+      # Address: 0xd5ae7cd1cac123521ff87746ff97385046f2b9ce
+      - ETH_PRIVATE_KEY=0xe531c98df44c5d92e551991a95ae705161c1a5e570003eab87ccebc3cce08f14
+    volumes:
+      - ./volumes/arch3-data:/data
+
+  # archivist-4:
+  #   extends:
+  #     file: archivist-node.yaml
+  #     service: archivist-base
+  #   environment:
+  #     # Address: 0x45c3ad9d81bcf83df3621af33d00d768df500995
+  #     - ETH_PRIVATE_KEY=0x126c961a9d66d5ba7ad460c2d1b53f5dd070beec3ea956268ba1fac1f4cbfd13
+  #   volumes:
+  #     - ./volumes/arch4-data:/data
+
+  # archivist-5:
+  #   extends:
+  #     file: archivist-node.yaml
+  #     service: archivist-base
+  #   environment:
+  #     # Address: 0xe62dde833688a9f1ebfe24299c80d84c94e6ba54
+  #     - ETH_PRIVATE_KEY=0xe851fdc9d58f54a03869b236a355f9b639ad6b4de47e1ea0261457bf1791ddc2
+  #   volumes:
+  #     - ./volumes/arch5-data:/data
+
+  # archivist-6:
+  #   extends:
+  #     file: archivist-node.yaml
+  #     service: archivist-base
+  #   environment:
+  #     # Address: 0xb9fa41df8abfe2ab0836d4e67f62bc3f2b273636
+  #     - ETH_PRIVATE_KEY=0xca5cd2a37851910e7d9d057eae1b4b7dff55ee451b2d07005591d327bbcafe25
+  #   volumes:
+  #     - ./volumes/arch6-data:/data
+
+  # archivist-7:
+  #   extends:
+  #     file: archivist-node.yaml
+  #     service: archivist-base
+  #   environment:
+  #     # Address: 0x3360b00f7f0a0d8e8dd3a24602c257e6a8f8ea65
+  #     - ETH_PRIVATE_KEY=0x736469144b5434e015efc84670bc82ed1379cd7bdcdbb35c47097523c3e3263f
+  #   volumes:
+  #     - ./volumes/arch7-data:/data
+
+  # archivist-8:
+  #   extends:
+  #     file: archivist-node.yaml
+  #     service: archivist-base
+  #   environment:
+  #     # Address: 0x2aa84fc95d0f9db0695c665dd7e577792baf4b7a
+  #     - ETH_PRIVATE_KEY=0x78dadc337f3866457461b9ef85d428755a9bbc6d3af7839d93d69b64d36e033f
+  #   volumes:
+  #     - ./volumes/arch8-data:/data
+
+  # archivist-9:
+  #   extends:
+  #     file: archivist-node.yaml
+  #     service: archivist-base
+  #   environment:
+  #     # Address: 0xb5eb517850f3afd51b3c54144fe6bf3ce58139bb
+  #     - ETH_PRIVATE_KEY=0xa5f79835151b1edc2dea92893e88af04bb95a805fad3cd233bf81df779258dde
+  #   volumes:
+  #     - ./volumes/arch9-data:/data
+
+  # archivist-10:
+  #   extends:
+  #     file: archivist-node.yaml
+  #     service: archivist-base
+  #   environment:
+  #     # Address: 0xdf5c4abdbcd213cdecbb394934cbd2354bc479aa
+  #     - ETH_PRIVATE_KEY=0x6e51bdebda88002d8cc8c3f547c7da3bc718405fc28da04766a6aebe0ff72984
+  #   volumes:
+  #     - ./volumes/arch10-data:/data

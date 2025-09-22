@@ -1,17 +1,18 @@
-using DiscordRewards;
-using Logging;
+﻿using Logging;
 using System.Net.Http.Json;
 
-namespace TestNetRewarder
+namespace DiscordRewards
 {
     public class BotClient
     {
-        private readonly Configuration configuration;
+        private readonly string host;
+        private readonly int port;
         private readonly ILog log;
 
-        public BotClient(Configuration configuration, ILog log)
+        public BotClient(string host, int port, ILog log)
         {
-            this.configuration = configuration;
+            this.host = host;
+            this.port = port;
             this.log = log;
         }
 
@@ -62,7 +63,7 @@ namespace TestNetRewarder
 
         private string GetUrl()
         {
-            return $"{configuration.DiscordHost}:{configuration.DiscordPort}/api/reward";
+            return $"{host}:{port}/api/reward";
         }
     }
 }

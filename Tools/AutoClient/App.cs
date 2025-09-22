@@ -1,4 +1,3 @@
-using ArchivistClient;
 using Logging;
 using WebUtils;
 
@@ -14,28 +13,11 @@ namespace AutoClient
                 new FileLog(Path.Combine(config.LogPath, "autoclient")),
                 new ConsoleLog()
             );
-
-            Generator = CreateGenerator();
-            Performance = new Performance(new LogSplitter(
-                new FileLog(Path.Combine(config.LogPath, "performance")),
-                new ConsoleLog()
-            ));
         }
 
         public Configuration Config { get; }
         public ILog Log { get; }
-        public IFileGenerator Generator { get; }
         public CancellationTokenSource Cts { get; } = new CancellationTokenSource();
-        public Performance Performance { get; }
-
-        private IFileGenerator CreateGenerator()
-        {
-            if (Config.FileSizeMb > 0)
-            {
-                return new RandomFileGenerator(Config, Log);
-            }
-            return new ImageGenerator(Log);
-        }
     }
 
     public class AutoClientWebTimeSet : IWebCallTimeSet

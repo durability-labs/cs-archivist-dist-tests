@@ -4,8 +4,9 @@ namespace AutoClient.Modes.FolderStore
     {
         private readonly App app;
         private int failureCount = 0;
-        private bool slowMode = false;
+        private bool slowMode = true;
         private int recoveryCount = 0;
+        private readonly object _lock = new object();
 
         public SlowModeHandler(App app)
         {
@@ -18,6 +19,7 @@ namespace AutoClient.Modes.FolderStore
             if (slowMode)
             {
                 recoveryCount++;
+                Log("Recovering from slow mode: " + recoveryCount);
                 if (recoveryCount > 3)
                 {
                     Log("Recovery limit reached. Exiting slow mode.");
@@ -25,23 +27,29 @@ namespace AutoClient.Modes.FolderStore
                     failureCount = 0;
                 }
             }
+
+            Check();
         }
 
         public void OnFailure()
         {
             failureCount++;
+            Log("Failing towards slow mode: " + failureCount);
             if (failureCount > 3 && !slowMode)
             {
                 Log("Failure limit reached. Entering slow mode.");
                 slowMode = true;
                 recoveryCount = 0;
             }
+
+            Check();
         }
 
-        public void Check()
+        private void Check()
         {
-            if (slowMode)
+            lock (_lock)
             {
+                if (!slowMode) return;
                 Thread.Sleep(TimeSpan.FromMinutes(app.Config.SlowModeDelayMinutes));
             }
         }

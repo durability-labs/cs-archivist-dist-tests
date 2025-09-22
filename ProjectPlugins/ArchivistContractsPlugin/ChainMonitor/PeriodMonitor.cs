@@ -1,12 +1,8 @@
 using ArchivistContractsPlugin.Marketplace;
 using GethPlugin;
 using Logging;
-using Nethereum.Contracts;
 using Nethereum.Hex.HexConvertors.Extensions;
-using Nethereum.Model;
-using Nethereum.RPC.Eth.DTOs;
-using Newtonsoft.Json;
-using System.Reflection;
+using Utils;
 
 namespace ArchivistContractsPlugin.ChainMonitor
 {
@@ -55,23 +51,8 @@ namespace ArchivistContractsPlugin.ChainMonitor
 
         private CurrentPeriod CreateCurrentPeriod(ulong periodNumber, IChainStateRequest[] requests)
         {
-            var result = new CurrentPeriod(periodNumber);
-            ForEachActiveSlot(requests, (request, slotIndex) =>
-            {
-                if (contracts.IsProofRequired(request.RequestId, slotIndex) ||
-                    contracts.WillProofBeRequired(request.RequestId, slotIndex))
-                {
-                    var idx = Convert.ToInt32(slotIndex);
-                    var host = request.Hosts.GetHost(idx);
-                    var slotId = contracts.GetSlotId(request.RequestId, slotIndex);
-                    if (host != null)
-                    {
-                        result.RequiredProofs.Add(new PeriodRequiredProof(host, request, idx, slotId));
-                    }
-                }
-            });
-
-            return result;
+            var cRequests = requests.Select(r => CurrentRequest.CreateCurrentRequest(contracts, r)).ToArray();
+            return new CurrentPeriod(periodNumber, cRequests);
         }
 
         private void CreateReportForPeriod(CurrentPeriod currentPeriod, IChainStateRequest[] requests)
@@ -80,17 +61,47 @@ namespace ArchivistContractsPlugin.ChainMonitor
             var timeRange = contracts.GetPeriodTimeRange(currentPeriod.PeriodNumber);
             var blockRange = geth.ConvertTimeRangeToBlockRange(timeRange);
 
-            var callReports = new List<FunctionCallReport>();
-            geth.IterateTransactions(blockRange, (t, blkI, blkUtc) =>
-            {
-                var reporter = new CallReporter(callReports, t, blkUtc, blkI);
-                reporter.Run();
+            var (callReports, markMissingCalls) = FetchCallReports(blockRange);
 
-            });
+            var requestReports = new List<PeriodRequestReport>();
+            var currentRemaining = currentPeriod.CurrentRequests.ToList();
+            foreach (var r in requests)
+            {
+                var current = TakeMatchingCurrent(currentRemaining, r);
+                if (current == null)
+                {
+                    // Request is new during this period.
+                    requestReports.Add(PeriodRequestReport.CreatePeriodRequestReport(contracts, r));
+                }
+                else
+                {
+                    // Request existed at start of period.
+                    var hasEnded = r.State == RequestState.Cancelled || r.State == RequestState.Finished || r.State == RequestState.Failed;
+                    requestReports.Add(PeriodRequestReport.CreatePeriodRequestReport(
+                        contracts,
+                        currentPeriod.PeriodNumber,
+                        current,
+                        hasEnded,
+                        markMissingCalls));
+                }
+            }
+            // If there remain currentRequests, those seem to have vanished from the chainstate
+            // (That's odd. This shouldn't happen. We should log this as a warning.)
+            // We'll consider them ended during this period.
+            foreach (var remaining in currentRemaining)
+            {
+                log.Log($"Warning: A request disappeared from the ChainState. This shouldn't happen. requestId:{remaining.Request.RequestId.ToHex()}");
+                requestReports.Add(PeriodRequestReport.CreatePeriodRequestReport(
+                        contracts,
+                        currentPeriod.PeriodNumber,
+                        remaining,
+                        hasEnded: true,
+                        markMissingCalls));
+            }
 
             var report = new PeriodReport(
                 new ProofPeriod(currentPeriod.PeriodNumber, timeRange, blockRange),
-                currentPeriod.RequiredProofs.ToArray(),
+                requestReports.ToArray(),
                 callReports.ToArray());
 
             report.Log(log);
@@ -99,15 +110,31 @@ namespace ArchivistContractsPlugin.ChainMonitor
             eventHandler.OnPeriodReport(report);
         }
 
-        private void ForEachActiveSlot(IChainStateRequest[] requests, Action<IChainStateRequest, ulong> action)
+        private CurrentRequest? TakeMatchingCurrent(List<CurrentRequest> currentRemaining, IChainStateRequest r)
         {
-            foreach (var request in requests)
+            var current = currentRemaining.ToArray();
+            foreach (var c in current)
             {
-                for (ulong slotIndex = 0; slotIndex < request.Request.Ask.Slots; slotIndex++)
+                if (c.Request.RequestId.ToHex() == r.RequestId.ToHex())
                 {
-                    action(request, slotIndex);
+                    currentRemaining.Remove(c);
+                    return c;
                 }
             }
+            return null;
+        }
+
+        private (FunctionCallReport[], MarkProofAsMissingFunction[]) FetchCallReports(BlockInterval blockRange)
+        {
+            var callReports = new List<FunctionCallReport>();
+            var missedCalls = new List<MarkProofAsMissingFunction>();
+            geth.IterateTransactions(blockRange, (t, blkI, blkUtc) =>
+            {
+                var reporter = new CallReporter(callReports, t, blkUtc, blkI);
+                reporter.Run(missedCalls.Add);
+
+            });
+            return (callReports.ToArray(), missedCalls.ToArray());
         }
     }
 
@@ -116,85 +143,5 @@ namespace ArchivistContractsPlugin.ChainMonitor
         public void OnPeriodReport(PeriodReport report)
         {
         }
-    }
-
-    public class CallReporter
-    {
-        private readonly List<FunctionCallReport> reports;
-        private readonly Transaction t;
-        private readonly DateTime blockUtc;
-        private readonly ulong blockNumber;
-
-        public CallReporter(List<FunctionCallReport> reports, Transaction t, DateTime blockUtc, ulong blockNumber)
-        {
-            this.reports = reports;
-            this.t = t;
-            this.blockUtc = blockUtc;
-            this.blockNumber = blockNumber;
-        }
-
-        public void Run()
-        {
-            CreateFunctionCallReport<CanMarkProofAsMissingFunction>();
-            CreateFunctionCallReport<CanReserveSlotFunction>();
-            CreateFunctionCallReport<ConfigurationFunction>();
-            CreateFunctionCallReport<CurrentCollateralFunction>();
-            CreateFunctionCallReport<FillSlotFunction>();
-            CreateFunctionCallReport<FreeSlot1Function>();
-            CreateFunctionCallReport<FreeSlotFunction>();
-            CreateFunctionCallReport<GetActiveSlotFunction>();
-            CreateFunctionCallReport<GetChallengeFunction>();
-            CreateFunctionCallReport<GetHostFunction>();
-            CreateFunctionCallReport<GetPointerFunction>();
-            CreateFunctionCallReport<GetRequestFunction>();
-            CreateFunctionCallReport<IsProofRequiredFunction>();
-            CreateFunctionCallReport<MarkProofAsMissingFunction>();
-            CreateFunctionCallReport<MissingProofsFunction>();
-            CreateFunctionCallReport<MyRequestsFunction>();
-            CreateFunctionCallReport<MySlotsFunction>();
-            CreateFunctionCallReport<RequestEndFunction>();
-            CreateFunctionCallReport<RequestExpiryFunction>();
-            CreateFunctionCallReport<RequestStateFunction>();
-            CreateFunctionCallReport<RequestStorageFunction>();
-            CreateFunctionCallReport<ReserveSlotFunction>();
-            CreateFunctionCallReport<SlotProbabilityFunction>();
-            CreateFunctionCallReport<SlotStateFunction>();
-            CreateFunctionCallReport<SubmitProofFunction>();
-            CreateFunctionCallReport<TokenFunction>();
-            CreateFunctionCallReport<WillProofBeRequiredFunction>();
-            CreateFunctionCallReport<WithdrawFundsFunction>();
-            CreateFunctionCallReport<WithdrawFunds1Function>();
-        }
-
-        private void CreateFunctionCallReport<TFunc>() where TFunc : FunctionMessage, new()
-        {
-            if (t.IsTransactionForFunctionMessage<TFunc>())
-            {
-                var func = t.DecodeTransactionToFunctionMessage<TFunc>();
-
-                reports.Add(new FunctionCallReport(blockUtc, blockNumber, typeof(TFunc).Name, JsonConvert.SerializeObject(func)));
-            }
-        }
-    }
-
-    public class PeriodMonitorResult
-    {
-        public PeriodMonitorResult(PeriodReport[] reports)
-        {
-            Reports = reports;
-        }
-
-        public PeriodReport[] Reports { get; }
-    }
-
-    public class CurrentPeriod
-    {
-        public CurrentPeriod(ulong periodNumber)
-        {
-            PeriodNumber = periodNumber;
-        }
-
-        public ulong PeriodNumber { get; }
-        public List<PeriodRequiredProof> RequiredProofs { get; } = new List<PeriodRequiredProof>();
     }
 }

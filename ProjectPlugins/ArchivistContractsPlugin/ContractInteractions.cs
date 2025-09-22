@@ -99,6 +99,7 @@ namespace ArchivistContractsPlugin
         {
             log.Debug($"({tokenAddress}) {amount} --> {account}");
             if (string.IsNullOrEmpty(account)) throw new ArgumentException("Invalid arguments for MintTestTokens");
+            if (amount == 0) return string.Empty;
 
             var function = new MintFunction
             {

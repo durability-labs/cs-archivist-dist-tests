@@ -151,7 +151,13 @@ namespace ArchivistPlugin
         public string Describe()
         {
             var args = string.Join(',', DescribeArgs());
-            return $"({NumberOfNodes} ArchivistNodes with args:[{args}])";
+            var name = "";
+            if (NameOverride != null)
+            {
+                name = $"'{NameOverride}' ";
+            }
+
+            return $"({NumberOfNodes} ArchivistNodes {name}with args:[{args}])";
         }
 
         private IEnumerable<string> DescribeArgs()

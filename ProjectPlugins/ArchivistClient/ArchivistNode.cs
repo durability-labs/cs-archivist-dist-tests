@@ -61,14 +61,13 @@ namespace ArchivistClient
 
         public ArchivistNode(ILog log, ArchivistAccess archivistAccess, IFileManager fileManager, IMarketplaceAccess marketplaceAccess, IArchivistNodeHooks hooks)
         {
+            this.log = log;
             this.archivistAccess = archivistAccess;
             this.fileManager = fileManager;
             Marketplace = marketplaceAccess;
             this.hooks = hooks;
             Version = new DebugInfoVersion();
             transferSpeeds = new TransferSpeeds();
-
-            this.log = new LogPrefixer(log, $"{GetName()} ");
         }
 
         public void Awake()

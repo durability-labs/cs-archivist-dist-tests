@@ -58,7 +58,7 @@ namespace ArchivistReleaseTests.Utils
         protected abstract int NumberOfHosts { get; }
         protected abstract int NumberOfClients { get; }
         protected abstract ByteSize HostAvailabilitySize { get; }
-        protected abstract TimeSpan HostAvailabilityMaxDuration { get; }
+        protected virtual TimeSpan HostAvailabilityMaxDuration => TimeSpan.FromHours(3.0);
         protected virtual bool MonitorChainState { get; } = true;
         protected TimeSpan HostBlockTTL { get; } = TimeSpan.FromMinutes(1.0);
         protected virtual void OnPeriod(PeriodReport report)

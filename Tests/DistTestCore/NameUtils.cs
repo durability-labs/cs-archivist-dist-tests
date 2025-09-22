@@ -20,9 +20,8 @@ namespace DistTestCore
 
         public static string GetFixtureFullName(LogConfig config, DateTime start, string name)
         {
-            var folder = DetermineFolder(config, start);
             var fixtureName = GetRawFixtureName();
-            return Path.Combine(folder, fixtureName);
+            return DetermineFolder(config, start, fixtureName);
         }
 
         public static string GetRawFixtureName()
@@ -86,13 +85,13 @@ namespace DistTestCore
                 .Replace(',', '-');
         }
 
-        private static string DetermineFolder(LogConfig config, DateTime start)
+        private static string DetermineFolder(LogConfig config, DateTime start, string fixtureName)
         {
             return Path.Join(
                config.LogRoot,
                $"{start.Year}-{Pad(start.Month)}",
                Pad(start.Day),
-               $"{Pad(start.Hour)}-{Pad(start.Minute)}-{Pad(start.Second)}");
+               $"{Pad(start.Hour)}-{Pad(start.Minute)}-{Pad(start.Second)}-{fixtureName}");
         }
 
         private static string Pad(int n)

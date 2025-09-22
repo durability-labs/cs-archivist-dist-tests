@@ -2,7 +2,6 @@ using BlockchainUtils;
 using ArchivistContractsPlugin.Marketplace;
 using GethPlugin;
 using Logging;
-using Nethereum.Contracts;
 using Nethereum.Hex.HexConvertors.Extensions;
 using System.Numerics;
 using Utils;
@@ -103,8 +102,7 @@ namespace ArchivistContractsPlugin.ChainMonitor
         private void UpdatePeriodMonitor(DateTime eventUtc)
         {
             if (!doProofPeriodMonitoring) return;
-            var activeRequests = requests.Where(r => r.State == RequestState.Started).ToArray();
-            PeriodMonitor.Update(eventUtc, activeRequests);
+            PeriodMonitor.Update(eventUtc, requests.ToArray());
         }
 
         private void ApplyEvents(ulong blockNumber, IHasBlock[] blockEvents, DateTime eventsUtc)

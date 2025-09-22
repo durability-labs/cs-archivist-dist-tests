@@ -22,7 +22,6 @@ namespace ArchivistReleaseTests.MarketTests
         protected override int NumberOfHosts => hosts;
         protected override int NumberOfClients => 1;
         protected override ByteSize HostAvailabilitySize => purchaseParams.SlotSize.Multiply(5.1);
-        protected override TimeSpan HostAvailabilityMaxDuration => GetContractDuration() * 2;
 
         [Test]
         [Combinatorial]
@@ -53,32 +52,12 @@ namespace ArchivistReleaseTests.MarketTests
         private IStoragePurchaseContract CreateStorageRequest(IArchivistNode client)
         {
             var cid = client.UploadFile(GenerateTestFile(purchaseParams.UploadFilesize));
-            var config = GetContracts().Deployment.Config;
             return client.Marketplace.RequestStorage(new StoragePurchaseRequest(cid)
             {
-                Duration = GetContractDuration(),
-                Expiry = GetContractExpiry(),
                 MinRequiredNumberOfNodes = (uint)purchaseParams.Nodes,
                 NodeFailureTolerance = (uint)purchaseParams.Tolerance,
                 PricePerBytePerSecond = pricePerBytePerSecond,
-                ProofProbability = 20,
-                CollateralPerByte = 100.TstWei()
             });
-        }
-
-        private TimeSpan GetContractExpiry()
-        {
-            return GetContractDuration() / 2;
-        }
-
-        private TimeSpan GetContractDuration()
-        {
-            return Get8TimesConfiguredPeriodDuration();
-        }
-
-        private TimeSpan Get8TimesConfiguredPeriodDuration()
-        {
-            return GetPeriodDuration() * 8.0;
         }
     }
 }

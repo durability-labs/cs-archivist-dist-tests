@@ -4,7 +4,6 @@ using GethPlugin;
 using Logging;
 using Nethereum.ABI;
 using Nethereum.Contracts;
-using Nethereum.Hex.HexConvertors.Extensions;
 using Nethereum.Util;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -34,6 +33,7 @@ namespace ArchivistContractsPlugin
         bool IsProofRequired(byte[] requestId, decimal slotIndex);
         bool WillProofBeRequired(byte[] requestId, decimal slotIndex);
         byte[] GetSlotId(byte[] requestId, decimal slotIndex);
+        bool CanMarkProofAsMissing(byte[] slotId, ulong period);
 
         IArchivistContracts WithDifferentGeth(IGethNode node);
     }
@@ -161,10 +161,11 @@ namespace ArchivistContractsPlugin
 
         public void WaitUntilNextPeriod()
         {
-            var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            var periodSeconds = (int)Deployment.Config.Proofs.Period;
-            var secondsLeft = now % periodSeconds;
-            Thread.Sleep(TimeSpan.FromSeconds(secondsLeft + 1));
+            Thread.Sleep(TimeSpan.FromSeconds(1.0));
+            var timeRange = GetPeriodTimeRange(GetPeriodNumber(DateTime.UtcNow));
+            var span = TimeSpan.FromSeconds(1.0) + (timeRange.To - DateTime.UtcNow);
+            log.Log($"Waiting until next period: {Time.FormatDuration(span)}");
+            Thread.Sleep(span);
         }
 
         public bool IsProofRequired(byte[] requestId, decimal slotIndex)
@@ -193,6 +194,35 @@ namespace ArchivistContractsPlugin
             );
 
             return Sha3Keccack.Current.CalculateHash(encoded);
+        }
+
+        public bool CanMarkProofAsMissing(byte[] slotId, ulong period)
+        {
+            var func = new CanMarkProofAsMissingFunction
+            {
+                SlotId = slotId,
+                Period = period
+            };
+
+            try
+            {
+                var result = gethNode.Call<CanMarkProofAsMissingFunction, string>(Deployment.MarketplaceAddress, func);
+
+                return true;
+            }
+            catch (SmartContractCustomErrorRevertException)
+            {
+                return false;
+            }
+            catch (AggregateException e)
+            {
+                if (e.InnerExceptions.Count == 1 &&
+                    e.InnerExceptions[0] is SmartContractCustomErrorRevertException)
+                {
+                    return false;
+                }
+                throw;
+            }
         }
 
         private bool IsProofRequired(byte[] slotId)

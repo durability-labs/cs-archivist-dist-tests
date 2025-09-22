@@ -1,5 +1,7 @@
 using ArchivistClient;
 using ArchivistContractsPlugin;
+using ArchivistContractsPlugin.ChainMonitor;
+using ArchivistContractsPlugin.Marketplace;
 using ArchivistReleaseTests.Utils;
 using Nethereum.Hex.HexConvertors.Extensions;
 using NUnit.Framework;
@@ -30,6 +32,8 @@ namespace ArchivistReleaseTests.MarketTests
 
         #endregion
 
+        private int proofsMissed = 0;
+
         [Test]
         [Combinatorial]
         public void RollingRepairSingleFailure(
@@ -42,6 +46,7 @@ namespace ArchivistReleaseTests.MarketTests
             var client = StartClients().Single();
             StartValidator();
 
+            proofsMissed = 0;
             var contract = CreateStorageRequest(client);
             contract.WaitForStorageContractStarted();
             // All slots are filled.
@@ -52,6 +57,9 @@ namespace ArchivistReleaseTests.MarketTests
             Log("Holding initial situation to ensure contract is stable...");
             var config = GetContracts().Deployment.Config;
             WaitAndCheckNodesStaysAlive(config.PeriodDuration * 5, hosts);
+
+            // No proofs were missed so far.
+            Assert.That(proofsMissed, Is.EqualTo(0), "Proofs were missed *BEFORE* any hosts were shut down.");
             
             var requestState = GetContracts().GetRequestState(contract.PurchaseId.HexToByteArray());
             Assert.That(requestState, Is.Not.EqualTo(RequestState.Failed));
@@ -75,6 +83,21 @@ namespace ArchivistReleaseTests.MarketTests
 
                 // One of the other hosts should pick up the free slot.
                 WaitForNewSlotFilledEvent(contract, fill.SlotFilledEvent.SlotIndex);
+            }
+        }
+
+
+        protected override void OnPeriod(PeriodReport report)
+        {
+            proofsMissed += report.GetNumberOfProofsMissed();
+
+            // There can't be any calls to FreeSlot.
+            // We expect the validator to call MarkProofAsMissing
+            // which should result in SlotFreed events.
+            foreach (var c in report.FunctionCalls)
+            {
+                Assert.That(c.Name, Is.Not.EqualTo(nameof(FreeSlot1Function)));
+                Assert.That(c.Name, Is.Not.EqualTo(nameof(FreeSlotFunction)));
             }
         }
 
@@ -182,12 +205,9 @@ namespace ArchivistReleaseTests.MarketTests
             return client.Marketplace.RequestStorage(new StoragePurchaseRequest(cid)
             {
                 Duration = HostAvailabilityMaxDuration / 2,
-                Expiry = TimeSpan.FromMinutes(10.0),
                 MinRequiredNumberOfNodes = (uint)purchaseParams.Nodes,
                 NodeFailureTolerance = (uint)purchaseParams.Tolerance,
-                PricePerBytePerSecond = 10.TstWei(),
                 ProofProbability = 1, // One proof every period. Free slot as quickly as possible.
-                CollateralPerByte = 1.TstWei()
             });
         }
     }

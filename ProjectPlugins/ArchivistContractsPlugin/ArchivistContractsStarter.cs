@@ -27,7 +27,7 @@ namespace ArchivistContractsPlugin
             var startupConfig = CreateStartupConfig(gethNode);
             startupConfig.NameOverride = "archivist-contracts";
 
-            var recipe = new ArchivistContractsContainerRecipe(tools.GetLog(), versionInfo);
+            var recipe = new ArchivistContractsContainerRecipe(versionInfo);
             Log($"Using image: {recipe.Image}");
 
             var containers = workflow.Start(1, recipe, startupConfig).WaitForOnline();
@@ -105,16 +105,9 @@ namespace ArchivistContractsPlugin
         {
             if (Convert.ToInt32(value) != expected)
             {
-                // Merge todo: https://github.com/durability-labs/archivist-node/pull/1303
-                // Once this is merged, the contract config values are settable via env-vars.
-                // This plugin is already updated to set the config vars to values compatible with a
-                // 1-second block frequency. AND it will read back the config and assert it is deployed correctly.
-                // This is waiting for that merge.
-
-                // Replace log with assert WHEN MERGED:
-                // throw new Exception($"Config value '{name}' should be deployed as '{expected}' but was '{value}'");
-                Log($"MERGE TODO. Config value '{name}' should be deployed as '{expected}' but was '{value}'");
+                throw new Exception($"Config value '{name}' should be deployed as '{expected}' but was '{value}'");
             }
+            Log($"Config value '{name}' correctly deployed as '{value}'");
         }
 
         private MarketplaceConfig GetMarketplaceConfiguration(string marketplaceAddress, IGethNode gethNode)

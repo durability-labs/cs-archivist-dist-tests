@@ -1,3 +1,4 @@
+using ArchivistClient;
 using ArchivistContractsPlugin;
 using ArchivistPlugin;
 using ArchivistTests;
@@ -66,16 +67,7 @@ namespace ArchivistReleaseTests.DataTests
             Assert.That(startSpace.QuotaUsedBytes, Is.EqualTo(0));
 
             var cid = node.UploadFile(GenerateTestFile(fileSize));
-            var purchase = node.Marketplace.RequestStorage(new ArchivistClient.StoragePurchaseRequest(cid)
-            {
-                Duration = TimeSpan.FromHours(1.0),
-                Expiry = blockTtl,
-                MinRequiredNumberOfNodes = 3,
-                NodeFailureTolerance = 1,
-                PricePerBytePerSecond = 1000.TstWei(),
-                ProofProbability = 20,
-                CollateralPerByte = 100.TstWei()
-            });
+            var purchase = node.Marketplace.RequestStorage(new StoragePurchaseRequest(cid));
             var usedSpace = node.Space();
             var usedFiles = node.LocalFiles();
             Assert.That(usedSpace.QuotaUsedBytes, Is.GreaterThanOrEqualTo(fileSize.SizeInBytes));

@@ -27,14 +27,8 @@ namespace TestNetRewarder
         [Uniform("events-overview", "eo", "EVENTSOVERVIEW", false, "When greater than zero, chain event summary will be generated.")]
         public int CreateChainEventsOverview { get; set; } = 1;
 
-        [Uniform("proof-period-reports", "ppr", "PROOFPERIODREPORTS", false, "When greater than zero, chain event summary will include period reports of the proving system.")]
-        public int ShowProofPeriodReports { get; set; } = 1;
-
-        [Uniform("proof-submitted-events", "pse", "PROOFSUBMITTEDEVENTS", false, "When greater than zero, chain event summary will include proof-submitted events.")]
-        public int ShowProofSubmittedEvents { get; set; } = 0; // Defaulted to zero, aprox 7 to 10 such events every 2 minutes in testnet (from autoclient alone!)
-
-        [Uniform("proof-period-report-hours", "pprh", "PROOFPERIODREPORTHOURS", false, "Frequency in hours with which proof period reports are created.")]
-        public int ProofReportHours { get; set; } = 24;
+        [Uniform("proofs-missed-events", "pme", "PROOFSMISSEDEVENTS", false, "When greater than zero, missed proofs will be reported every period.")]
+        public int ShowProofsMissed { get; set; } = 1;
 
         public string LogPath
         {

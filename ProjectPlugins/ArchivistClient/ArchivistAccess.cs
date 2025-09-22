@@ -281,7 +281,7 @@ namespace ArchivistClient
 
         private void Log(string msg)
         {
-            log.Log($"({GetName()}) {msg}");
+            log.Log(msg);
         }
     }
 

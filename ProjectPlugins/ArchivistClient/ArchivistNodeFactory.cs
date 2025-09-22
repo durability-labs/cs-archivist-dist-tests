@@ -34,11 +34,12 @@ namespace ArchivistClient
 
         public IArchivistNode CreateArchivistNode(IArchivistInstance instance)
         {
+            var nodeLog = new LogPrefixer(log, $"({instance.Name})");
             var processControl = processControlFactory.CreateProcessControl(instance);
-            var access = new ArchivistAccess(log, httpFactory, processControl, instance);
+            var access = new ArchivistAccess(nodeLog, httpFactory, processControl, instance);
             var hooks = hooksFactory.CreateHooks(access.GetName());
             var marketplaceAccess = CreateMarketplaceAccess(instance, access, hooks);
-            var node =  new ArchivistNode(log, access, fileManager, marketplaceAccess, hooks);
+            var node =  new ArchivistNode(nodeLog, access, fileManager, marketplaceAccess, hooks);
             node.Initialize();
             return node;
         }

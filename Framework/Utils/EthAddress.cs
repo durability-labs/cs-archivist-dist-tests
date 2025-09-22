@@ -48,4 +48,13 @@ namespace Utils
             return !(a == b);
         }
     }
+
+    public static class EthAddressExtensions
+    {
+        public static string AsStr(this EthAddress? addressMaybe)
+        {
+            if (addressMaybe == null) return "-";
+            return addressMaybe.ToString();
+        }
+    }
 }

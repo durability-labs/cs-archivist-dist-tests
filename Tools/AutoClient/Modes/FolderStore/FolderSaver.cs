@@ -5,12 +5,12 @@ namespace AutoClient.Modes.FolderStore
 {
     public class FolderSaver : IFileSaverEventHandler
     {
-        private const string FolderSaverFilename = "foldersaver.json";
+        public const string FolderSaverFilename = "foldersaver.json";
         private readonly App app;
         private readonly LoadBalancer loadBalancer;
         private readonly JsonFile<FolderStatus> statusFile;
         private readonly FolderStatus status;
-        private readonly BalanceChecker balanceChecker;
+        private readonly object statusLock = new object();
         private readonly SlowModeHandler slowModeHandler;
         private int changeCounter = 0;
         private int saveFolderJsonCounter = 0;
@@ -19,7 +19,6 @@ namespace AutoClient.Modes.FolderStore
         {
             this.app = app;
             this.loadBalancer = loadBalancer;
-            balanceChecker = new BalanceChecker(app);
             slowModeHandler = new SlowModeHandler(app);
 
             statusFile = new JsonFile<FolderStatus>(app, Path.Combine(app.Config.FolderToStore, FolderSaverFilename));
@@ -28,12 +27,13 @@ namespace AutoClient.Modes.FolderStore
 
         public void Run()
         {
+            app.Log.Log("Running FolderSaver...");
             saveFolderJsonCounter = 0;
 
+            if (!Directory.Exists(app.Config.FolderToStore)) throw new Exception("Path does not exist: " + app.Config.FolderToStore);
             var folderFiles = Directory.GetFiles(app.Config.FolderToStore);
             if (!folderFiles.Any()) throw new Exception("No files found in " + app.Config.FolderToStore);
 
-            balanceChecker.Check();
             foreach (var folderFile in folderFiles)
             {
                 if (app.Cts.IsCancellationRequested) return;
@@ -43,14 +43,10 @@ namespace AutoClient.Modes.FolderStore
                 {
                     SaveFile(folderFile);
                 }
-
-                slowModeHandler.Check();
                 
                 CheckAndSaveChanges();
-
-                statusFile.Save(status);
-                Thread.Sleep(100);
             }
+            app.Log.Log("All files processed.");
         }
 
         private void CheckAndSaveChanges()
@@ -59,10 +55,9 @@ namespace AutoClient.Modes.FolderStore
             {
                 changeCounter = 0;
                 saveFolderJsonCounter++;
-                if (saveFolderJsonCounter > 5)
+                if (saveFolderJsonCounter > 10)
                 {
                     saveFolderJsonCounter = 0;
-                    balanceChecker.Check();
                     SaveFolderSaverJsonFile();
                 }
             }
@@ -71,16 +66,23 @@ namespace AutoClient.Modes.FolderStore
         private void SaveFile(string folderFile)
         {
             var localFilename = Path.GetFileName(folderFile);
-            var entry = status.Files.SingleOrDefault(f => f.Filename == localFilename);
-            if (entry == null)
+            var entry = GetEntry(localFilename);
+            ProcessFileEntry(folderFile, entry);
+        }
+
+        private FileStatus GetEntry(string localFilename)
+        {
+            lock (statusLock)
             {
-                entry = new FileStatus
+                var entry = status.Files.SingleOrDefault(f => f.Filename == localFilename);
+                if (entry != null) return entry;
+                var newEntry = new FileStatus
                 {
                     Filename = localFilename
                 };
-                status.Files.Add(entry);
+                status.Files.Add(newEntry);
+                return newEntry;
             }
-            ProcessFileEntry(folderFile, entry);
         }
 
         private void ProcessFileEntry(string folderFile, FileStatus entry)
@@ -98,17 +100,8 @@ namespace AutoClient.Modes.FolderStore
             };
             var folderFile = Path.Combine(app.Config.FolderToStore, FolderSaverFilename);
             ApplyPadding(folderFile);
-            var fileSaver = CreateFileSaver(folderFile, entry);
+            var fileSaver = CreateFileSaver(folderFile, entry, new FolderSaveResultHandler(app, entry));
             fileSaver.Process();
-
-            if (!string.IsNullOrEmpty(entry.EncodedCid))
-            {
-                app.Log.Log($"!!! {FolderSaverFilename} saved to CID '{entry.EncodedCid}' !!!");
-            }
-            else
-            {
-                app.Log.Error($"Failed to store {FolderSaverFilename} :|");
-            }
         }
 
         private const int MinArchivistStorageFilesize = 262144;
@@ -123,22 +116,65 @@ namespace AutoClient.Modes.FolderStore
             if (info.Length < min)
             {
                 var required = Math.Max(1024, min - info.Length);
-                status.Padding = paddingMessage + RandomUtils.GenerateRandomString(required);
-                statusFile.Save(status);
+                lock (statusLock)
+                {
+                    status.Padding = paddingMessage + RandomUtils.GenerateRandomString(required);
+                    statusFile.Save(status);
+                }
             }
         }
 
         private FileSaver CreateFileSaver(string folderFile, FileStatus entry)
         {
+            return CreateFileSaver(folderFile, entry, slowModeHandler);
+        }
+
+        private FileSaver CreateFileSaver(string folderFile, FileStatus entry, IFileSaverResultHandler resultHandler)
+        {
             var fixedLength = entry.Filename.PadRight(35);
             var prefix = $"[{fixedLength}] ";
-            return new FileSaver(new LogPrefixer(app.Log, prefix), loadBalancer, status.Stats, folderFile, entry, this, slowModeHandler);
+            return new FileSaver(new LogPrefixer(app.Log, prefix), loadBalancer, status.Stats, folderFile, entry, this, resultHandler);
         }
 
         public void SaveChanges()
         {
-            statusFile.Save(status);
+            lock (statusLock)
+            {
+                statusFile.Save(status);
+            }
             changeCounter++;
+        }
+    }
+
+    public class FolderSaveResultHandler : IFileSaverResultHandler
+    {
+        private readonly App app;
+        private readonly FileStatus entry;
+
+        public FolderSaveResultHandler(App app, FileStatus entry)
+        {
+            this.app = app;
+            this.entry = entry;
+        }
+
+        public void OnFailure()
+        {
+            app.Log.Error($"Failed to store {FolderSaver.FolderSaverFilename} :|");
+        }
+
+        public void OnSuccess()
+        {
+            if (!string.IsNullOrEmpty(entry.EncodedCid))
+            {
+                var cidsFile = Path.Combine(app.Config.DataPath, "cids.log");
+                File.AppendAllLines(cidsFile, [entry.EncodedCid]);
+                app.Log.Log($"!!! {FolderSaver.FolderSaverFilename} saved to CID '{entry.EncodedCid}' !!!");
+            }
+            else
+            {
+
+                app.Log.Error($"Foldersaver entry didn't have encoded CID somehow :|");
+            }
         }
     }
 }

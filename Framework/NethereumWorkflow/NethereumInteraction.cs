@@ -33,6 +33,7 @@ namespace NethereumWorkflow
 
         public string SendEth(string toAddress, decimal ethAmount)
         {
+            if (ethAmount == 0) return string.Empty;
             return DebugLogWrap(() =>
             {
                 var receipt = Time.Wait(web3.Eth.GetEtherTransferService().TransferEtherAndWaitForReceiptAsync(toAddress, ethAmount));

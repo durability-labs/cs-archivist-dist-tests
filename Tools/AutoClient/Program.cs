@@ -24,23 +24,20 @@ public class Program
         var uniformArgs = new ArgsUniform<Configuration>(PrintHelp, args);
         var config = uniformArgs.Parse(true);
 
-        if (config.NumConcurrentPurchases < 1)
-        {
-            throw new Exception("Number of concurrent purchases must be > 0");
-        }
-
         var p = new Program(config);
         p.Run();
     }
 
     public void Run()
     {
-        if (app.Config.ContractDurationMinutes - 1 < 5) throw new Exception("Contract duration config option not long enough!");
+        Log("Setting up instances...");
         var archivistNodes = CreateArchivistWrappers();
         var loadBalancer = new LoadBalancer(app, archivistNodes);
+        Log("Starting load-balancer...");
         loadBalancer.Start();
 
         var folderStore = new FolderStoreMode(app, loadBalancer);
+        Log("Starting folder-store mode...");
         folderStore.Start();
 
         app.Cts.Token.WaitHandle.WaitOne();
@@ -48,14 +45,17 @@ public class Program
         folderStore.Stop();
         loadBalancer.Stop();
 
-        app.Log.Log("Done");
+        Log("Done");
     }
 
     private ArchivistWrapper[] CreateArchivistWrappers()
     {
-        var endpointStrs = app.Config.ArchivistEndpoints.Split(";", StringSplitOptions.RemoveEmptyEntries);
+        var endpointStrs = app.Config.ArchivistEndpoints
+            .Replace(Environment.NewLine, ";")
+            .Split(";", StringSplitOptions.RemoveEmptyEntries);
         var result = new List<ArchivistWrapper>();
 
+        Log($"Checking {endpointStrs.Length} endpoints...");
         var i = 1;
         foreach (var e in endpointStrs)
         {
@@ -75,10 +75,12 @@ public class Program
         var port = Convert.ToInt32(endpoint.Substring(splitIndex + 1));
 
         var address = new Address(
-            logName: $"cdx@{host}:{port}",
+            logName: $"node@{host}:{port}",
             host: host,
             port: port
         );
+
+        app.Log.Log($"'{address}': Creating wrapper...");
 
         var numberStr = number.ToString().PadLeft(3, '0');
         var log = new LogPrefixer(app.Log, $"[{numberStr}] ");
@@ -88,7 +90,14 @@ public class Program
         var node = archivistNodeFactory.CreateArchivistNode(instance);
 
         node.SetLogLevel(LogLevel);
+
+        app.Log.Log($"'{address}': Connect successful");
         return new ArchivistWrapper(app, node);
+    }
+
+    private void Log(string msg)
+    {
+        app.Log.Log(msg);
     }
 
     private static void PrintHelp()

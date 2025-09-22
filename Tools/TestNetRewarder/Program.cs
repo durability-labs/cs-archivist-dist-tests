@@ -1,4 +1,5 @@
 using ArgsUniform;
+using DiscordRewards;
 using Logging;
 using Utils;
 
@@ -30,7 +31,7 @@ namespace TestNetRewarder
             var connector = GethConnector.GethConnector.Initialize(Log);
             if (connector == null) throw new Exception("Invalid Geth information");
 
-            BotClient = new BotClient(Config, Log);
+            BotClient = new BotClient(Config.DiscordHost, Config.DiscordPort, Log);
             processor = new Processor(Config, BotClient, connector.GethNode, connector.ArchivistContracts, Log);
 
             EnsurePath(Config.DataPath);

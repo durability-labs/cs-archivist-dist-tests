@@ -11,13 +11,13 @@ namespace ArchivistClient
         }
 
         public ContentId ContentId { get; }
-        public TestToken PricePerBytePerSecond { get; set; } = 1.TstWei();
+        public TestToken PricePerBytePerSecond { get; set; } = 1000.TstWei();
         public TestToken CollateralPerByte { get; set; } = 1.TstWei();
-        public uint MinRequiredNumberOfNodes { get; set; }
-        public uint NodeFailureTolerance { get; set; }
-        public int ProofProbability { get; set; }
-        public TimeSpan Duration { get; set; }
-        public TimeSpan Expiry { get; set; }
+        public uint MinRequiredNumberOfNodes { get; set; } = 4;
+        public uint NodeFailureTolerance { get; set; } = 2;
+        public int ProofProbability { get; set; } = 20;
+        public TimeSpan Duration { get; set; } = TimeSpan.FromMinutes(20.0);
+        public TimeSpan Expiry { get; set; } = TimeSpan.FromMinutes(10.0);
 
         public void Log(ILog log)
         {

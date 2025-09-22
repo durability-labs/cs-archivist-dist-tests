@@ -72,12 +72,9 @@ namespace ArchivistReleaseTests.MarketTests
             return client.Marketplace.RequestStorage(new StoragePurchaseRequest(cid)
             {
                 Duration = HostAvailabilityMaxDuration / 2,
-                Expiry = TimeSpan.FromMinutes(5.0),
                 MinRequiredNumberOfNodes = (uint)NumberOfHosts,
                 NodeFailureTolerance = (uint)SlotTolerance,
-                PricePerBytePerSecond = 100.TstWei(),
                 ProofProbability = 1, // Require a proof every period
-                CollateralPerByte = 1.TstWei()
             });
         }
     }

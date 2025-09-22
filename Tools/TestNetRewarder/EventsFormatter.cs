@@ -109,11 +109,7 @@ namespace TestNetRewarder
 
         public void OnProofSubmitted(BlockTimeEntry block, string id)
         {
-            if (config.ShowProofSubmittedEvents < 1) return;
-
-            AddBlock(block.BlockNumber, $"{emojiMaps.ProofSubmitted} **Proof submitted**",
-                $"Id: {id}"
-            );
+            // There are a lot of these.
         }
 
         public void OnError(string msg)
@@ -121,20 +117,33 @@ namespace TestNetRewarder
             errors.Add(msg);
         }
 
-        public void ProcessPeriodReports(PeriodMonitorResult reports)
+        public void OnMissedSlots(ProofPeriod period, List<MissedSlot> slots)
         {
-            //if (reports.IsEmpty) return;
+            var isMany = slots.Count > 10;
+            var lines = new List<string> {
+                $"In period {period.PeriodNumber}: ({period.TimeRange})"
+            };
 
-            //var lines = new List<string> {
-            //    $"Periods: [{reports.PeriodLow} ... {reports.PeriodHigh}]",
-            //    $"Average number of slots: {reports.AverageNumSlots.ToString("F2")}",
-            //    $"Average number of proofs required: {reports.AverageNumProofsRequired.ToString("F2")}"
-            //};
+            if (isMany)
+            {
+                lines.Add($"{slots.Count} storage proofs were missed! {emojiMaps.ManyProofsMissed}");
+                lines.Add("(number of missed proofs > 10: Details omitted from this message.)");
+            }
+            else
+            {
+                lines.Add($"{slots.Count} storage proofs were missed.");
+                foreach (var s in slots)
+                {
+                    var host = s.SlotReport.Host.AsStr();
+                    var request = FormatRequestId(s.Request);
+                    var idx = s.SlotReport.Index;
+                    var marked = s.SlotReport.MarkedAsMissing;
 
-            // AddMissedProofDetails(lines, reports.Reports);
-            // todo!
+                    lines.Add($" - '{host}' missed a proof for request {request} (slotIndex:{idx}, marked:{marked})");
+                }
+            }
 
-            //AddBlock(0, $"{emojiMaps.ProofReport} **Proof system report**", lines.ToArray());
+            AddBlock(0, $"{emojiMaps.ProofReport} **Proof system report**", lines.ToArray());
         }
 
         private string GetSlotFilledIcon(bool isRepair)
@@ -148,41 +157,6 @@ namespace TestNetRewarder
             if (isRepair) return $"Slot Repaired";
             return $"Slot Filled";
         }
-
-        //private void AddMissedProofDetails(List<string> lines, PeriodReport[] reports)
-        //{
-        //    var reportsWithMissedProofs = reports.Where(r => r.GetMissedProofs().Any()).ToArray();
-        //    if (reportsWithMissedProofs.Length < 1)
-        //    {
-        //        lines.Add($"No proofs were missed {emojiMaps.NoProofsMissed}");
-        //        return;
-        //    }
-
-        //    var totalMissed = reportsWithMissedProofs.Sum(r => r.GetMissedProofs().Length);
-        //    if (totalMissed > 10)
-        //    {
-        //        lines.Add($"[{totalMissed}] proofs were missed {emojiMaps.ManyProofsMissed}");
-        //        return;
-        //    }
-
-        //    foreach (var report in reportsWithMissedProofs)
-        //    {
-        //        DescribeMissedProof(lines, report);
-        //    }
-        //}
-
-        //private void DescribeMissedProof(List<string> lines, PeriodReport report)
-        //{
-        //    foreach (var missedProof in report.GetMissedProofs())
-        //    {
-        //        DescribeMissedProof(lines, missedProof);
-        //    }
-        //}
-
-        //private void DescribeMissedProof(List<string> lines, PeriodRequiredProof missedProof)
-        //{
-        //    lines.Add($"[{missedProof.FormatHost()}] missed proof for {FormatRequestId(missedProof.Request)} (slotIndex: {missedProof.SlotIndex})");
-        //}
 
         private void AddRequestBlock(RequestEvent requestEvent, string icon, string eventName, params string[] content)
         {

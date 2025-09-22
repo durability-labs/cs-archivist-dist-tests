@@ -1,12 +1,13 @@
 using ArchivistContractsPlugin;
 using ArchivistContractsPlugin.ChainMonitor;
+using DiscordRewards;
 using GethPlugin;
 using Logging;
 using Utils;
 
 namespace TestNetRewarder
 {
-    public class Processor : ITimeSegmentHandler
+    public class Processor : ITimeSegmentHandler, IPeriodMonitorEventHandler
     {
         private readonly RequestBuilder builder;
         private readonly EventsFormatter eventsFormatter;
@@ -23,13 +24,11 @@ namespace TestNetRewarder
             this.log = log;
             lastPeriodUpdateUtc = DateTime.UtcNow;
 
-            if (config.ProofReportHours < 1) throw new Exception("ProofReportHours must be one or greater");
-
             builder = new RequestBuilder();
             eventsFormatter = new EventsFormatter(config, contracts.Deployment.Config);
 
             chainState = new ChainState(log, geth, contracts, eventsFormatter, config.HistoryStartUtc,
-                doProofPeriodMonitoring: config.ShowProofPeriodReports > 0, new DoNothingPeriodMonitorEventHandler());
+                doProofPeriodMonitoring: config.ShowProofsMissed > 0, this);
         }
 
         public async Task Initialize()
@@ -63,10 +62,27 @@ namespace TestNetRewarder
             }
         }
 
+        public void OnPeriodReport(PeriodReport report)
+        {
+            var missedSlots = new List<MissedSlot>();
+
+            foreach (var r in report.Requests)
+            {
+                foreach (var s in r.Slots)
+                {
+                    if (s.CanMarkAsMissing || s.MarkedAsMissing)
+                    {
+                        missedSlots.Add(new MissedSlot(r.Request, s));
+                    }
+                }
+            }
+
+            eventsFormatter.OnMissedSlots(report.Period, missedSlots);
+        }
+
         private async Task<int> ProcessEvents(TimeRange timeRange)
         {
             var numberOfChainEvents = chainState.Update(timeRange.To);
-            ProcessPeriodUpdate();
 
             var events = eventsFormatter.GetEvents();
             var errors = eventsFormatter.GetErrors();
@@ -78,14 +94,17 @@ namespace TestNetRewarder
             }
             return numberOfChainEvents;
         }
+    }
 
-        private void ProcessPeriodUpdate()
+    public class MissedSlot
+    {
+        public MissedSlot(IChainStateRequest request, PeriodRequestSlotReport slotReport)
         {
-            if (config.ShowProofPeriodReports < 1) return;
-            if (DateTime.UtcNow < (lastPeriodUpdateUtc + TimeSpan.FromHours(config.ProofReportHours))) return;
-            lastPeriodUpdateUtc = DateTime.UtcNow;
-
-            eventsFormatter.ProcessPeriodReports(chainState.PeriodMonitor.GetAndClearReports());
+            Request = request;
+            SlotReport = slotReport;
         }
+
+        public IChainStateRequest Request { get; }
+        public PeriodRequestSlotReport SlotReport { get; }
     }
 }

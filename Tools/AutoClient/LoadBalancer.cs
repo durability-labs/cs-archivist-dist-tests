@@ -4,10 +4,11 @@ namespace AutoClient
 {
     public class LoadBalancer
     {
-        private readonly List<Cdx> instances;
+        private readonly List<Arch> instances;
         private readonly object instanceLock = new object();
+        private readonly App app;
 
-        private class Cdx
+        private class Arch
         {
             private readonly ILog log;
             private readonly ArchivistWrapper instance;
@@ -16,7 +17,7 @@ namespace AutoClient
             private bool running = true;
             private Task worker = Task.CompletedTask;
 
-            public Cdx(App app, ArchivistWrapper instance)
+            public Arch(App app, ArchivistWrapper instance)
             {
                 Id = instance.Node.GetName();
                 log = new LogPrefixer(app.Log, $"[Queue-{Id}]");
@@ -24,6 +25,7 @@ namespace AutoClient
             }
 
             public string Id { get; }
+            public int QueueSize => queue.Count;
 
             public void Start()
             {
@@ -43,10 +45,11 @@ namespace AutoClient
 
             public void Queue(Action<ArchivistWrapper> action)
             {
-                if (queue.Count > 2) log.Log("Queue full. Waiting...");
-                while (queue.Count > 2)
+                if (queue.Count > 3) Thread.Sleep(TimeSpan.FromSeconds(5.0));
+                if (queue.Count > 5) log.Log("Queue full. Waiting...");
+                while (queue.Count > 5)
                 {
-                    Thread.Sleep(TimeSpan.FromSeconds(5.0));
+                    Thread.Sleep(TimeSpan.FromSeconds(1.0));
                 }
 
                 lock (queueLock)
@@ -61,7 +64,8 @@ namespace AutoClient
                 {
                     while (running)
                     {
-                        while (queue.Count == 0) Thread.Sleep(TimeSpan.FromSeconds(5.0));
+                        while (running && queue.Count == 0) Thread.Sleep(TimeSpan.FromSeconds(1.0));
+                        if (!running) return;
 
                         Action<ArchivistWrapper> action = w => { };
                         lock (queueLock)
@@ -81,18 +85,30 @@ namespace AutoClient
             }
         }
 
+        private class ArchComparer : IComparer<Arch>
+        {
+            public int Compare(Arch? x, Arch? y)
+            {
+                if (x == null || y == null) return 0;
+                return x.QueueSize - y.QueueSize;
+            }
+        }
+
         public LoadBalancer(App app, ArchivistWrapper[] instances)
         {
-            this.instances = instances.Select(i => new Cdx(app, i)).ToList();
+            this.instances = instances.Select(i => new Arch(app, i)).ToList();
+            this.app = app;
         }
 
         public void Start()
         {
+            app.Log.Log("LoadBalancer starting...");
             foreach (var i in instances) i.Start();
         }
 
         public void Stop()
         {
+            app.Log.Log("LoadBalancer stopping...");
             foreach (var i in instances) i.Stop();
         }
 
@@ -100,9 +116,8 @@ namespace AutoClient
         {
             lock (instanceLock)
             {
+                instances.Sort(new ArchComparer());
                 var i = instances.First();
-                instances.RemoveAt(0);
-                instances.Add(i);
 
                 i.Queue(action);
             }
@@ -113,9 +128,6 @@ namespace AutoClient
             lock (instanceLock)
             {
                 var i = instances.Single(a => a.Id == id);
-                instances.Remove(i);
-                instances.Add(i);
-
                 i.Queue(action);
             }
         }

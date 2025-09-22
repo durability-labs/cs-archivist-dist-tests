@@ -1,9 +1,6 @@
 using ArchivistClient;
 using ArchivistContractsPlugin.ChainMonitor;
-using ArchivistContractsPlugin.Marketplace;
 using ArchivistReleaseTests.Utils;
-using Nethereum.Hex.HexConvertors.Extensions;
-using Newtonsoft.Json;
 using NUnit.Framework;
 using Utils;
 
@@ -38,7 +35,7 @@ namespace ArchivistReleaseTests.MarketTests
         [Test]
         [Combinatorial]
         public void Stability(
-            [Values(10, 120)] int minutes)
+            [Values(20, 120)] int minutes)
         {
             var mins = TimeSpan.FromMinutes(minutes);
             var periodDuration = GetContracts().Deployment.Config.PeriodDuration;
@@ -79,54 +76,18 @@ namespace ArchivistReleaseTests.MarketTests
         {
             numPeriods++;
 
-            // For each required proof, there should be a submit call.
-            var calls = GetSubmitProofCalls(report);
-            foreach (var required in report.Required)
+            foreach (var r in report.Requests)
             {
-                var matchingCall = GetMatchingSubmitProofCall(calls, required);
-                if (matchingCall == null)
+                foreach (var s in r.Slots)
                 {
-                    Log($"A proof was missed for {required.Describe()}. Failing test after a delay so chain events have time to log...");
-                    proofWasMissed = true;
+                    if (s.GetIsProofMissed())
+                    {
+                        Log($"A proof was missed. Failing test after a delay so chain events have time to log...");
+                        proofWasMissed = true;
+                        return;
+                    }
                 }
             }
-
-            // There can't be any calls to mark a proof as missed.
-            foreach (var call in report.FunctionCalls)
-            {
-                var missedCall = nameof(MarkProofAsMissingFunction);
-                Assert.That(call.Name, Is.Not.EqualTo(missedCall));
-            }
-        }
-
-        private SubmitProofFunction? GetMatchingSubmitProofCall(SubmitProofFunction[] calls, PeriodRequiredProof required)
-        {
-            foreach (var call in calls)
-            {
-                if (
-                    call.Id.SequenceEqual(required.SlotId) &&
-                    call.FromAddress.ToLowerInvariant() == required.Host.Address.ToLowerInvariant()
-                )
-                {
-                    return call;
-                }
-            }
-
-            return null;
-        }
-
-        private SubmitProofFunction[] GetSubmitProofCalls(PeriodReport report)
-        {
-            var submitCall = nameof(SubmitProofFunction);
-            var calls = report.FunctionCalls.Where(f => f.Name == submitCall).ToArray();
-            var callObjs = calls.Select(call => JsonConvert.DeserializeObject<SubmitProofFunction>(call.Payload)).ToArray();
-            Log($"SubmitProof calls: {callObjs.Length}");
-            foreach (var c in callObjs)
-            {
-                Log($" - slotId:{c.Id.ToHex()} host:{c.FromAddress}");
-            }
-
-            return callObjs!;
         }
 
         private IStoragePurchaseContract CreateStorageRequest(IArchivistNode client, TimeSpan minutes)

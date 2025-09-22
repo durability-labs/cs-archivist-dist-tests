@@ -22,24 +22,30 @@ namespace AutoClient
             return Node.UploadFile(TrackedFile.FromPath(app.Log, filepath));
         }
 
+        public StoragePurchase? GetStoragePurchase(string pid)
+        {
+            return Node.GetPurchaseStatus(pid);
+        }
+
         public IStoragePurchaseContract RequestStorage(ContentId cid)
         {
+            var durability = GetDurabilityValues();
             var result = Node.Marketplace.RequestStorage(new StoragePurchaseRequest(cid)
             {
                 CollateralPerByte = app.Config.CollateralPerByte.TstWei(),
                 Duration = GetDuration(),
                 Expiry = TimeSpan.FromMinutes(app.Config.ContractExpiryMinutes),
-                MinRequiredNumberOfNodes = Convert.ToUInt32(app.Config.NumHosts),
-                NodeFailureTolerance = Convert.ToUInt32(app.Config.HostTolerance),
+                MinRequiredNumberOfNodes = Convert.ToUInt32(durability.Nodes),
+                NodeFailureTolerance = Convert.ToUInt32(durability.Tolerance),
                 PricePerBytePerSecond = GetPricePerBytePerSecond(),
-                ProofProbability = 15
+                ProofProbability = durability.ProofProbability
             });
             return result;
         }
 
-        public StoragePurchase? GetStoragePurchase(string pid)
+        private DurabilityValues GetDurabilityValues()
         {
-            return Node.GetPurchaseStatus(pid);
+            return RandomUtils.GetOneRandom(app.Config.DurabilityValues);
         }
 
         private TestToken GetPricePerBytePerSecond()
@@ -53,13 +59,17 @@ namespace AutoClient
 
         private TimeSpan GetDuration()
         {
-            var i = app.Config.ContractDurationMinutes;
-            var day = 60 * 24;
-            i -= day;
-            i -= 10; // We don't want to accidentally hit exactly 7 days because that's the limit of the storage node availabilities.
-            i += r.Next(0, day * 2);
-
-            return TimeSpan.FromMinutes(i);
+            var dMins = app.Config.DurationMinutes;
+            if (dMins.Length == 1)
+            {
+                return TimeSpan.FromSeconds(dMins[0]);
+            }
+            if (dMins.Length == 2)
+            {
+                var mins = r.Next(dMins[0], dMins[1]);
+                return TimeSpan.FromSeconds(mins);
+            }
+            throw new Exception("Misconfigured DurationMinutes");
         }
     }
 }
