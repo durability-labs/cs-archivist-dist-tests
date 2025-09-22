@@ -11,11 +11,8 @@ services:
       - BOOTSTRAP_NODE_FROM_URL=https://spr.archivist.storage/testnet # 0.0.1
       - ARCHIVIST_DATA_DIR=/data
       - ARCHIVIST_LOG_LEVEL=TRACE;warn:discv5,providers,manager,cache;warn:libp2p,multistream,switch,transport,tcptransport,semaphore,asyncstreamwrapper,lpstream,mplex,mplexchannel,noise,bufferstream,mplexcoder,secure,chronosstream,connection,connmanager,websock,ws-session
-      - ARCHIVIST_API_PORT=8080
       - ARCHIVIST_API_BINDADDR=0.0.0.0
-      - ARCHIVIST_LISTEN_ADDRS=/ip4/0.0.0.0/tcp/8070
       - ARCHIVIST_API_CORS_ORIGIN=*
-      - ARCHIVIST_DISC_PORT=8090
       - ARCHIVIST_STORAGE_QUOTA=20gb
       - NAT_PUBLIC_IP_AUTO=https://ip.archivist.storage
       # - ARCHIVIST_ETH_PROVIDER=https://rpc.testnet.archivist.storage/
@@ -24,5 +21,4 @@ services:
       options:
         max-size: 100m
         max-file: 5
-    # May be necessary on some host machines:
-    # network_mode: host
+    network_mode: host
