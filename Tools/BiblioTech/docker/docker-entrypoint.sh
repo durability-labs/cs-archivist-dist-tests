@@ -22,7 +22,7 @@ fi
 
 # Show
 echo -e "\nRun parameters:"
-vars=$(env | grep "ARCHIVIST" | grep -v -e "[0-9]_SERVICE_" -e "[0-9]_NODEPORT_")
+vars=$(env | grep "ARCHIVIST" | grep -v -E -e "([0-9])*_SERVICE_" -e "[0-9]_NODEPORT_" -e "_PORT(_[0-9])*")
 echo -e "${vars//ARCHIVIST/   - ARCHIVIST}"
 echo -e "   - $@\n"
 
