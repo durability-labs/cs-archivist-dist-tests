@@ -15,10 +15,11 @@ services:
       - ARCHIVIST_API_CORS_ORIGIN=*
       - ARCHIVIST_STORAGE_QUOTA=20gb
       - NAT_PUBLIC_IP_AUTO=https://ip.archivist.storage
-      # - ARCHIVIST_ETH_PROVIDER=https://rpc.testnet.archivist.storage/
+      - ARCHIVIST_ETH_PROVIDER=http://rpc-arbitrum
     logging:
       driver: json-file
       options:
         max-size: 100m
         max-file: 5
-    network_mode: host
+    extra_hosts:
+      - rpc-arbitrum:host-gateway
