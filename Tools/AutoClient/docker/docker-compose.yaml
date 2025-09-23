@@ -45,6 +45,8 @@ services:
       - ETH_PRIVATE_KEY=0x7c8ebb5a5c63ba549f7ea44d0f763f37642727ac0d772b8c783ac03ba82b6ea6
     volumes:
       - ./volumes/arch1-data:/data
+    ports:
+      - 8080:8080/tcp
 
   archivist-2:
     extends:
@@ -58,6 +60,8 @@ services:
       - ETH_PRIVATE_KEY=0x26c18f0b03aa1a8e1d5bd4dfec55a4e98204d567790053fcc0ecc6e19d5b63cb
     volumes:
       - ./volumes/arch2-data:/data
+    ports:
+      - 8081:8081/tcp
 
   archivist-3:
     extends:
@@ -71,6 +75,8 @@ services:
       - ETH_PRIVATE_KEY=0xe531c98df44c5d92e551991a95ae705161c1a5e570003eab87ccebc3cce08f14
     volumes:
       - ./volumes/arch3-data:/data
+    ports:
+      - 8082:8082/tcp
 
   # archivist-4:
   #   extends:
@@ -84,6 +90,8 @@ services:
   #     - ETH_PRIVATE_KEY=0x126c961a9d66d5ba7ad460c2d1b53f5dd070beec3ea956268ba1fac1f4cbfd13
   #   volumes:
   #     - ./volumes/arch4-data:/data
+  #   ports:
+  #     - 8083:8083/tcp
 
   # archivist-5:
   #   extends:
@@ -97,6 +105,8 @@ services:
   #     - ETH_PRIVATE_KEY=0xe851fdc9d58f54a03869b236a355f9b639ad6b4de47e1ea0261457bf1791ddc2
   #   volumes:
   #     - ./volumes/arch5-data:/data
+  #   ports:
+  #     - 8084:8084/tcp
 
   # archivist-6:
   #   extends:
@@ -110,6 +120,8 @@ services:
   #     - ETH_PRIVATE_KEY=0xca5cd2a37851910e7d9d057eae1b4b7dff55ee451b2d07005591d327bbcafe25
   #   volumes:
   #     - ./volumes/arch6-data:/data
+  #   ports:
+  #     - 8085:8085/tcp
 
   # archivist-7:
   #   extends:
@@ -123,6 +135,8 @@ services:
   #     - ETH_PRIVATE_KEY=0x736469144b5434e015efc84670bc82ed1379cd7bdcdbb35c47097523c3e3263f
   #   volumes:
   #     - ./volumes/arch7-data:/data
+  #   ports:
+  #     - 8086:8086/tcp
 
   # archivist-8:
   #   extends:
@@ -136,6 +150,8 @@ services:
   #     - ETH_PRIVATE_KEY=0x78dadc337f3866457461b9ef85d428755a9bbc6d3af7839d93d69b64d36e033f
   #   volumes:
   #     - ./volumes/arch8-data:/data
+  #   ports:
+  #     - 8087:8087/tcp
 
   # archivist-9:
   #   extends:
@@ -149,6 +165,8 @@ services:
   #     - ETH_PRIVATE_KEY=0xa5f79835151b1edc2dea92893e88af04bb95a805fad3cd233bf81df779258dde
   #   volumes:
   #     - ./volumes/arch9-data:/data
+  #   ports:
+  #     - 8088:8088/tcp
 
   # archivist-10:
   #   extends:
@@ -162,3 +180,5 @@ services:
   #     - ETH_PRIVATE_KEY=0x6e51bdebda88002d8cc8c3f547c7da3bc718405fc28da04766a6aebe0ff72984
   #   volumes:
   #     - ./volumes/arch10-data:/data
+  #   ports:
+  #     - 8089:8089/tcp
