@@ -59,7 +59,7 @@ public class Program
         var i = 1;
         foreach (var e in endpointStrs)
         {
-            result.Add(CreateArchivistWrapper(e, i));
+            result.Add(CreateArchivistWrapper(e.Trim(), i));
             i++;
         }
 

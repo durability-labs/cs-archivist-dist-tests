@@ -5,7 +5,7 @@ services:
     restart: always
     command:
       - archivist
-      # - persistence
+      - persistence
     environment:
       # - NETWORK=testnet - after 0.0.1
       - BOOTSTRAP_NODE_FROM_URL=https://spr.archivist.storage/testnet # 0.0.1

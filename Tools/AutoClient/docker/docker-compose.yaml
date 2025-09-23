@@ -26,7 +26,7 @@ services:
       - SLOWMODEDELAYMINUTES=20
     volumes:
       - ./volumes/autoclient-data:/data
-      - ./volumes/target:/target
+      - /opt/EthereumMainnetPreMergeEraFiles:/target
     logging:
       driver: json-file
       options:
