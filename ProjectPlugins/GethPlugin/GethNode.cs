@@ -137,7 +137,7 @@ namespace GethPlugin
     {
         public Ether GetEthBalance()
         {
-            return StartInteraction().GetEthBalance().Eth();
+            return StartInteraction().GetEthBalance().Wei();
         }
 
         public Ether GetEthBalance(IHasEthAddress owner)

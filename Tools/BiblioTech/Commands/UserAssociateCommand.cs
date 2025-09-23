@@ -36,7 +36,7 @@ namespace BiblioTech.Commands
                 return;
             }
 
-            var result = Program.UserRepo.AssociateUserWithAddress(user, newAddress);
+            var result = AssociateUserWithAddress(user, newAddress);
             switch (result)
             {
                 case SetAddressResponse.OK:
@@ -51,6 +51,21 @@ namespace BiblioTech.Commands
                 default:
                     throw new Exception("Unknown SetAddressResponse mode");
             }
+        }
+
+        private SetAddressResponse AssociateUserWithAddress(IUser user, EthAddress newAddress)
+        {
+            var node = Program.GethLink?.Node;
+            if (node != null)
+            {
+                if (node.CurrentAddress.Address.ToLowerInvariant() == newAddress.Address.ToLowerInvariant())
+                {
+                    return SetAddressResponse.AddressAlreadyInUse;
+                }
+            }
+
+            var result = Program.UserRepo.AssociateUserWithAddress(user, newAddress);
+            return result;
         }
 
         private async Task ResponseCreateUserFailed(CommandContext context, IUser user)

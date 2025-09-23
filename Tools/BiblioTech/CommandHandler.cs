@@ -30,19 +30,7 @@ namespace BiblioTech
 
         private async Task Client_Ready()
         {
-            var guild = client.Guilds.Single(g => g.Id == Program.Config.ServerId);
-            Program.AdminChecker.SetGuild(guild);
-            log.Log($"Initializing for guild: '{guild.Name}'");
-
-            var adminChannel = GetChannel(guild, Program.Config.AdminChannelId);
-            if (adminChannel == null) throw new Exception("No admin message channel");
-            var chainEventsChannel = GetChannel(guild, Program.Config.ChainEventsChannelId);
-            var rewardsChannel = GetChannel(guild, Program.Config.RewardsChannelId);
-
-            Program.AdminChecker.SetAdminChannel(adminChannel);
-            Program.RoleDriver = new RoleDriver(client, Program.UserRepo, log, rewardsChannel);
-            Program.ChainActivityHandler = new ChainActivityHandler(log, Program.UserRepo);
-            Program.EventsSender = new ChainEventsSender(log, replacement, chainEventsChannel);
+            var guild = InitializeGuild();
 
             var builders = commands.Select(c =>
             {
@@ -85,6 +73,33 @@ namespace BiblioTech
             }
             Program.Dispatcher.Start();
             log.Log("Initialized.");
+        }
+
+        private SocketGuild InitializeGuild()
+        {
+            try
+            {
+                var guild = client.Guilds.Single(g => g.Id == Program.Config.ServerId);
+                Program.AdminChecker.SetGuild(guild);
+                log.Log($"Initializing for guild: '{guild.Name}'");
+
+                var adminChannel = GetChannel(guild, Program.Config.AdminChannelId);
+                if (adminChannel == null) throw new Exception("No admin message channel");
+                var chainEventsChannel = GetChannel(guild, Program.Config.ChainEventsChannelId);
+                var rewardsChannel = GetChannel(guild, Program.Config.RewardsChannelId);
+
+                Program.AdminChecker.SetAdminChannel(adminChannel);
+                Program.RoleDriver = new RoleDriver(client, Program.UserRepo, log, rewardsChannel);
+                Program.ChainActivityHandler = new ChainActivityHandler(log, Program.UserRepo);
+                Program.EventsSender = new ChainEventsSender(log, replacement, chainEventsChannel);
+
+                return guild;
+            }
+            catch (Exception ex)
+            {
+                log.Error($"Failed to initialize guild: {ex}");
+                throw;
+            }
         }
 
         private SocketTextChannel? GetChannel(SocketGuild guild, ulong id)
