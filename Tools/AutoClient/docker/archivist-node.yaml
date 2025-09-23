@@ -2,7 +2,6 @@ services:
   archivist-base:
     image: durabilitylabs/archivist-node:latest-dist-tests
     pull_policy: always
-    restart: always
     command:
       - archivist
       - persistence

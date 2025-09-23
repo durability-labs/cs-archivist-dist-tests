@@ -2,19 +2,18 @@ services:
   autoclient:
     image: durabilitylabs/archivist-autoclient:latest
     pull_policy: always
-    restart: always
     container_name: autoclient
     environment:
-      - ARCHIVISTENDPOINTS=|
-          http://archivist1:8080
-          http://archivist2:8081
-          http://archivist3:8082
-          # http://archivist4:8083
-          # http://archivist5:8084
-          # http://archivist6:8085
-          # http://archivist7:8086
-          # http://archivist8:8087
-          # http://archivist9:8088
+      - ARCHIVISTENDPOINTS=
+          http://archivist1:8080;
+          http://archivist2:8081;
+          http://archivist3:8082;
+          # http://archivist4:8083;
+          # http://archivist5:8084;
+          # http://archivist6:8085;
+          # http://archivist7:8086;
+          # http://archivist8:8087;
+          # http://archivist9:8088;
           # http://archivist10:8089
       - DATAPATH=/data
       - CONTRACTDURATION=7200,9360
