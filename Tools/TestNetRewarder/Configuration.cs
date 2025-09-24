@@ -16,7 +16,7 @@ namespace TestNetRewarder
         public int DiscordPort { get; set; } = 31080;
 
         [Uniform("interval-minutes", "im", "INTERVALMINUTES", true, "time in minutes between reward updates.")]
-        public int IntervalMinutes { get; set; } = 15;
+        public int IntervalMinutes { get; set; } = 10;
 
         [Uniform("relative-history", "rh", "RELATIVEHISTORY", false, "Number of seconds into the past (from app start) that checking of chain history will start. Default: 3 hours ago.")]
         public int RelativeHistorySeconds { get; set; } = 3600 * 3;

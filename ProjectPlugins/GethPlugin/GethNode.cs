@@ -34,7 +34,7 @@ namespace GethPlugin
         BlockTimeEntry? GetBlockForNumber(ulong number);
         BlockTimeEntry? GetBlockForUtc(DateTime utc);
         void IterateTransactions(BlockInterval blockRange, Action<Transaction, ulong, DateTime> action);
-        void IterateFunctionCalls<TFunc>(BlockInterval blockInterval, Action<BlockTimeEntry, TFunc> onCall) where TFunc : FunctionMessage, new();
+        void IterateFunctionCalls<TFunc>(BlockInterval blockInterval, Action<BlockTimeEntry?, TFunc> onCall) where TFunc : FunctionMessage, new();
         IGethNode WithDifferentAccount(EthAccount account);
     }
 

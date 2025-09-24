@@ -190,7 +190,7 @@ namespace TraceContract
 
                 while (queue.Any())
                 {
-                    ulong wantedNumber = lastLogLine.Value + 1;
+                    ulong wantedNumber = lastLogLine!.Value + 1;
 
                     DeleteOldEntries(wantedNumber);
 

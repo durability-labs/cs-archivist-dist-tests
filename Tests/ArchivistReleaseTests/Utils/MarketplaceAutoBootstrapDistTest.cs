@@ -251,7 +251,7 @@ namespace ArchivistReleaseTests.Utils
             var fills = GetOnChainSlotFills(hosts);
             var submitUtc = GetContractOnChainSubmittedUtc(contract);
             var finishUtc = submitUtc + contract.Purchase.Duration;
-            var slotSize = Convert.ToInt64(contract.GetStatus().Request.Ask.SlotSize).Bytes();
+            var slotSize = Convert.ToInt64(contract.GetStatus()!.Request.Ask.SlotSize).Bytes();
             var expectedBalances = new Dictionary<EthAddress, TestToken>();
 
             foreach (var host in hosts) expectedBalances.Add(host.EthAddress, StartingBalanceTST.Tst());
@@ -366,7 +366,7 @@ namespace ArchivistReleaseTests.Utils
             var result = 0.Tst();
             var submitUtc = GetContractOnChainSubmittedUtc(contract);
             var finishUtc = submitUtc + contract.Purchase.Duration;
-            var slotSize = Convert.ToInt64(contract.GetStatus().Request.Ask.SlotSize).Bytes();
+            var slotSize = Convert.ToInt64(contract.GetStatus()!.Request.Ask.SlotSize).Bytes();
 
             foreach (var fill in fills)
             {

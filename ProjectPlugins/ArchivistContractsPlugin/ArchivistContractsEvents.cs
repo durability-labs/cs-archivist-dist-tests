@@ -96,6 +96,7 @@ namespace ArchivistContractsPlugin
         {
             gethNode.IterateFunctionCalls<ReserveSlotFunction>(BlockInterval, (b, fn) =>
             {
+                if (b == null) throw new Exception("Block not provided for event. " + nameof(ReserveSlotFunction));
                 fn.Block = b;
                 onFunction(fn);
             });
@@ -108,9 +109,11 @@ namespace ArchivistContractsPlugin
             return result;
         }
 
-        private BlockTimeEntry? GetBlock(ulong number)
+        private BlockTimeEntry GetBlock(ulong number)
         {
-            return gethNode.GetBlockForNumber(number);
+            var entry = gethNode.GetBlockForNumber(number);
+            if (entry == null) throw new Exception("Failed to find block by number: " + number);
+            return entry;
         }
 
         private EthAddress GetEthAddressFromTransaction(string transactionHash)

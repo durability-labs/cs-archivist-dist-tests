@@ -25,7 +25,7 @@ namespace BiblioTech.ArchivistChecking
                 var sw = System.Diagnostics.Stopwatch.StartNew();
                 try
                 {
-                    if (model == null) LoadModel();
+                    if (model == null) model = LoadModel();
 
                     var existing = model.Reports.SingleOrDefault(r => r.UserId == userId);
                     if (existing == null)
@@ -56,16 +56,18 @@ namespace BiblioTech.ArchivistChecking
             File.WriteAllText(GetModelFilepath(), JsonConvert.SerializeObject(model, Formatting.Indented));
         }
 
-        private void LoadModel()
+        private CheckRepoModel LoadModel()
         {
             if (!File.Exists(GetModelFilepath()))
             {
                 model = new CheckRepoModel();
                 SaveChanges();
-                return;
+                return model;
             }
 
             model = JsonConvert.DeserializeObject<CheckRepoModel>(File.ReadAllText(GetModelFilepath()));
+            if (model == null) throw new Exception("Failed to deserislize CheckRepoModel");
+            return model;
         }
 
         private string GetModelFilepath()
