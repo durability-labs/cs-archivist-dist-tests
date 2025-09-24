@@ -27,6 +27,7 @@ namespace ArchivistReleaseTests.MarketTests
         {
             var hosts = StartHosts();
             var client = StartClients().Single();
+            StartValidator();
 
             var request = CreateStorageRequest(client);
 

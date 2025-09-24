@@ -49,7 +49,7 @@ namespace TestNetRewarder
                 var numberOfChainEvents = await ProcessEvents(timeRange);
                 var duration = sw.Elapsed;
 
-                if (duration > TimeSpan.FromSeconds(1)) return TimeSegmentResponse.Underload;
+                if (duration < TimeSpan.FromSeconds(1)) return TimeSegmentResponse.Underload;
                 if (duration > TimeSpan.FromSeconds(3)) return TimeSegmentResponse.Overload;
                 return TimeSegmentResponse.OK;
             }

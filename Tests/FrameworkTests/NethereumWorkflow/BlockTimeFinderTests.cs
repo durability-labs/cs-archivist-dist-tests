@@ -1,7 +1,6 @@
 using BlockchainUtils;
 using Logging;
 using Moq;
-using NethereumWorkflow;
 using NUnit.Framework;
 
 namespace FrameworkTests.NethereumWorkflow
@@ -45,11 +44,13 @@ namespace FrameworkTests.NethereumWorkflow
             web3.Setup(w => w.GetCurrentBlockNumber()).Returns(blocks.Keys.Max());
             web3.Setup(w => w.GetTimestampForBlock(It.IsAny<ulong>())).Returns<ulong>(d =>
             {
-                if (blocks.ContainsKey(d)) return blocks[d].Time;
+                if (blocks.ContainsKey(d)) return new BlockTimeEntry(d, blocks[d].Time);
                 return null;
             });
+            web3.Setup(w => w.GetEarliestSeen()).Returns(blocks.Min(b => b.Key));
+            web3.Setup(w => w.GetLatestSeen()).Returns(blocks.Max(b => b.Key));
 
-            finder = new BlockTimeFinder(new BlockCache(), web3.Object, log.Object);
+            finder = new BlockTimeFinder(web3.Object, log.Object);
         }
 
         [Test]

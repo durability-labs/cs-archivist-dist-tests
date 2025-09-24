@@ -31,6 +31,7 @@ namespace ArchivistReleaseTests.MarketTests
         {
             var hosts = StartHosts();
             var clients = StartClients();
+            StartValidator();
 
             for (var i = 0; i < numGenerations; i++)
             {
