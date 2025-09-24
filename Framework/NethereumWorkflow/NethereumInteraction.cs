@@ -3,8 +3,6 @@ using BlockchainUtils;
 using Logging;
 using Nethereum.ABI.FunctionEncoding.Attributes;
 using Nethereum.Contracts;
-using Nethereum.Model;
-using Nethereum.RPC.Eth.Blocks;
 using Nethereum.RPC.Eth.DTOs;
 using Nethereum.Web3;
 using Utils;
@@ -185,6 +183,7 @@ namespace NethereumWorkflow
                 var wrapper = new Web3Wrapper(web3, log);
                 var blockTimeFinder = new BlockTimeFinder(blockCache, wrapper, log);
 
+                log.Log($"Converting time range to block range: {timeRange}");
                 var fromBlock = blockTimeFinder.GetLowestBlockNumberAfter(timeRange.From);
                 var toBlock = blockTimeFinder.GetHighestBlockNumberBefore(timeRange.To);
 
@@ -193,11 +192,15 @@ namespace NethereumWorkflow
                     throw new Exception("Failed to convert time range to block range.");
                 }
 
-                return new BlockInterval(
+                var result = new BlockInterval(
                     timeRange: timeRange,
                     from: fromBlock.Value,
                     to: toBlock.Value
                 );
+                
+                log.Log($"Converting time range to block range: {timeRange} -> found {result}");
+
+                return result;
             }, nameof(ConvertTimeRangeToBlockRange));
         }
 

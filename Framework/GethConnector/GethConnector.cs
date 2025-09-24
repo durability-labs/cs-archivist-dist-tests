@@ -13,6 +13,11 @@ namespace GethConnector
 
         public static GethConnector? Initialize(ILog log)
         {
+            return Initialize(log, new BlockCache());
+        }
+
+        public static GethConnector? Initialize(ILog log, BlockCache blockCache)
+        {
             if (!string.IsNullOrEmpty(GethInput.LoadError))
             {
                 var msg = "Geth input incorrect: " + GethInput.LoadError;
@@ -20,7 +25,7 @@ namespace GethConnector
                 return null;
             }
 
-            var gethNode = new CustomGethNode(log, new BlockCache(), GethInput.GethHost, GethInput.GethPort, GethInput.PrivateKey);
+            var gethNode = new CustomGethNode(log, blockCache, GethInput.GethHost, GethInput.GethPort, GethInput.PrivateKey);
 
             var config = GetArchivistMarketplaceConfig(gethNode, GethInput.MarketplaceAddress);
 

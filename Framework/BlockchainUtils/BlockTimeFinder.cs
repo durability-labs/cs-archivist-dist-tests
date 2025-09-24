@@ -15,43 +15,43 @@ namespace BlockchainUtils
             this.log = log;
 
             this.cache = cache;
-            bounds = new BlockchainBounds(cache, web3);
+            bounds = new BlockchainBounds(log, cache, web3);
+            bounds.Initialize();
         }
 
         public BlockTimeEntry Get(ulong blockNumber)
         {
             var b = cache.Get(blockNumber);
             if (b != null) return b;
-
-            bounds.Initialize();
+            bounds.UpdateCurrentIfNeeded(blockNumber);
             return GetBlock(blockNumber);
         }
 
         public ulong? GetHighestBlockNumberBefore(DateTime moment)
         {
-            bounds.Initialize();
-            if (moment < bounds.Genesis.Utc) return null;
-            if (moment == bounds.Genesis.Utc) return bounds.Genesis.BlockNumber;
+            bounds.UpdateCurrentIfNeeded(moment);
+            if (moment < bounds.Earliest.Utc) return null;
+            if (moment == bounds.Earliest.Utc) return bounds.Earliest.BlockNumber;
             if (moment >= bounds.Current.Utc) return bounds.Current.BlockNumber;
 
-            return Log(() => Search(bounds.Genesis, bounds.Current, moment, HighestBeforeSelector));
+            return Log(() => Search(bounds.Earliest, bounds.Current, moment, HighestBeforeSelector));
         }
 
         public ulong? GetLowestBlockNumberAfter(DateTime moment)
         {
-            bounds.Initialize();
+            bounds.UpdateCurrentIfNeeded(moment);
             if (moment > bounds.Current.Utc) return null;
             if (moment == bounds.Current.Utc) return bounds.Current.BlockNumber;
-            if (moment <= bounds.Genesis.Utc) return bounds.Genesis.BlockNumber;
+            if (moment <= bounds.Earliest.Utc) return bounds.Earliest.BlockNumber;
 
-            return Log(()=> Search(bounds.Genesis, bounds.Current, moment, LowestAfterSelector)); ;
+            return Log(()=> Search(bounds.Earliest, bounds.Current, moment, LowestAfterSelector)); ;
         }
 
         private ulong Log(Func<ulong> operation)
         {
             var sw = Stopwatch.Begin(log, nameof(BlockTimeFinder), true);
             var result = operation();
-            sw.End($"(Bounds: [{bounds.Genesis.BlockNumber}-{bounds.Current.BlockNumber}] Cache: {cache.Size})");
+            sw.End($"(Bounds: [{bounds.Earliest.BlockNumber}-{bounds.Current.BlockNumber}]");
 
             return result;
         }
@@ -61,7 +61,10 @@ namespace BlockchainUtils
             var middle = GetMiddle(lower, upper);
             if (middle.BlockNumber == lower.BlockNumber)
             {
-                if (isWhatIwant(target, upper)) return upper.BlockNumber;
+                if (isWhatIwant(target, upper))
+                {
+                    return upper.BlockNumber;
+                }
             }
 
             if (isWhatIwant(target, middle))
@@ -104,16 +107,17 @@ namespace BlockchainUtils
 
         private BlockTimeEntry GetBlock(ulong number, bool retry = false)
         {
-            if (number < bounds.Genesis.BlockNumber) throw new Exception("Can't fetch block before genesis.");
+            if (number < bounds.Earliest.BlockNumber) throw new Exception("Can't fetch block before genesis.");
             if (number > bounds.Current.BlockNumber)
             {
                 if (retry) throw new Exception("Can't fetch block after current.");
 
-                // todo test and verify this:
                 Thread.Sleep(1000);
-                bounds.Initialize();
                 return GetBlock(number, retry: true);
             }
+
+            var b = cache.Get(number);
+            if (b != null) return b;
 
             var dateTime = web3.GetTimestampForBlock(number);
             if (dateTime == null) throw new Exception("Failed to get dateTime for block that should exist.");

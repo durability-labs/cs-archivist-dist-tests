@@ -12,6 +12,7 @@ namespace TestNetRewarder
         private static ILog Log = null!;
         private static BotClient BotClient = null!;
         private static Processor processor = null!;
+        private static IGethNode node = null!;
         private static DateTime lastCheck = DateTime.MinValue;
 
         public static Task Main(string[] args)
@@ -29,10 +30,14 @@ namespace TestNetRewarder
             );
 
             var connector = GethConnector.GethConnector.Initialize(Log);
-            if (connector == null) throw new Exception("Invalid Geth information");
+            var diskStore = new DiskBlockBucketStore(Path.Join(Config.DataPath, "blockcache"));
+            var blockCache = new BlockCache(diskStore);
+            var connector = GethConnector.GethConnector.Initialize(Log, blockCache);
+            if (connector == null) throw new Exception("Invalid Eth RPC information");
 
             BotClient = new BotClient(Config.DiscordHost, Config.DiscordPort, Log);
-            processor = new Processor(Config, BotClient, connector.GethNode, connector.ArchivistContracts, Log);
+            node = connector.GethNode;
+            processor = new Processor(Config, null!, connector.GethNode, connector.ArchivistContracts, Log);
 
             EnsurePath(Config.DataPath);
             EnsurePath(Config.LogPath);
@@ -59,13 +64,10 @@ namespace TestNetRewarder
 
         private static void EnsureGethOnline()
         {
-            Log.Log("Checking Geth...");
-            var gc = GethConnector.GethConnector.Initialize(Log);
-            if (gc == null) throw new Exception("Geth input incorrect");
-
-            var blockNumber = gc.GethNode.GetSyncedBlockNumber();
-            if (blockNumber == null || blockNumber < 1) throw new Exception("Geth connection failed.");
-            Log.Log("Geth OK. Block number: " + blockNumber);
+            Log.Log("Checking Eth RPC...");
+            var blockNumber = node.GetSyncedBlockNumber();
+            if (blockNumber == null || blockNumber < 1) throw new Exception("Eth RPC connection failed.");
+            Log.Log("Eth RPC OK. Block number: " + blockNumber);
         }
 
         private static async Task EnsureBotOnline()

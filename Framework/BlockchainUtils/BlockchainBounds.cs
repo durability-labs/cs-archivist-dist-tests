@@ -1,3 +1,6 @@
+using Logging;
+using Utils;
+
 namespace BlockchainUtils
 {
     public interface IWeb3Blocks
@@ -8,79 +11,87 @@ namespace BlockchainUtils
 
     public class BlockchainBounds
     {
+        private readonly ILog log;
         private readonly BlockCache cache;
         private readonly IWeb3Blocks web3;
 
-        public BlockTimeEntry Genesis { get; private set; } = null!;
-        public BlockTimeEntry Current { get; private set; } = null!;
-
-        public BlockchainBounds(BlockCache cache, IWeb3Blocks web3)
+        public BlockchainBounds(ILog log, BlockCache cache, IWeb3Blocks web3)
         {
+            this.log = log;
             this.cache = cache;
             this.web3 = web3;
-
-            cache.OnCacheCleared += Initialize;
         }
+
+        public BlockTimeEntry Earliest => cache.Earliest;
+        public BlockTimeEntry Current => cache.Current;
 
         public void Initialize()
         {
             AddCurrentBlock();
-            LookForGenesisBlock();
+            LookForEarliest();
 
-            if (Current.BlockNumber == Genesis.BlockNumber)
+            if (Current.BlockNumber == Earliest.BlockNumber)
             {
-                throw new Exception("Unsupported condition: Current block is genesis block.");
+                throw new Exception("Unsupported condition: Current block is earliest block.");
             }
         }
 
-        private void LookForGenesisBlock()
+        public void UpdateCurrentIfNeeded(ulong newNumber)
         {
-            if (Genesis != null)
-            {
-                cache.Add(Genesis);
-                return;
-            }
-
-            var blockTime = web3.GetTimestampForBlock(0);
-            if (blockTime != null)
-            {
-                AddGenesisBlock(0, blockTime.Value);
-                return;
-            }
-
-            LookForGenesisBlock(0, Current);
+            if (newNumber > Current.BlockNumber) AddCurrentBlock();
         }
 
-        private void LookForGenesisBlock(ulong lower, BlockTimeEntry upper)
+        public void UpdateCurrentIfNeeded(DateTime utc)
         {
-            if (Genesis != null) return;
+            if (utc > Current.Utc) AddCurrentBlock();
+        }
 
-            var range = upper.BlockNumber - lower;
-            if (range == 1)
+        private void LookForEarliest()
+        {
+            if (Earliest != null)
             {
-                var lowTime = web3.GetTimestampForBlock(lower);
-                if (lowTime != null)
-                {
-                    AddGenesisBlock(lower, lowTime.Value);
-                }
-                else
-                {
-                    AddGenesisBlock(upper);
-                }
+                cache.Add(Earliest);
                 return;
             }
 
-            var current = lower + range / 2;
+            LookForEarliestBlock(0, Current.BlockNumber);
+        }
 
-            var blockTime = web3.GetTimestampForBlock(current);
-            if (blockTime != null)
+        private void LookForEarliestBlock(ulong lower, ulong upper)
+        {
+            if (Earliest != null) return;
+
+            var blockTime = GetBlockTime(lower);
+            if (blockTime != null && IsValid(blockTime))
             {
-                var newUpper = cache.Add(current, blockTime.Value);
-                LookForGenesisBlock(lower, newUpper);
+                AddEarliestBlock(lower, blockTime.Value);
+                return;
+            }
+
+            var range = upper - lower;
+            if (range < 2)
+            {
+                var upperTime = GetBlockTime(upper);
+                if (upperTime == null || !IsValid(upperTime)) throw new Exception("Became invalid during function call.");
+                AddEarliestBlock(upper, upperTime.Value);
+                return;
+            }
+
+            var middle = lower + range / 2;
+
+            var middleTime = GetBlockTime(middle);
+            if (middleTime != null && IsValid(middleTime))
+            {
+                LookForEarliestBlock(lower, middle);
+                if (Earliest == null)
+                {
+                    AddEarliestBlock(middle, middleTime.Value);
+                    return;
+                }
             }
             else
             {
-                LookForGenesisBlock(current, upper);
+                LookForEarliestBlock(middle, upper);
             }
         }
 
@@ -89,26 +100,51 @@ namespace BlockchainUtils
             var currentBlockNumber = web3.GetCurrentBlockNumber();
             if (Current != null && Current.BlockNumber == currentBlockNumber) return;
 
-            var blockTime = web3.GetTimestampForBlock(currentBlockNumber);
+            var blockTime = GetBlockTime(currentBlockNumber);
             if (blockTime == null) throw new Exception("Unable to get dateTime for current block.");
+            if (!IsValid(blockTime)) throw new Exception("Received invalid dateTime for current block.");
             AddCurrentBlock(currentBlockNumber, blockTime.Value);
         }
 
         private void AddCurrentBlock(ulong currentBlockNumber, DateTime dateTime)
         {
-            Current = new BlockTimeEntry(currentBlockNumber, dateTime);
+            var entry = new BlockTimeEntry(currentBlockNumber, dateTime);
+            log.Log($"Current block: {entry}");
+            cache.SetCurrent(entry);
             cache.Add(Current);
         }
 
-        private void AddGenesisBlock(ulong number, DateTime dateTime)
+        private void AddEarliestBlock(ulong number, DateTime dateTime)
         {
-            AddGenesisBlock(new BlockTimeEntry(number, dateTime));
+            AddEarliestBlock(new BlockTimeEntry(number, dateTime));
         }
 
-        private void AddGenesisBlock(BlockTimeEntry entry)
+        private void AddEarliestBlock(BlockTimeEntry entry)
         {
-            Genesis = entry;
-            cache.Add(Genesis);
+            log.Log($"Earliest block: {entry}");
+            cache.SetEarliest(entry);
+            cache.Add(Earliest);
+        }
+
+        private DateTime? GetBlockTime(ulong number)
+        {
+            var entry = cache.Get(number);
+            if (entry != null) return entry.Utc;
+
+            var blockTime = web3.GetTimestampForBlock(number);
+            if (blockTime != null)
+            {
+                cache.Add(number, blockTime.Value);
+                return blockTime.Value;
+            }
+            return null;
+        }
+
+        private bool IsValid(DateTime? blockTime)
+        {
+            if (blockTime == null) return false;
+            var timestamp = Time.ToUnixTimeSeconds(blockTime.Value);
+            return timestamp > 1;
         }
     }
 }
