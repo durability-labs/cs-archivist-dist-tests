@@ -10,6 +10,8 @@ namespace NethereumWorkflow
     {
         private readonly Web3 web3;
         private readonly ILog log;
+        private ulong? earliest;
+        private ulong? latest;
 
         public Web3Wrapper(Web3 web3, ILog log)
         {
@@ -22,19 +24,36 @@ namespace NethereumWorkflow
             return Retry(() =>
             {
                 var number = Time.Wait(web3.Eth.Blocks.GetBlockNumber.SendRequestAsync());
-                return Convert.ToUInt64(number.ToDecimal());
+                var result = Convert.ToUInt64(number.ToDecimal());
+                if (earliest == null || result < earliest) earliest = result;
+                if (latest == null || result > latest) latest = result;
+                return result;
             });
         }
 
-        public DateTime? GetTimestampForBlock(ulong blockNumber)
+        public ulong? GetEarliestSeen()
         {
-            return Retry<DateTime?>(() =>
+            return earliest;
+        }
+
+        public ulong? GetLatestSeen()
+        {
+            return latest;
+        }
+
+        public BlockTimeEntry? GetTimestampForBlock(ulong blockNumber)
+        {
+            return Retry(() =>
             {
                 try
                 {
+                    if (blockNumber == 0) return null;
                     var block = Time.Wait(web3.Eth.Blocks.GetBlockWithTransactionsByNumber.SendRequestAsync(new BlockParameter(blockNumber)));
                     if (block == null) return null;
-                    return DateTimeOffset.FromUnixTimeSeconds(Convert.ToInt64(block.Timestamp.ToDecimal())).UtcDateTime;
+                    var timestamp = Convert.ToInt64(block.Timestamp.ToDecimal());
+                    if (timestamp < 1) return null;
+                    var utc = DateTimeOffset.FromUnixTimeSeconds(timestamp).UtcDateTime;
+                    return new BlockTimeEntry(blockNumber, utc);
                 }
                 catch (Exception ex)
                 {

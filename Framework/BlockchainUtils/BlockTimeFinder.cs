@@ -1,35 +1,25 @@
 using Logging;
+using Utils;
 
 namespace BlockchainUtils
 {
     public class BlockTimeFinder
     {
-        private readonly BlockCache cache;
         private readonly BlockchainBounds bounds;
         private readonly IWeb3Blocks web3;
         private readonly ILog log;
 
-        public BlockTimeFinder(BlockCache cache, IWeb3Blocks web3, ILog log)
+        public BlockTimeFinder(IWeb3Blocks web3, ILog log)
         {
             this.web3 = web3;
             this.log = log;
 
-            this.cache = cache;
-            bounds = new BlockchainBounds(log, cache, web3);
-            bounds.Initialize();
-        }
-
-        public BlockTimeEntry Get(ulong blockNumber)
-        {
-            var b = cache.Get(blockNumber);
-            if (b != null) return b;
-            bounds.UpdateCurrentIfNeeded(blockNumber);
-            return GetBlock(blockNumber);
+            bounds = new BlockchainBounds(log, web3);
+            bounds.InitializeBounds();
         }
 
         public ulong? GetHighestBlockNumberBefore(DateTime moment)
         {
-            bounds.UpdateCurrentIfNeeded(moment);
             if (moment < bounds.Earliest.Utc) return null;
             if (moment == bounds.Earliest.Utc) return bounds.Earliest.BlockNumber;
             if (moment >= bounds.Current.Utc) return bounds.Current.BlockNumber;
@@ -39,7 +29,6 @@ namespace BlockchainUtils
 
         public ulong? GetLowestBlockNumberAfter(DateTime moment)
         {
-            bounds.UpdateCurrentIfNeeded(moment);
             if (moment > bounds.Current.Utc) return null;
             if (moment == bounds.Current.Utc) return bounds.Current.BlockNumber;
             if (moment <= bounds.Earliest.Utc) return bounds.Earliest.BlockNumber;
@@ -58,6 +47,8 @@ namespace BlockchainUtils
 
         private ulong Search(BlockTimeEntry lower, BlockTimeEntry upper, DateTime target, Func<DateTime, BlockTimeEntry, bool> isWhatIwant)
         {
+            log.Debug($"Search(lower:{lower}, upper:{upper}, target:{Time.ToUnixTimeSeconds(target)})");
+
             var middle = GetMiddle(lower, upper);
             if (middle.BlockNumber == lower.BlockNumber)
             {
@@ -92,36 +83,45 @@ namespace BlockchainUtils
         private bool HighestBeforeSelector(DateTime target, BlockTimeEntry entry)
         {
             var next = GetBlock(entry.BlockNumber + 1);
+            var t = Flat(target);
+
+            if (Flat(entry.Utc) == Flat(next.Utc) &&
+                Flat(entry.Utc) == t)
+            {
+                return true;
+            }
+
             return
-                entry.Utc <= target &&
-                next.Utc > target;
+                Flat(entry.Utc) <= t &&
+                Flat(next.Utc) > t;
         }
 
         private bool LowestAfterSelector(DateTime target, BlockTimeEntry entry)
         {
             var previous = GetBlock(entry.BlockNumber - 1);
+            var t = Flat(target);
+
+            if (Flat(entry.Utc) == Flat(previous.Utc) &&
+                Flat(entry.Utc) == t)
+            {
+                return true;
+            }
+
             return
-                entry.Utc >= target &&
-                previous.Utc < target;
+                Flat(entry.Utc) >= t &&
+                Flat(previous.Utc) < t;
+        }
+
+        private long Flat(DateTime utc)
+        {
+            return Time.ToUnixTimeSeconds(utc);
         }
 
         private BlockTimeEntry GetBlock(ulong number, bool retry = false)
         {
-            if (number < bounds.Earliest.BlockNumber) throw new Exception("Can't fetch block before genesis.");
-            if (number > bounds.Current.BlockNumber)
-            {
-                if (retry) throw new Exception("Can't fetch block after current.");
-
-                Thread.Sleep(1000);
-                return GetBlock(number, retry: true);
-            }
-
-            var b = cache.Get(number);
-            if (b != null) return b;
-
-            var dateTime = web3.GetTimestampForBlock(number);
-            if (dateTime == null) throw new Exception("Failed to get dateTime for block that should exist.");
-            return cache.Add(number, dateTime.Value);
+            var entry = web3.GetTimestampForBlock(number);
+            if (entry == null) throw new Exception("Failed to get dateTime for block.");
+            return entry;
         }
     }
 }

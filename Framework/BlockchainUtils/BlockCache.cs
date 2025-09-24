@@ -20,18 +20,8 @@ namespace BlockchainUtils
             this.store = store;
         }
 
-        public BlockTimeEntry Earliest { get; private set; } = null!;
-        public BlockTimeEntry Current { get; private set; } = null!;
-
-        public void SetEarliest(BlockTimeEntry entry)
-        {
-            Earliest = entry;
-        }
-
-        public void SetCurrent(BlockTimeEntry entry)
-        {
-            Current = entry;
-        }
+        public BlockTimeEntry? Earliest { get; private set; } = null;
+        public BlockTimeEntry? Current { get; private set; } = null;
 
         public BlockTimeEntry Add(ulong number, DateTime dateTime)
         {
@@ -50,8 +40,7 @@ namespace BlockchainUtils
 
             var utc = entries[entry.BlockNumber];
             var newEntry = new BlockTimeEntry(entry.BlockNumber, utc);
-            if (Current != null && newEntry.BlockNumber > Current.BlockNumber) Current = newEntry;
-            if (Earliest != null && newEntry.BlockNumber < Earliest.BlockNumber) Earliest = newEntry;
+            UpdateEarliestLatest(newEntry);
             return newEntry;
         }
 
@@ -74,9 +63,24 @@ namespace BlockchainUtils
             if (!buckets.ContainsKey(bucketNumber))
             {
                 var loaded = store.Load(bucketNumber);
+                AdjustEarliestLatest(loaded);
                 buckets.Add(bucketNumber, loaded);
             }
             return buckets[bucketNumber];
+        }
+
+        private void AdjustEarliestLatest(BlockBucket loaded)
+        {
+            foreach (var entry in loaded.Entries)
+            {
+                UpdateEarliestLatest(new BlockTimeEntry(entry.Key, entry.Value));
+            }
+        }
+
+        private void UpdateEarliestLatest(BlockTimeEntry newEntry)
+        {
+            if (Current == null || newEntry.BlockNumber > Current.BlockNumber) Current = newEntry;
+            if (Earliest == null || newEntry.BlockNumber < Earliest.BlockNumber) Earliest = newEntry;
         }
 
         private ulong GetBucketNumber(ulong blockNumber)

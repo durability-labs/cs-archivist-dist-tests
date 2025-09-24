@@ -82,6 +82,7 @@ namespace TestNetRewarder
 
         private async Task<int> ProcessEvents(TimeRange timeRange)
         {
+            log.Log($"Processing time range: {timeRange}");
             var numberOfChainEvents = chainState.Update(timeRange.To);
 
             var events = eventsFormatter.GetEvents();

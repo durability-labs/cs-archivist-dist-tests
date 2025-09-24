@@ -1,150 +1,123 @@
 using Logging;
-using Utils;
 
 namespace BlockchainUtils
 {
     public interface IWeb3Blocks
     {
         ulong GetCurrentBlockNumber();
-        DateTime? GetTimestampForBlock(ulong blockNumber);
+        BlockTimeEntry? GetTimestampForBlock(ulong blockNumber);
+        ulong? GetEarliestSeen();
+        ulong? GetLatestSeen();
     }
 
     public class BlockchainBounds
     {
         private readonly ILog log;
-        private readonly BlockCache cache;
         private readonly IWeb3Blocks web3;
 
-        public BlockchainBounds(ILog log, BlockCache cache, IWeb3Blocks web3)
+        public BlockchainBounds(ILog log, IWeb3Blocks web3)
         {
             this.log = log;
-            this.cache = cache;
             this.web3 = web3;
         }
 
-        public BlockTimeEntry Earliest => cache.Earliest;
-        public BlockTimeEntry Current => cache.Current;
-
-        public void Initialize()
+        public void InitializeBounds()
         {
-            AddCurrentBlock();
+            LogCurrentBlock();
             LookForEarliest();
 
-            if (Current.BlockNumber == Earliest.BlockNumber)
+            if (web3.GetEarliestSeen() == web3.GetLatestSeen())
             {
-                throw new Exception("Unsupported condition: Current block is earliest block.");
+                throw new Exception("Unsupported condition: Earliest block is latest block.");
             }
         }
 
-        public void UpdateCurrentIfNeeded(ulong newNumber)
+        public BlockTimeEntry Current
         {
-            if (newNumber > Current.BlockNumber) AddCurrentBlock();
+            get
+            {
+                return web3.GetTimestampForBlock(EnsureInit(web3.GetLatestSeen()))!;
+            }
         }
 
-        public void UpdateCurrentIfNeeded(DateTime utc)
+        public BlockTimeEntry Earliest
         {
-            if (utc > Current.Utc) AddCurrentBlock();
+            get
+            {
+                return web3.GetTimestampForBlock(EnsureInit(web3.GetEarliestSeen()))!;
+            }
+        }
+
+        private ulong EnsureInit(ulong? num)
+        {
+            if (num == null) throw new Exception("BlockchainBounds not initialized");
+            return num.Value;
         }
 
         private void LookForEarliest()
         {
-            if (Earliest != null)
-            {
-                cache.Add(Earliest);
-                return;
-            }
-
-            LookForEarliestBlock(0, Current.BlockNumber);
+            LookForEarliestBlock(1, web3.GetCurrentBlockNumber());
         }
 
-        private void LookForEarliestBlock(ulong lower, ulong upper)
+        private bool LookForEarliestBlock(ulong lower, ulong upper)
         {
-            if (Earliest != null) return;
-
             var blockTime = GetBlockTime(lower);
-            if (blockTime != null && IsValid(blockTime))
+            if (blockTime != null)
             {
-                AddEarliestBlock(lower, blockTime.Value);
-                return;
+                LogEarliestBlock(lower, blockTime.Value);
+                return true;
             }
 
             var range = upper - lower;
             if (range < 2)
             {
                 var upperTime = GetBlockTime(upper);
-                if (upperTime == null || !IsValid(upperTime)) throw new Exception("Became invalid during function call.");
-                AddEarliestBlock(upper, upperTime.Value);
-                return;
+                if (upperTime == null) throw new Exception("Became invalid during function call.");
+                LogEarliestBlock(upper, upperTime.Value);
+                return true;
             }
 
             var middle = lower + range / 2;
-
             var middleTime = GetBlockTime(middle);
-            if (middleTime != null && IsValid(middleTime))
+            if (middleTime != null)
             {
-                LookForEarliestBlock(lower, middle);
-                if (Earliest == null)
-                {
-                    AddEarliestBlock(middle, middleTime.Value);
-                    return;
-                }
+                var success = LookForEarliestBlock(lower, middle);
+                if (success) return true;
+                
+                LogEarliestBlock(middle, middleTime.Value);
+                return true;
             }
-            else
-            {
-                LookForEarliestBlock(middle, upper);
-            }
-        }
-
-        private void AddCurrentBlock()
-        {
-            var currentBlockNumber = web3.GetCurrentBlockNumber();
-            if (Current != null && Current.BlockNumber == currentBlockNumber) return;
-
-            var blockTime = GetBlockTime(currentBlockNumber);
-            if (blockTime == null) throw new Exception("Unable to get dateTime for current block.");
-            if (!IsValid(blockTime)) throw new Exception("Received invalid dateTime for current block.");
-            AddCurrentBlock(currentBlockNumber, blockTime.Value);
-        }
-
-        private void AddCurrentBlock(ulong currentBlockNumber, DateTime dateTime)
-        {
-            var entry = new BlockTimeEntry(currentBlockNumber, dateTime);
-            log.Log($"Current block: {entry}");
-            cache.SetCurrent(entry);
-            cache.Add(Current);
-        }
-
-        private void AddEarliestBlock(ulong number, DateTime dateTime)
-        {
-            AddEarliestBlock(new BlockTimeEntry(number, dateTime));
-        }
-
-        private void AddEarliestBlock(BlockTimeEntry entry)
-        {
-            log.Log($"Earliest block: {entry}");
-            cache.SetEarliest(entry);
-            cache.Add(Earliest);
+         
+            return LookForEarliestBlock(middle, upper);
         }
 
         private DateTime? GetBlockTime(ulong number)
         {
-            var entry = cache.Get(number);
-            if (entry != null) return entry.Utc;
-
-            var blockTime = web3.GetTimestampForBlock(number);
-            if (blockTime != null)
-            {
-                cache.Add(number, blockTime.Value);
-                return blockTime.Value;
-            }
-            return null;
+            return web3.GetTimestampForBlock(number)?.Utc;
         }
 
-        private bool IsValid(DateTime? blockTime)
+        private void LogCurrentBlock()
         {
-            if (blockTime == null) return false;
-            var timestamp = Time.ToUnixTimeSeconds(blockTime.Value);
-            return timestamp > 1;
+            var currentBlockNumber = web3.GetCurrentBlockNumber();
+            var blockTime = GetBlockTime(currentBlockNumber);
+            if (blockTime == null) throw new Exception("Unable to get dateTime for current block.");
+            LogCurrentBlock(currentBlockNumber, blockTime.Value);
+        }
+
+        private void LogCurrentBlock(ulong currentBlockNumber, DateTime dateTime)
+        {
+            var entry = new BlockTimeEntry(currentBlockNumber, dateTime);
+            log.Debug($"Current block: {entry}");
+        }
+
+        private void LogEarliestBlock(ulong number, DateTime dateTime)
+        {
+            LogEarliestBlock(new BlockTimeEntry(number, dateTime));
+        }
+
+        private void LogEarliestBlock(BlockTimeEntry entry)
+        {
+            log.Debug($"Earliest block: {entry}");
         }
     }
 }

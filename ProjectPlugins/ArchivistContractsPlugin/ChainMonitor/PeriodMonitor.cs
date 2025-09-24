@@ -30,7 +30,26 @@ namespace ArchivistContractsPlugin.ChainMonitor
 
         public void Update(DateTime eventUtc, IChainStateRequest[] requests)
         {
-            var periodNumber = contracts.GetPeriodNumber(eventUtc);
+            // It's possible that several periods have elapsed since our last update call.
+            // If that's true, we'll take small time steps and roll towards 'eventUtc'.
+            if (currentPeriod == null)
+            {
+                UpdateInternal(eventUtc, requests);
+                return;
+            }
+
+            var utc = contracts.GetPeriodTimeRange(currentPeriod.PeriodNumber).From;
+            while (utc < eventUtc)
+            {
+                // Repeat calls in the same period are ignored by updateInternal.
+                UpdateInternal(utc, requests);
+                utc += TimeSpan.FromSeconds(10);
+            }
+        }
+
+        private void UpdateInternal(DateTime utc, IChainStateRequest[] requests)
+        {
+            var periodNumber = contracts.GetPeriodNumber(utc);
             if (currentPeriod == null)
             {
                 currentPeriod = CreateCurrentPeriod(periodNumber, requests);

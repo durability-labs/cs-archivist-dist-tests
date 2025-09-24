@@ -108,7 +108,7 @@ namespace ArchivistContractsPlugin
             return result;
         }
 
-        private BlockTimeEntry GetBlock(ulong number)
+        private BlockTimeEntry? GetBlock(ulong number)
         {
             return gethNode.GetBlockForNumber(number);
         }

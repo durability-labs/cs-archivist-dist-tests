@@ -11,7 +11,7 @@ namespace NethereumWorkflow
 {
     public class NethereumInteraction
     {
-        private readonly BlockCache blockCache;
+        private readonly IWeb3Blocks blocks;
 
         private readonly ILog log;
         private readonly Web3 web3;
@@ -20,7 +20,8 @@ namespace NethereumWorkflow
         {
             this.log = log;
             this.web3 = web3;
-            this.blockCache = blockCache;
+            var wrapper = new Web3Wrapper(web3, log);
+            blocks = new CachingWeb3Wrapper(log, wrapper, blockCache);
         }
 
         public string SendEth(string toAddress, Ether eth)
@@ -180,10 +181,9 @@ namespace NethereumWorkflow
                 if (timeRange.To - timeRange.From < TimeSpan.FromSeconds(1.0))
                     throw new Exception(nameof(ConvertTimeRangeToBlockRange) + ": Time range too small.");
 
-                var wrapper = new Web3Wrapper(web3, log);
-                var blockTimeFinder = new BlockTimeFinder(blockCache, wrapper, log);
+                var blockTimeFinder = new BlockTimeFinder(blocks, log);
 
-                log.Log($"Converting time range to block range: {timeRange}");
+                log.Debug($"Converting time range to block range: {timeRange}");
                 var fromBlock = blockTimeFinder.GetLowestBlockNumberAfter(timeRange.From);
                 var toBlock = blockTimeFinder.GetHighestBlockNumberBefore(timeRange.To);
 
@@ -198,19 +198,17 @@ namespace NethereumWorkflow
                     to: toBlock.Value
                 );
                 
-                log.Log($"Converting time range to block range: {timeRange} -> found {result}");
+                log.Debug($"Converting time range to block range: {timeRange} -> found {result}");
 
                 return result;
             }, nameof(ConvertTimeRangeToBlockRange));
         }
 
-        public BlockTimeEntry GetBlockForNumber(ulong number)
+        public BlockTimeEntry? GetBlockForNumber(ulong number)
         {
             return DebugLogWrap(() =>
             {
-                var wrapper = new Web3Wrapper(web3, log);
-                var blockTimeFinder = new BlockTimeFinder(blockCache, wrapper, log);
-                return blockTimeFinder.Get(number);
+                return blocks.GetTimestampForBlock(number);
             }, nameof(GetBlockForNumber));
         }
 

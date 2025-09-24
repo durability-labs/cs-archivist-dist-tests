@@ -164,8 +164,8 @@ namespace ArchivistContractsPlugin.ChainMonitor
             if (r == null) return;
             var slotIndex = (int)@event.SlotIndex;
             var isRepair = !r.Hosts.IsFilled(slotIndex) && r.Hosts.WasPreviouslyFilled(slotIndex);
+            r.Log($"[{@event.Block.BlockNumber}] SlotFilled (host:'{@event.Host}', slotIndex:{@event.SlotIndex}, isRepair:{isRepair})");
             r.Hosts.HostFillsSlot(@event.Host, slotIndex);
-            r.Log($"[{@event.Block.BlockNumber}] SlotFilled (host:'{@event.Host}', slotIndex:{@event.SlotIndex})");
             handler.OnSlotFilled(new RequestEvent(@event.Block, r), @event.Host, @event.SlotIndex, isRepair);
         }
 
@@ -173,8 +173,8 @@ namespace ArchivistContractsPlugin.ChainMonitor
         {
             var r = FindRequest(@event);
             if (r == null) return;
-            r.Hosts.SlotFreed((int)@event.SlotIndex);
             r.Log($"[{@event.Block.BlockNumber}] SlotFreed (slotIndex:{@event.SlotIndex})");
+            r.Hosts.SlotFreed((int)@event.SlotIndex);
             handler.OnSlotFreed(new RequestEvent(@event.Block, r), @event.SlotIndex);
         }
 

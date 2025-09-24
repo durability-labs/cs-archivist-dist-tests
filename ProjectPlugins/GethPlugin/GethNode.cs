@@ -215,7 +215,7 @@ namespace GethPlugin
             return StartInteraction().ConvertTimeRangeToBlockRange(timeRange);
         }
 
-        public BlockTimeEntry GetBlockForNumber(ulong number)
+        public BlockTimeEntry? GetBlockForNumber(ulong number)
         {
             return StartInteraction().GetBlockForNumber(number);
         }
@@ -240,7 +240,7 @@ namespace GethPlugin
             }
         }
 
-        public void IterateFunctionCalls<TFunc>(BlockInterval blockRange, Action<BlockTimeEntry, TFunc> onCall) where TFunc : FunctionMessage, new()
+        public void IterateFunctionCalls<TFunc>(BlockInterval blockRange, Action<BlockTimeEntry?, TFunc> onCall) where TFunc : FunctionMessage, new()
         {
             IterateTransactions(blockRange, (t, blkI, blkUtc) =>
             {
