@@ -18,34 +18,33 @@ namespace BlockchainUtils
             bounds.InitializeBounds();
         }
 
-        public ulong? GetHighestBlockNumberBefore(DateTime moment)
+        public BlockTimeEntry? GetHighestBlockNumberBefore(DateTime moment)
         {
             if (moment < bounds.Earliest.Utc) return null;
-            if (moment == bounds.Earliest.Utc) return bounds.Earliest.BlockNumber;
-            if (moment >= bounds.Current.Utc) return bounds.Current.BlockNumber;
+            if (moment == bounds.Earliest.Utc) return bounds.Earliest;
+            if (moment >= bounds.Current.Utc) return bounds.Current;
 
             return Log(() => Search(bounds.Earliest, bounds.Current, moment, HighestBeforeSelector));
         }
 
-        public ulong? GetLowestBlockNumberAfter(DateTime moment)
+        public BlockTimeEntry? GetLowestBlockNumberAfter(DateTime moment)
         {
             if (moment > bounds.Current.Utc) return null;
-            if (moment == bounds.Current.Utc) return bounds.Current.BlockNumber;
-            if (moment <= bounds.Earliest.Utc) return bounds.Earliest.BlockNumber;
+            if (moment == bounds.Current.Utc) return bounds.Current;
+            if (moment <= bounds.Earliest.Utc) return bounds.Earliest;
 
             return Log(()=> Search(bounds.Earliest, bounds.Current, moment, LowestAfterSelector)); ;
         }
 
-        private ulong Log(Func<ulong> operation)
+        private T Log<T>(Func<T> operation)
         {
             var sw = Stopwatch.Begin(log, nameof(BlockTimeFinder), true);
             var result = operation();
             sw.End($"(Bounds: [{bounds.Earliest.BlockNumber}-{bounds.Current.BlockNumber}]");
-
             return result;
         }
 
-        private ulong Search(BlockTimeEntry lower, BlockTimeEntry upper, DateTime target, Func<DateTime, BlockTimeEntry, bool> isWhatIwant)
+        private BlockTimeEntry Search(BlockTimeEntry lower, BlockTimeEntry upper, DateTime target, Func<DateTime, BlockTimeEntry, bool> isWhatIwant)
         {
             log.Debug($"Search(lower:{lower}, upper:{upper}, target:{Time.ToUnixTimeSeconds(target)})");
 
@@ -54,13 +53,13 @@ namespace BlockchainUtils
             {
                 if (isWhatIwant(target, upper))
                 {
-                    return upper.BlockNumber;
+                    return upper;
                 }
             }
 
             if (isWhatIwant(target, middle))
             {
-                return middle.BlockNumber;
+                return middle;
             }
 
             if (middle.Utc > target)

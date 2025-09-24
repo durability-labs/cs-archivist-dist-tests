@@ -45,11 +45,6 @@ namespace ArchivistContractsPlugin.ChainMonitor
             return FromContractEvents(contracts.GetEvents(blockInterval));
         }
 
-        public static ChainEvents FromTimeRange(IArchivistContracts contracts, TimeRange timeRange)
-        {
-            return FromContractEvents(contracts.GetEvents(timeRange));
-        }
-
         public static ChainEvents FromContractEvents(IArchivistContractsEvents events)
         {
             return new ChainEvents(

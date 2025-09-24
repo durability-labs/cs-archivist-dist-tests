@@ -151,7 +151,38 @@ namespace NethereumWorkflow
             }, nameof(GetEvents) + "." + typeof(TEvent).ToString());
         }
 
-        public List<EventLog<TEvent>> GetEvents<TEvent>(string address, ulong fromBlockNumber, ulong toBlockNumber) where TEvent : IEventDTO, new()
+        public BlockTimeEntry? GetBlockForNumber(ulong number)
+        {
+            return DebugLogWrap(() =>
+            {
+                return blocks.GetTimestampForBlock(number);
+            }, nameof(GetBlockForNumber));
+        }
+
+        public BlockTimeEntry? GetBlockForUtc(DateTime utc)
+        {
+            return DebugLogWrap(() =>
+            {
+                var blockTimeFinder = new BlockTimeFinder(blocks, log);
+                return blockTimeFinder.GetHighestBlockNumberBefore(utc);
+            }, nameof(GetBlockForUtc));
+        }
+
+        public BlockWithTransactions GetBlockWithTransactions(ulong number)
+        {
+            return DebugLogWrap(() =>
+            {
+                var retry = new Retry(nameof(GetBlockWithTransactions),
+                    maxTimeout: TimeSpan.FromMinutes(1.0),
+                    sleepAfterFail: TimeSpan.FromSeconds(1.0),
+                    onFail: f => { },
+                    failFast: false);
+
+                return retry.Run(() => Time.Wait(web3.Eth.Blocks.GetBlockWithTransactionsByNumber.SendRequestAsync(new BlockParameter(number))));
+            }, nameof(GetBlockWithTransactions));
+        }
+
+        private List<EventLog<TEvent>> GetEvents<TEvent>(string address, ulong fromBlockNumber, ulong toBlockNumber) where TEvent : IEventDTO, new()
         {
             return DebugLogWrap(() =>
             {
@@ -172,58 +203,6 @@ namespace NethereumWorkflow
                     .Select(l => l.DecodeEvent<TEvent>())
                     .ToList();
             }, nameof(GetEvents) + "." + typeof(TEvent).ToString());
-        }
-
-        public BlockInterval ConvertTimeRangeToBlockRange(TimeRange timeRange)
-        {
-            return DebugLogWrap(() =>
-            {
-                if (timeRange.To - timeRange.From < TimeSpan.FromSeconds(1.0))
-                    throw new Exception(nameof(ConvertTimeRangeToBlockRange) + ": Time range too small.");
-
-                var blockTimeFinder = new BlockTimeFinder(blocks, log);
-
-                log.Debug($"Converting time range to block range: {timeRange}");
-                var fromBlock = blockTimeFinder.GetLowestBlockNumberAfter(timeRange.From);
-                var toBlock = blockTimeFinder.GetHighestBlockNumberBefore(timeRange.To);
-
-                if (fromBlock == null || toBlock == null)
-                {
-                    throw new Exception("Failed to convert time range to block range.");
-                }
-
-                var result = new BlockInterval(
-                    timeRange: timeRange,
-                    from: fromBlock.Value,
-                    to: toBlock.Value
-                );
-                
-                log.Debug($"Converting time range to block range: {timeRange} -> found {result}");
-
-                return result;
-            }, nameof(ConvertTimeRangeToBlockRange));
-        }
-
-        public BlockTimeEntry? GetBlockForNumber(ulong number)
-        {
-            return DebugLogWrap(() =>
-            {
-                return blocks.GetTimestampForBlock(number);
-            }, nameof(GetBlockForNumber));
-        }
-
-        public BlockWithTransactions GetBlockWithTransactions(ulong number)
-        {
-            return DebugLogWrap(() =>
-            {
-                var retry = new Retry(nameof(GetBlockWithTransactions),
-                    maxTimeout: TimeSpan.FromMinutes(1.0),
-                    sleepAfterFail: TimeSpan.FromSeconds(1.0),
-                    onFail: f => { },
-                    failFast: false);
-
-                return retry.Run(() => Time.Wait(web3.Eth.Blocks.GetBlockWithTransactionsByNumber.SendRequestAsync(new BlockParameter(number))));
-            }, nameof(GetBlockWithTransactions));
         }
 
         private T DebugLogWrap<T>(Func<T> task, string name = "")

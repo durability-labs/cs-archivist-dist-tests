@@ -1,10 +1,10 @@
 using ArchivistContractsPlugin;
 using ArchivistContractsPlugin.ChainMonitor;
 using ArchivistContractsPlugin.Marketplace;
+using BlockchainUtils;
 using GethPlugin;
 using Logging;
 using Nethereum.Hex.HexConvertors.Extensions;
-using Nethereum.Model;
 using Utils;
 
 namespace TraceContract
@@ -37,11 +37,15 @@ namespace TraceContract
             log.Log($"Request started at {creationEvent.Block.Utc}");
             var contractEnd = RunToContractEnd(creationEvent);
 
-            var requestTimeline = new TimeRange(creationEvent.Block.Utc.AddMinutes(-1.0), contractEnd.AddMinutes(1.0));
-            log.Log($"Request timeline: {requestTimeline.From} -> {requestTimeline.To}");
+            log.Log($"Request timeline: {creationEvent.Block} -> {contractEnd}");
 
             // For this timeline, we log all the calls to reserve-slot.
-            var events = contracts.GetEvents(requestTimeline);
+            var blockRange = new BlockInterval(
+                new TimeRange(creationEvent.Block.Utc, contractEnd.Utc),
+                creationEvent.Block.BlockNumber,
+                contractEnd.BlockNumber);
+
+            var events = contracts.GetEvents(blockRange);
 
             events.GetReserveSlotCalls(call =>
             {
@@ -55,33 +59,30 @@ namespace TraceContract
             log.Log("Writing blockchain output...");
             output.WriteContractEvents();
 
-            return requestTimeline;
+            return blockRange.TimeRange;
         }
 
-        private DateTime RunToContractEnd(StorageRequestedEventDTO request)
+        private BlockTimeEntry RunToContractEnd(StorageRequestedEventDTO request)
         {
             var utc = request.Block.Utc.AddMinutes(-1.0);
             var tracker = new ChainRequestTracker(output, input.PurchaseId);
             var ignoreLog = new NullLog();
             var chainState = new ChainState(ignoreLog, geth, contracts, tracker, utc, false, new DoNothingPeriodMonitorEventHandler());
 
-            var atNow = false;
-            while (!tracker.IsFinished && !atNow)
+            while (!tracker.IsFinished)
             {
                 utc += TimeSpan.FromHours(1.0);
                 if (utc > DateTime.UtcNow)
                 {
                     log.Log("Caught up to present moment without finding contract end.");
-                    utc = DateTime.UtcNow;
-                    atNow = true;
+                    return geth.GetBlockForUtc(DateTime.UtcNow)!;
                 }
 
                 log.Log($"Querying up to {utc}");
                 chainState.Update(utc);
             }
 
-            if (atNow) return utc;
-            return tracker.FinishUtc;
+            return tracker.FinishBlock!;
         }
 
         private bool IsThisRequest(byte[] requestId)
@@ -96,10 +97,13 @@ namespace TraceContract
 
         public StorageRequestedEventDTO FindRequestCreationEvent()
         {
-            var range = new TimeRange(DateTime.UtcNow - TimeSpan.FromHours(3.0), DateTime.UtcNow);
-            var limit = DateTime.UtcNow - TimeSpan.FromDays(30);
+            ulong blocksPerLoop = 3600;
+            var end = geth.GetBlockForUtc(DateTime.UtcNow)!;
+            var start = geth.GetBlockForNumber(end.BlockNumber - blocksPerLoop)!;
+            var limit = geth.GetBlockForUtc(DateTime.UtcNow - TimeSpan.FromDays(30))!;
+            var range = new BlockInterval(new TimeRange(start.Utc, end.Utc), start.BlockNumber, end.BlockNumber);
 
-            while (range.From > limit)
+            while (range.From > limit.BlockNumber)
             {
                 var events = contracts.GetEvents(range);
                 foreach (var r in events.GetStorageRequestedEvents())
@@ -107,25 +111,12 @@ namespace TraceContract
                     if (r.RequestId.ToHex() == input.RequestId.ToHex()) return r;
                 }
 
-                range = new TimeRange(range.From - TimeSpan.FromHours(3.0), range.From);
+                end = start;
+                start = geth.GetBlockForNumber(end.BlockNumber - blocksPerLoop)!;
+                range = new BlockInterval(new TimeRange(start.Utc, end.Utc), start.BlockNumber, end.BlockNumber);
             }
 
-            throw new Exception("Unable to find storage request creation event on-chain after (limit) " + Time.FormatTimestamp(limit));
-        }
-
-        private static TimeRange LastHour()
-        {
-            return new TimeRange(DateTime.UtcNow.AddHours(-1.0), DateTime.UtcNow);
-        }
-
-        private static TimeRange LastDay()
-        {
-            return new TimeRange(DateTime.UtcNow.AddDays(-1.0), DateTime.UtcNow);
-        }
-
-        private static TimeRange LastWeek()
-        {
-            return new TimeRange(DateTime.UtcNow.AddDays(-7.0), DateTime.UtcNow);
+            throw new Exception("Unable to find storage request creation event on-chain after (limit) 30 days");
         }
     }
 }

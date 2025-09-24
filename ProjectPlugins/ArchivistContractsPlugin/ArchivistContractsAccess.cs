@@ -95,7 +95,9 @@ namespace ArchivistContractsPlugin
 
         public IArchivistContractsEvents GetEvents(TimeRange timeRange)
         {
-            return GetEvents(gethNode.ConvertTimeRangeToBlockRange(timeRange));
+            return GetEvents(new BlockInterval(timeRange,
+                gethNode.GetBlockForUtc(timeRange.From)!.BlockNumber,
+                gethNode.GetBlockForUtc(timeRange.To)!.BlockNumber));
         }
 
         public IArchivistContractsEvents GetEvents(BlockInterval blockInterval)

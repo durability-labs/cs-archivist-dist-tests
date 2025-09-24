@@ -38,6 +38,7 @@ namespace ArchivistContractsPlugin.ChainMonitor
     {
         private readonly List<ChainStateRequest> requests = new List<ChainStateRequest>();
         private readonly ILog log;
+        private readonly IGethNode geth;
         private readonly IArchivistContracts contracts;
         private readonly IChainStateChangeHandler handler;
         private readonly bool doProofPeriodMonitoring;
@@ -45,16 +46,20 @@ namespace ArchivistContractsPlugin.ChainMonitor
         public ChainState(ILog log, IGethNode geth, IArchivistContracts contracts, IChainStateChangeHandler changeHandler, DateTime startUtc, bool doProofPeriodMonitoring, IPeriodMonitorEventHandler periodEventHandler)
         {
             this.log = new LogPrefixer(log, "(ChainState) ");
+            this.geth = geth;
             this.contracts = contracts;
             handler = changeHandler;
             this.doProofPeriodMonitoring = doProofPeriodMonitoring;
             TotalSpan = new TimeRange(startUtc, startUtc);
             PeriodMonitor = new PeriodMonitor(log, contracts, geth, periodEventHandler);
+
+            Initialize(startUtc);
         }
 
         public TimeRange TotalSpan { get; private set; }
         public IChainStateRequest[] Requests => requests.ToArray();
         public PeriodMonitor PeriodMonitor { get; }
+        public BlockTimeEntry CurrentBlock { get; private set; } = null!;
 
         public int Update()
         {
@@ -63,19 +68,35 @@ namespace ArchivistContractsPlugin.ChainMonitor
 
         public int Update(DateTime toUtc)
         {
-            var span = new TimeRange(TotalSpan.To, toUtc);
-            var events = ChainEvents.FromTimeRange(contracts, span);
+            var entry = geth.GetBlockForUtc(toUtc);
+            if (entry == null) throw new Exception("Unable to find block for update utc: " + Time.FormatTimestamp(toUtc));
+            var span = new BlockInterval(new TimeRange(CurrentBlock.Utc, entry.Utc), CurrentBlock.BlockNumber + 1, entry.BlockNumber);
+            var events = ChainEvents.FromBlockInterval(contracts, span);
             Apply(events);
 
-            TotalSpan = new TimeRange(TotalSpan.From, span.To);
+            TotalSpan = new TimeRange(TotalSpan.From, entry.Utc);
+            CurrentBlock = entry;
             return events.All.Length;
+        }
+
+        private void Initialize(DateTime startingUtc)
+        {
+            var entry = geth.GetBlockForUtc(startingUtc);
+            if (entry == null) throw new Exception("Unable to find block for starting utc: " + Time.FormatTimestamp(startingUtc));
+            TotalSpan = new TimeRange(TotalSpan.From, entry.Utc);
+            CurrentBlock = entry;
+
+            log.Log("Initialized to " + CurrentBlock);
         }
 
         private void Apply(ChainEvents events)
         {
             if (events.BlockInterval.TimeRange.From < TotalSpan.From)
             {
-                var msg = "Attempt to update ChainState with set of events from before its current record.";
+                var msg = $"Attempt to update ChainState with set of events from before its current record. " +
+                    $"TotalSpan: {TotalSpan}" +
+                    $"Blocks: {events.BlockInterval} " +
+                    $"Times: {events.BlockInterval.TimeRange}";
                 handler.OnError(msg);
                 throw new Exception(msg);
             }
@@ -88,24 +109,23 @@ namespace ArchivistContractsPlugin.ChainMonitor
             if (numBlocks == 0) return;
             var spanPerBlock = span / numBlocks;
 
-            var eventUtc = events.BlockInterval.TimeRange.From;
             for (var b = events.BlockInterval.From; b <= events.BlockInterval.To; b++)
             {
+                var entry = geth.GetBlockForNumber(b);
+                if (entry == null) throw new Exception($"Failed to get blockTimeEntry while processing known block range {events.BlockInterval}");
                 var blockEvents = events.All.Where(e => e.Block.BlockNumber == b).ToArray();
-                ApplyEvents(b, blockEvents, eventUtc);
-                UpdatePeriodMonitor(eventUtc);
-
-                eventUtc += spanPerBlock;
+                ApplyEvents(entry, blockEvents);
+                UpdatePeriodMonitor(entry);
             }
         }
 
-        private void UpdatePeriodMonitor(DateTime eventUtc)
+        private void UpdatePeriodMonitor(BlockTimeEntry block)
         {
             if (!doProofPeriodMonitoring) return;
-            PeriodMonitor.Update(eventUtc, requests.ToArray());
+            PeriodMonitor.Update(block, requests.ToArray());
         }
 
-        private void ApplyEvents(ulong blockNumber, IHasBlock[] blockEvents, DateTime eventsUtc)
+        private void ApplyEvents(BlockTimeEntry entry, IHasBlock[] blockEvents)
         {
             foreach (var e in blockEvents)
             {
@@ -113,7 +133,7 @@ namespace ArchivistContractsPlugin.ChainMonitor
                 ApplyEvent(d);
             }
 
-            ApplyTimeImplicitEvents(blockNumber, eventsUtc);
+            ApplyTimeImplicitEvents(entry);
         }
 
         private void ApplyEvent(StorageRequestedEventDTO @event)
@@ -123,8 +143,7 @@ namespace ArchivistContractsPlugin.ChainMonitor
                 var r = FindRequest(@event);
                 if (r == null) throw new Exception("ChainState is inconsistent. Received already-known requestId that's not known.");
                 if (@event.Block.BlockNumber != @event.Block.BlockNumber) throw new Exception("Same request found in different blocks.");
-                log.Log("Received the same request-creation event multiple times.");
-                return;
+                throw new Exception("Received the same request-creation event multiple times.");
             }
 
             var request = contracts.GetRequest(@event.RequestId);
@@ -214,15 +233,15 @@ namespace ArchivistContractsPlugin.ChainMonitor
             return "(Could not identify proof requestId + slot)";
         }
 
-        private void ApplyTimeImplicitEvents(ulong blockNumber, DateTime eventsUtc)
+        private void ApplyTimeImplicitEvents(BlockTimeEntry entry)
         {
             foreach (var r in requests)
             {
                 if (r.State == RequestState.Started
-                    && r.FinishedUtc < eventsUtc)
+                    && r.FinishedUtc < entry.Utc)
                 {
-                    r.UpdateState(blockNumber, RequestState.Finished);
-                    handler.OnRequestFinished(new RequestEvent(new BlockTimeEntry(blockNumber, eventsUtc), r));
+                    r.UpdateState(entry.BlockNumber, RequestState.Finished);
+                    handler.OnRequestFinished(new RequestEvent(entry, r));
                 }
             }
         }

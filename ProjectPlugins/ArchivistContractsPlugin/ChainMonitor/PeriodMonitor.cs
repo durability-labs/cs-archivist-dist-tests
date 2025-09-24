@@ -1,4 +1,5 @@
 using ArchivistContractsPlugin.Marketplace;
+using BlockchainUtils;
 using GethPlugin;
 using Logging;
 using Nethereum.Hex.HexConvertors.Extensions;
@@ -19,6 +20,7 @@ namespace ArchivistContractsPlugin.ChainMonitor
         private readonly IPeriodMonitorEventHandler eventHandler;
         private readonly List<PeriodReport> reports = new List<PeriodReport>();
         private CurrentPeriod? currentPeriod = null;
+        private BlockTimeEntry? lastUpdate = null;
 
         public PeriodMonitor(ILog log, IArchivistContracts contracts, IGethNode geth, IPeriodMonitorEventHandler eventHandler)
         {
@@ -28,37 +30,27 @@ namespace ArchivistContractsPlugin.ChainMonitor
             this.eventHandler = eventHandler;
         }
 
-        public void Update(DateTime eventUtc, IChainStateRequest[] requests)
+        public void Update(BlockTimeEntry block, IChainStateRequest[] requests)
         {
-            // It's possible that several periods have elapsed since our last update call.
-            // If that's true, we'll take small time steps and roll towards 'eventUtc'.
+            if (lastUpdate != null)
+            {
+                if (block.BlockNumber != lastUpdate.BlockNumber + 1) throw new Exception("Discontinuous update called on PeriodMonitor");
+            }
+            lastUpdate = block;
+
+            var updateToPeriodNumber = contracts.GetPeriodNumber(block.Utc);
             if (currentPeriod == null)
             {
-                UpdateInternal(eventUtc, requests);
+                currentPeriod = CreateCurrentPeriod(block, updateToPeriodNumber, requests);
                 return;
             }
+            if (updateToPeriodNumber == currentPeriod.PeriodNumber) return;
 
-            var utc = contracts.GetPeriodTimeRange(currentPeriod.PeriodNumber).From;
-            while (utc < eventUtc)
-            {
-                // Repeat calls in the same period are ignored by updateInternal.
-                UpdateInternal(utc, requests);
-                utc += TimeSpan.FromSeconds(10);
-            }
-        }
-
-        private void UpdateInternal(DateTime utc, IChainStateRequest[] requests)
-        {
-            var periodNumber = contracts.GetPeriodNumber(utc);
-            if (currentPeriod == null)
-            {
-                currentPeriod = CreateCurrentPeriod(periodNumber, requests);
-                return;
-            }
-            if (periodNumber == currentPeriod.PeriodNumber) return;
-
-            CreateReportForPeriod(currentPeriod, requests);
-            currentPeriod = CreateCurrentPeriod(periodNumber, requests);
+            // the previous block is the last block in currentPeriod.
+            var closingBlock = geth.GetBlockForNumber(block.BlockNumber - 1);
+            if (closingBlock == null) throw new Exception("Unable to find period-closing block.");
+            CreateReportForPeriod(closingBlock, currentPeriod, requests);
+            currentPeriod = CreateCurrentPeriod(block, updateToPeriodNumber, requests);
         }
 
         public PeriodMonitorResult GetAndClearReports()
@@ -68,17 +60,17 @@ namespace ArchivistContractsPlugin.ChainMonitor
             return new PeriodMonitorResult(result);
         }
 
-        private CurrentPeriod CreateCurrentPeriod(ulong periodNumber, IChainStateRequest[] requests)
+        private CurrentPeriod CreateCurrentPeriod(BlockTimeEntry block, ulong periodNumber, IChainStateRequest[] requests)
         {
             var cRequests = requests.Select(r => CurrentRequest.CreateCurrentRequest(contracts, r)).ToArray();
-            return new CurrentPeriod(periodNumber, cRequests);
+            return new CurrentPeriod(block, periodNumber, cRequests);
         }
 
-        private void CreateReportForPeriod(CurrentPeriod currentPeriod, IChainStateRequest[] requests)
+        private void CreateReportForPeriod(BlockTimeEntry closingBlock, CurrentPeriod currentPeriod, IChainStateRequest[] requests)
         {
             // Fetch function calls during period. Format report.
             var timeRange = contracts.GetPeriodTimeRange(currentPeriod.PeriodNumber);
-            var blockRange = geth.ConvertTimeRangeToBlockRange(timeRange);
+            var blockRange = new BlockInterval(timeRange, currentPeriod.StartingBlock.BlockNumber, closingBlock.BlockNumber);
 
             var (callReports, markMissingCalls) = FetchCallReports(blockRange);
 

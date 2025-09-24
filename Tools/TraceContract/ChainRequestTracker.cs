@@ -18,7 +18,7 @@ namespace TraceContract
         }
 
         public bool IsFinished { get; private set; } = false;
-        public DateTime FinishUtc { get; private set; } = DateTime.MinValue;
+        public BlockTimeEntry? FinishBlock { get; private set; } = null;
 
         public void OnError(string msg)
         {
@@ -38,7 +38,7 @@ namespace TraceContract
             if (IsMyRequest(requestEvent))
             {
                 IsFinished = true;
-                FinishUtc = requestEvent.Block.Utc;
+                FinishBlock = requestEvent.Block;
                 output.LogRequestCancelled(requestEvent);
             }
         }
@@ -48,7 +48,7 @@ namespace TraceContract
             if (IsMyRequest(requestEvent))
             {
                 IsFinished = true;
-                FinishUtc = requestEvent.Block.Utc;
+                FinishBlock = requestEvent.Block;
                 output.LogRequestFailed(requestEvent);
             }
         }
@@ -58,7 +58,7 @@ namespace TraceContract
             if (IsMyRequest(requestEvent))
             {
                 IsFinished = true;
-                FinishUtc = requestEvent.Block.Utc;
+                FinishBlock = requestEvent.Block;
                 output.LogRequestFinished(requestEvent);
             }
         }
@@ -100,5 +100,4 @@ namespace TraceContract
             return requestId == requestEvent.Request.RequestId.ToHex().ToLowerInvariant();
         }
     }
-
 }

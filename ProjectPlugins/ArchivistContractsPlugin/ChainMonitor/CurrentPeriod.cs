@@ -1,15 +1,18 @@
-﻿using Utils;
+﻿using BlockchainUtils;
+using Utils;
 
 namespace ArchivistContractsPlugin.ChainMonitor
 {
     public class CurrentPeriod
     {
-        public CurrentPeriod(ulong periodNumber, CurrentRequest[] currentRequests)
+        public CurrentPeriod(BlockTimeEntry startingBlock, ulong periodNumber, CurrentRequest[] currentRequests)
         {
+            StartingBlock = startingBlock;
             PeriodNumber = periodNumber;
             CurrentRequests = currentRequests;
         }
 
+        public BlockTimeEntry StartingBlock { get; }
         public ulong PeriodNumber { get; }
         public CurrentRequest[] CurrentRequests { get; }
     }

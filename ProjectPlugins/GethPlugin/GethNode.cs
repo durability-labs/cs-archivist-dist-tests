@@ -31,9 +31,8 @@ namespace GethPlugin
         bool IsContractAvailable(string abi, string contractAddress);
         GethBootstrapNode GetBootstrapRecord();
         List<EventLog<TEvent>> GetEvents<TEvent>(string address, BlockInterval blockRange) where TEvent : IEventDTO, new();
-        List<EventLog<TEvent>> GetEvents<TEvent>(string address, TimeRange timeRange) where TEvent : IEventDTO, new();
-        BlockInterval ConvertTimeRangeToBlockRange(TimeRange timeRange);
-        BlockTimeEntry GetBlockForNumber(ulong number);
+        BlockTimeEntry? GetBlockForNumber(ulong number);
+        BlockTimeEntry? GetBlockForUtc(DateTime utc);
         void IterateTransactions(BlockInterval blockRange, Action<Transaction, ulong, DateTime> action);
         void IterateFunctionCalls<TFunc>(BlockInterval blockInterval, Action<BlockTimeEntry, TFunc> onCall) where TFunc : FunctionMessage, new();
         IGethNode WithDifferentAccount(EthAccount account);
@@ -205,19 +204,14 @@ namespace GethPlugin
             return StartInteraction().GetEvents<TEvent>(address, blockRange);
         }
 
-        public List<EventLog<TEvent>> GetEvents<TEvent>(string address, TimeRange timeRange) where TEvent : IEventDTO, new()
-        {
-            return StartInteraction().GetEvents<TEvent>(address, ConvertTimeRangeToBlockRange(timeRange));
-        }
-
-        public BlockInterval ConvertTimeRangeToBlockRange(TimeRange timeRange)
-        {
-            return StartInteraction().ConvertTimeRangeToBlockRange(timeRange);
-        }
-
         public BlockTimeEntry? GetBlockForNumber(ulong number)
         {
             return StartInteraction().GetBlockForNumber(number);
+        }
+
+        public BlockTimeEntry? GetBlockForUtc(DateTime utc)
+        {
+            return StartInteraction().GetBlockForUtc(utc);
         }
 
         public BlockWithTransactions GetBlk(ulong number)

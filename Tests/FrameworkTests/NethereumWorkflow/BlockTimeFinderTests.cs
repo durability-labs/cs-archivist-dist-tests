@@ -165,7 +165,7 @@ namespace FrameworkTests.NethereumWorkflow
             }
         }
 
-        private void AssertLink(Block? expected, ulong? actual)
+        private void AssertLink(Block? expected, BlockTimeEntry? actual)
         {
             if (expected == null)
             {
@@ -173,7 +173,7 @@ namespace FrameworkTests.NethereumWorkflow
             }
             else
             {
-                Assert.That(expected.Number, Is.EqualTo(actual!.Value));
+                Assert.That(expected.Number, Is.EqualTo(actual!.BlockNumber));
             }
         }
     }
