@@ -4,8 +4,7 @@ namespace BlockchainUtils
 {
     public class BlockCache
     {
-        public delegate void CacheClearedEvent();
-
+        private static object _lock = new object();
         private const int MaxBuckets = 10;
         private readonly Dictionary<ulong, BlockBucket> buckets = new Dictionary<ulong, BlockBucket>();
         private readonly IBlockBucketStore store;
@@ -30,26 +29,32 @@ namespace BlockchainUtils
 
         public BlockTimeEntry Add(BlockTimeEntry entry)
         {
-            var bucket = GetBucket(entry.BlockNumber);
-            var entries = bucket.Entries;
-            if (!entries.ContainsKey(entry.BlockNumber))
+            lock (_lock)
             {
-                entries.Add(entry.BlockNumber, entry.Utc);
-                store.Save(GetBucketNumber(entry.BlockNumber), bucket);
-            }
+                var bucket = GetBucket(entry.BlockNumber);
+                var entries = bucket.Entries;
+                if (!entries.ContainsKey(entry.BlockNumber))
+                {
+                    entries.Add(entry.BlockNumber, entry.Utc);
+                    store.Save(GetBucketNumber(entry.BlockNumber), bucket);
+                }
 
-            var utc = entries[entry.BlockNumber];
-            var newEntry = new BlockTimeEntry(entry.BlockNumber, utc);
-            UpdateEarliestLatest(newEntry);
-            return newEntry;
+                var utc = entries[entry.BlockNumber];
+                var newEntry = new BlockTimeEntry(entry.BlockNumber, utc);
+                UpdateEarliestLatest(newEntry);
+                return newEntry;
+            }
         }
 
         public BlockTimeEntry? Get(ulong number)
         {
-            var bucket = GetBucket(number);
-            var entries = bucket.Entries;
-            if (!entries.TryGetValue(number, out DateTime utc)) return null;
-            return new BlockTimeEntry(number, utc);
+            lock (_lock)
+            {
+                var bucket = GetBucket(number);
+                var entries = bucket.Entries;
+                if (!entries.TryGetValue(number, out DateTime utc)) return null;
+                return new BlockTimeEntry(number, utc);
+            }
         }
 
         private BlockBucket GetBucket(ulong blockNumber)

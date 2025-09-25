@@ -918,7 +918,7 @@ namespace KubernetesWorkflow
             var result = podInfo.Status.ContainerStatuses.Any(c => c.RestartCount > 0);
             if (result)
             {
-                var msg = $"Pod crash detected for deployment {deploymentName} (pod:{podName})";
+                var msg = $"Pod crash detected for deployment '{deploymentName}' (pod:{podName})";
                 log.Error(msg);
 
                 DownloadPodLog(container, new WriteToFileLogHandler(log, msg, deploymentName), tailLines: null, previous: true);

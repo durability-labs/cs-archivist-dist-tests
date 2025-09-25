@@ -45,32 +45,29 @@ namespace ArchivistReleaseTests.Utils
             if (worker.Exception != null) throw worker.Exception;
         }
 
+        public IChainStateRequest[] Requests { get; private set; } = Array.Empty<IChainStateRequest>();
+
         private void Worker(Action onFailure)
         {
-            var state = new ChainState(log, gethNode, contracts, new DoNothingThrowingChainEventHandler(), startUtc, true, periodMonitorEventHandler);
-            Thread.Sleep(updateInterval);
-
-            log.Log($"Chain monitoring started. Update interval: {Time.FormatDuration(updateInterval)}");
-            while (!cts.IsCancellationRequested)
+            try
             {
-                try
-                {
-                    UpdateChainState(state);
-                }
-                catch (Exception ex)
-                {
-                    log.Error("Exception in chain monitor: " + ex);
-                    onFailure();
-                    throw;
-                }
+                var state = new ChainState(log, gethNode, contracts, new DoNothingThrowingChainEventHandler(), startUtc, true, periodMonitorEventHandler);
+                Thread.Sleep(updateInterval);
 
-                cts.Token.WaitHandle.WaitOne(updateInterval);
+                log.Log($"Chain monitoring started. Update interval: {Time.FormatDuration(updateInterval)}");
+                while (!cts.IsCancellationRequested)
+                {
+                    state.Update();
+                    Requests = state.Requests.ToArray();
+                    cts.Token.WaitHandle.WaitOne(updateInterval);
+                }
             }
-        }
-
-        private void UpdateChainState(ChainState state)
-        {
-            state.Update();
+            catch (Exception ex)
+            {
+                log.Error("Exception in chain monitor: " + ex);
+                onFailure();
+                throw;
+            }
         }
     }
 }
