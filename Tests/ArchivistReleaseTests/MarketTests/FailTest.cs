@@ -1,4 +1,5 @@
 using ArchivistClient;
+using ArchivistContractsPlugin.Marketplace;
 using ArchivistReleaseTests.Utils;
 using NUnit.Framework;
 using Utils;
@@ -54,7 +55,7 @@ namespace ArchivistReleaseTests.MarketTests
             while (DateTime.UtcNow < start + timeout)
             {
                 var events = GetContracts().GetEvents(GetTestRunTimeRange());
-                var slotFreed = events.GetSlotFreedEvents();
+                var slotFreed = events.GetEvents<SlotFreedEventDTO>();
                 Log($"SlotFreed events: {slotFreed.Length} - Expected: {SlotTolerance}");
                 if (slotFreed.Length > SlotTolerance)
                 {

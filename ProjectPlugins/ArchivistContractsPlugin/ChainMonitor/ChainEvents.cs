@@ -47,16 +47,36 @@ namespace ArchivistContractsPlugin.ChainMonitor
 
         public static ChainEvents FromContractEvents(IArchivistContractsEvents events)
         {
+            var storageRequested = new ContractEventsCollector<StorageRequestedEventDTO>();
+            var requestFulfilled = new ContractEventsCollector<RequestFulfilledEventDTO>();
+            var requestCancelled = new ContractEventsCollector<RequestCancelledEventDTO>();
+            var requestFailed = new ContractEventsCollector<RequestFailedEventDTO>();
+            var slotFilled = new ContractEventsCollector<SlotFilledEventDTO>();
+            var slotFreed = new ContractEventsCollector<SlotFreedEventDTO>();
+            var slotReservationsFull = new ContractEventsCollector<SlotReservationsFullEventDTO>();
+            var proofSubmitted = new ContractEventsCollector<ProofSubmittedEventDTO>();
+
+            events.GetEvents(
+                storageRequested,
+                requestFulfilled,
+                requestCancelled,
+                requestFailed,
+                slotFilled,
+                slotFreed,
+                slotReservationsFull,
+                proofSubmitted
+            );
+
             return new ChainEvents(
                 events.BlockInterval,
-                events.GetStorageRequestedEvents(),
-                events.GetRequestFulfilledEvents(),
-                events.GetRequestCancelledEvents(),
-                events.GetRequestFailedEvents(),
-                events.GetSlotFilledEvents(),
-                events.GetSlotFreedEvents(),
-                events.GetSlotReservationsFullEvents(),
-                events.GetProofSubmittedEvents()
+                storageRequested.Events.ToArray(),
+                requestFulfilled.Events.ToArray(),
+                requestCancelled.Events.ToArray(),
+                requestFailed.Events.ToArray(),
+                slotFilled.Events.ToArray(),
+                slotFreed.Events.ToArray(),
+                slotReservationsFull.Events.ToArray(),
+                proofSubmitted.Events.ToArray()
             );
         }
 

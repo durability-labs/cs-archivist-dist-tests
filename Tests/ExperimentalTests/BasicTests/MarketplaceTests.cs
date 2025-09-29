@@ -140,7 +140,7 @@ namespace ExperimentalTests.BasicTests
             Time.Retry(() =>
             {
                 var events = contracts.GetEvents(GetTestRunTimeRange());
-                var slotFilledEvents = events.GetSlotFilledEvents();
+                var slotFilledEvents = events.GetEvents<SlotFilledEventDTO>();
 
                 var msg = $"SlotFilledEvents: {slotFilledEvents.Length} - NumSlots: {purchase.MinRequiredNumberOfNodes}";
                 Debug(msg);
@@ -159,7 +159,7 @@ namespace ExperimentalTests.BasicTests
         private StorageRequestedEventDTO GetOnChainStorageRequest(IArchivistContracts contracts, IGethNode geth)
         {
             var events = contracts.GetEvents(GetTestRunTimeRange());
-            var requests = events.GetStorageRequestedEvents();
+            var requests = events.GetEvents<StorageRequestedEventDTO>();
             Assert.That(requests.Length, Is.EqualTo(1));
             return requests.Single();
         }

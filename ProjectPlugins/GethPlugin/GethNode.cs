@@ -2,7 +2,6 @@ using BlockchainUtils;
 using Core;
 using KubernetesWorkflow.Types;
 using Logging;
-using Nethereum.ABI.FunctionEncoding.Attributes;
 using Nethereum.BlockchainProcessing.BlockStorage.Entities.Mapping;
 using Nethereum.Contracts;
 using Nethereum.RPC.Eth.DTOs;
@@ -30,7 +29,7 @@ namespace GethPlugin
         decimal? GetSyncedBlockNumber();
         bool IsContractAvailable(string abi, string contractAddress);
         GethBootstrapNode GetBootstrapRecord();
-        List<EventLog<TEvent>> GetEvents<TEvent>(string address, BlockInterval blockRange) where TEvent : IEventDTO, new();
+        IEventsCollector[] GetEvents(string address, BlockInterval blockRange, params IEventsCollector[] collectors);
         BlockTimeEntry? GetBlockForNumber(ulong number);
         BlockTimeEntry? GetBlockForUtc(DateTime utc);
         void IterateTransactions(BlockInterval blockRange, Action<Transaction, ulong, DateTime> action);
@@ -199,9 +198,9 @@ namespace GethPlugin
             return StartInteraction().IsContractAvailable(abi, contractAddress);
         }
 
-        public List<EventLog<TEvent>> GetEvents<TEvent>(string address, BlockInterval blockRange) where TEvent : IEventDTO, new()
+        public IEventsCollector[] GetEvents(string address, BlockInterval blockRange, params IEventsCollector[] collectors)
         {
-            return StartInteraction().GetEvents<TEvent>(address, blockRange);
+            return StartInteraction().GetEvents(address, blockRange, collectors);
         }
 
         public BlockTimeEntry? GetBlockForNumber(ulong number)

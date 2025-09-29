@@ -5,21 +5,72 @@ using Logging;
 using Nethereum.Contracts;
 using Nethereum.Hex.HexTypes;
 using Utils;
+using NethereumWorkflow;
+using Nethereum.ABI.FunctionEncoding.Attributes;
 
 namespace ArchivistContractsPlugin
 {
     public interface IArchivistContractsEvents
     {
         BlockInterval BlockInterval { get; }
-        StorageRequestedEventDTO[] GetStorageRequestedEvents();
-        RequestFulfilledEventDTO[] GetRequestFulfilledEvents();
-        RequestCancelledEventDTO[] GetRequestCancelledEvents();
-        RequestFailedEventDTO[] GetRequestFailedEvents();
-        SlotFilledEventDTO[] GetSlotFilledEvents();
-        SlotFreedEventDTO[] GetSlotFreedEvents();
-        SlotReservationsFullEventDTO[] GetSlotReservationsFullEvents();
-        ProofSubmittedEventDTO[] GetProofSubmittedEvents();
+        IContractEventsCollector[] GetEvents(params IContractEventsCollector[] collectors);
+        TEvent[] GetEvents<TEvent>() where TEvent : IEventDTO, new();
         void GetReserveSlotCalls(Action<ReserveSlotFunction> onFunction);
+    }
+
+    public interface IContractEventsCollector
+    {
+        IEventsCollector Collector { get; }
+        void Map(IGethNode gethNode);
+    }
+
+    public class ContractEventsCollector<TEvent> : IContractEventsCollector where TEvent : IEventDTO, new()
+    {
+        private readonly EventsCollector<TEvent> collector;
+
+        public ContractEventsCollector()
+        {
+            collector = new EventsCollector<TEvent>();
+        }
+
+        public IEventsCollector Collector => collector;
+        public List<TEvent> Events { get; } = new();
+
+        public void Map(IGethNode gethNode)
+        {
+            foreach (var e in collector.Events)
+            {
+                SetBlockOnEvent(gethNode, e);
+
+                if (e.Event is SlotFilledEventDTO slotFilled)
+                {
+                    slotFilled.Host = GetEthAddressFromTransaction(gethNode, e.Log.TransactionHash);
+                }
+
+                Events.Add(e.Event);
+            }
+        }
+
+        private void SetBlockOnEvent(IGethNode gethNode, EventLog<TEvent> e)
+        {
+            if (e.Event is IHasBlock hasBlock)
+            {
+                hasBlock.Block = GetBlock(gethNode, e.Log.BlockNumber.ToUlong());
+            }
+        }
+
+        private BlockTimeEntry GetBlock(IGethNode gethNode, ulong number)
+        {
+            var entry = gethNode.GetBlockForNumber(number);
+            if (entry == null) throw new Exception("Failed to find block by number: " + number);
+            return entry;
+        }
+
+        private EthAddress GetEthAddressFromTransaction(IGethNode gethNode, string transactionHash)
+        {
+            var transaction = gethNode.GetTransaction(transactionHash);
+            return new EthAddress(transaction.From);
+        }
     }
 
     public class ArchivistContractsEvents : IArchivistContractsEvents
@@ -38,58 +89,18 @@ namespace ArchivistContractsPlugin
         
         public BlockInterval BlockInterval { get; }
 
-        public StorageRequestedEventDTO[] GetStorageRequestedEvents()
+        public IContractEventsCollector[] GetEvents(params IContractEventsCollector[] collectors)
         {
-            var events = gethNode.GetEvents<StorageRequestedEventDTO>(deployment.MarketplaceAddress, BlockInterval);
-            return DebugLog(events.Select(SetBlockOnEvent).ToArray());
+            gethNode.GetEvents(deployment.MarketplaceAddress, BlockInterval, collectors.Select(c => c.Collector).ToArray());
+            foreach (var c in collectors) c.Map(gethNode);
+            return collectors;
         }
 
-        public RequestFulfilledEventDTO[] GetRequestFulfilledEvents()
+        public TEvent[] GetEvents<TEvent>() where TEvent : IEventDTO, new()
         {
-            var events = gethNode.GetEvents<RequestFulfilledEventDTO>(deployment.MarketplaceAddress, BlockInterval);
-            return DebugLog(events.Select(SetBlockOnEvent).ToArray());
-        }
-
-        public RequestCancelledEventDTO[] GetRequestCancelledEvents()
-        {
-            var events = gethNode.GetEvents<RequestCancelledEventDTO>(deployment.MarketplaceAddress, BlockInterval);
-            return DebugLog(events.Select(SetBlockOnEvent).ToArray());
-        }
-
-        public RequestFailedEventDTO[] GetRequestFailedEvents()
-        {
-            var events = gethNode.GetEvents<RequestFailedEventDTO>(deployment.MarketplaceAddress, BlockInterval);
-            return DebugLog(events.Select(SetBlockOnEvent).ToArray());
-        }
-
-        public SlotFilledEventDTO[] GetSlotFilledEvents()
-        {
-            var events = gethNode.GetEvents<SlotFilledEventDTO>(deployment.MarketplaceAddress, BlockInterval);
-            return DebugLog(events.Select(e =>
-            {
-                var result = e.Event;
-                result.Block = GetBlock(e.Log.BlockNumber.ToUlong());
-                result.Host = GetEthAddressFromTransaction(e.Log.TransactionHash);
-                return result;
-            }).ToArray());
-        }
-
-        public SlotFreedEventDTO[] GetSlotFreedEvents()
-        {
-            var events = gethNode.GetEvents<SlotFreedEventDTO>(deployment.MarketplaceAddress, BlockInterval);
-            return DebugLog(events.Select(SetBlockOnEvent).ToArray());
-        }
-
-        public SlotReservationsFullEventDTO[] GetSlotReservationsFullEvents()
-        {
-            var events = gethNode.GetEvents<SlotReservationsFullEventDTO>(deployment.MarketplaceAddress, BlockInterval);
-            return DebugLog(events.Select(SetBlockOnEvent).ToArray());
-        }
-
-        public ProofSubmittedEventDTO[] GetProofSubmittedEvents()
-        {
-            var events = gethNode.GetEvents<ProofSubmittedEventDTO>(deployment.MarketplaceAddress, BlockInterval);
-            return DebugLog(events.Select(SetBlockOnEvent).ToArray());
+            var collector = new ContractEventsCollector<TEvent>();
+            GetEvents(collector);
+            return collector.Events.ToArray();
         }
 
         public void GetReserveSlotCalls(Action<ReserveSlotFunction> onFunction)
@@ -103,32 +114,6 @@ namespace ArchivistContractsPlugin
                 count++;
             });
             log.Debug($"{BlockInterval} {nameof(ReserveSlotFunction)} => {count}");
-        }
-
-        private T SetBlockOnEvent<T>(EventLog<T> e) where T : IHasBlock
-        {
-            var result = e.Event;
-            result.Block = GetBlock(e.Log.BlockNumber.ToUlong());
-            return result;
-        }
-
-        private BlockTimeEntry GetBlock(ulong number)
-        {
-            var entry = gethNode.GetBlockForNumber(number);
-            if (entry == null) throw new Exception("Failed to find block by number: " + number);
-            return entry;
-        }
-
-        private EthAddress GetEthAddressFromTransaction(string transactionHash)
-        {
-            var transaction = gethNode.GetTransaction(transactionHash);
-            return new EthAddress(transaction.From);
-        }
-
-        private T[] DebugLog<T>(T[] events)
-        {
-            log.Debug($"{BlockInterval} {typeof(T).Name} => {events.Length}");
-            return events;
         }
     }
 }

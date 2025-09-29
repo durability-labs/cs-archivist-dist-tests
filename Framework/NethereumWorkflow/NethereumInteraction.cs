@@ -1,7 +1,6 @@
 using System.Numerics;
 using BlockchainUtils;
 using Logging;
-using Nethereum.ABI.FunctionEncoding.Attributes;
 using Nethereum.Contracts;
 using Nethereum.RPC.Eth.DTOs;
 using Nethereum.Web3;
@@ -143,9 +142,9 @@ namespace NethereumWorkflow
             }, nameof(IsContractAvailable));
         }
 
-        public List<EventLog<TEvent>> GetEvents<TEvent>(string address, BlockInterval blockRange) where TEvent : IEventDTO, new()
+        public IEventsCollector[] GetEvents(string address, BlockInterval blockRange, params IEventsCollector[] collectors)
         {
-            return GetEvents<TEvent>(address, blockRange.From, blockRange.To);
+            return GetEvents(address, blockRange.From, blockRange.To, collectors);
         }
 
         public BlockTimeEntry? GetBlockForNumber(ulong number)
@@ -179,7 +178,7 @@ namespace NethereumWorkflow
             }, nameof(GetBlockWithTransactions));
         }
 
-        private List<EventLog<TEvent>> GetEvents<TEvent>(string address, ulong fromBlockNumber, ulong toBlockNumber) where TEvent : IEventDTO, new()
+        private IEventsCollector[] GetEvents(string address, ulong fromBlockNumber, ulong toBlockNumber, params IEventsCollector[] collectors)
         {
             return DebugLogWrap(() =>
             {
@@ -187,7 +186,14 @@ namespace NethereumWorkflow
                 var p = web3.Processing.Logs.CreateProcessor(
                     action: logs.Add,
                     minimumBlockConfirmations: 1,
-                    criteria: l => l.IsLogForEvent<TEvent>()
+                    criteria: l =>
+                    {
+                        foreach (var c in collectors)
+                        {
+                            if (c.AbiEvent.IsLogForEvent(l)) return true;
+                        }
+                        return false;
+                    }
                 );
 
                 var from = new BlockParameter(fromBlockNumber);
@@ -195,11 +201,13 @@ namespace NethereumWorkflow
                 var ct = new CancellationTokenSource().Token;
                 Time.Wait(p.ExecuteAsync(toBlockNumber: to.BlockNumber, cancellationToken: ct, startAtBlockNumberIfNotProcessed: from.BlockNumber));
 
-                return logs
-                    .Where(l => l.IsLogForEvent<TEvent>())
-                    .Select(l => l.DecodeEvent<TEvent>())
-                    .ToList();
-            }, $"{nameof(GetEvents)}<{typeof(TEvent).ToString()}>");
+                foreach (var t in collectors)
+                {
+                    t.CollectMyEvents(logs);
+                }
+
+                return collectors;
+            }, $"{nameof(GetEvents)}<{string.Join(",", collectors.Select(c => c.Name).ToArray())}>");
         }
 
         private T DebugLogWrap<T>(Func<T> task, string name = "")

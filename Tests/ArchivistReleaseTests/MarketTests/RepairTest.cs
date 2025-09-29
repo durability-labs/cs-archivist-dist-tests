@@ -111,7 +111,7 @@ namespace ArchivistReleaseTests.MarketTests
             while (DateTime.UtcNow < start + timeout)
             {
                 var events = GetContracts().GetEvents(GetTestRunTimeRange());
-                var slotsFreed = events.GetSlotFreedEvents();
+                var slotsFreed = events.GetEvents<SlotFreedEventDTO>();
                 Log($"Slots freed this period: {slotsFreed.Length}");
 
                 foreach (var free in slotsFreed)
@@ -144,7 +144,7 @@ namespace ArchivistReleaseTests.MarketTests
             {
                 var newTimeRange = new TimeRange(start, DateTime.UtcNow); // We only want to see new fill events.
                 var events = GetContracts().GetEvents(newTimeRange);
-                var slotFillEvents = events.GetSlotFilledEvents();
+                var slotFillEvents = events.GetEvents<SlotFilledEventDTO>();
 
                 var matches = slotFillEvents.Where(f =>
                 {

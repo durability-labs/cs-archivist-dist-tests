@@ -223,7 +223,7 @@ namespace ArchivistReleaseTests.Utils
         public SlotFill[] GetOnChainSlotFills(IEnumerable<IArchivistNode> possibleHosts)
         {
             var events = GetContracts().GetEvents(GetTestRunTimeRange());
-            var fills = events.GetSlotFilledEvents();
+            var fills = events.GetEvents<SlotFilledEventDTO>();
             return fills.Select(f =>
             {
                 // We can encounter a fill event that's from an old host.
@@ -382,7 +382,7 @@ namespace ArchivistReleaseTests.Utils
             return Time.Retry(() =>
             {
                 var events = GetContracts().GetEvents(GetTestRunTimeRange());
-                var submitEvent = events.GetStorageRequestedEvents().SingleOrDefault(e => e.RequestId.ToHex() == contract.PurchaseId);
+                var submitEvent = events.GetEvents<StorageRequestedEventDTO>().SingleOrDefault(e => e.RequestId.ToHex() == contract.PurchaseId);
                 if (submitEvent == null)
                 {
                     // We're too early.
@@ -424,7 +424,7 @@ namespace ArchivistReleaseTests.Utils
             // Check the creation event.
             AssertOnChainEvents(events =>
             {
-                var onChainRequests = events.GetStorageRequestedEvents();
+                var onChainRequests = events.GetEvents<StorageRequestedEventDTO>();
                 if (onChainRequests.Any(r => r.RequestId.ToHex() == contract.PurchaseId)) return;
                 throw new Exception($"OnChain request {contract.PurchaseId} not found...");
             }, nameof(AssertContractIsOnChain));

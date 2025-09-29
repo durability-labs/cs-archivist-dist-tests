@@ -106,7 +106,8 @@ namespace TraceContract
             while (range.From > limit.BlockNumber)
             {
                 var events = contracts.GetEvents(range);
-                foreach (var r in events.GetStorageRequestedEvents())
+                var requests = events.GetEvents<StorageRequestedEventDTO>();
+                foreach (var r in requests)
                 {
                     if (r.RequestId.ToHex() == input.RequestId.ToHex()) return r;
                 }
