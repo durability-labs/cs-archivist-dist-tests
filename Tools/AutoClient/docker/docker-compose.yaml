@@ -16,9 +16,11 @@ services:
           # http://archivist-9:8088;
           # http://archivist-10:8089
       - DATAPATH=/data
+      # 5 days, 6.5 days, expressed in minutes:
       - CONTRACTDURATION=7200,9360
       - CONTRACTEXPIRY=20
-      - DURABILITYVALUES=(4,2,500);(8,4,500);(16,8,500);(4,1,10);(8,1,10);(16,1,10);
+      # (slots, tolerance, proof-probability)
+      - DURABILITYVALUES=(4,2,500);(8,4,500);(16,8,500);(4,1,10);(8,1,10);(16,1,10)
       - PRICE=1000
       - COLLATERAL=1
       - FOLDERTOSTORE=/target

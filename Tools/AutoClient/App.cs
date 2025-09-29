@@ -9,9 +9,11 @@ namespace AutoClient
         {
             Config = config;
 
-            Log = new LogSplitter(
-                new FileLog(Path.Combine(config.LogPath, "autoclient")),
-                new ConsoleLog()
+            Log = new TimestampPrefixer(
+                new LogSplitter(
+                    new FileLog(Path.Combine(config.LogPath, "autoclient")),
+                    new ConsoleLog()
+                )
             );
         }
 

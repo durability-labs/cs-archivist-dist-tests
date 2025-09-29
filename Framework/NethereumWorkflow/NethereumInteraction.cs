@@ -145,10 +145,7 @@ namespace NethereumWorkflow
 
         public List<EventLog<TEvent>> GetEvents<TEvent>(string address, BlockInterval blockRange) where TEvent : IEventDTO, new()
         {
-            return DebugLogWrap(() =>
-            {
-                return GetEvents<TEvent>(address, blockRange.From, blockRange.To);
-            }, nameof(GetEvents) + "." + typeof(TEvent).ToString());
+            return GetEvents<TEvent>(address, blockRange.From, blockRange.To);
         }
 
         public BlockTimeEntry? GetBlockForNumber(ulong number)
@@ -202,15 +199,12 @@ namespace NethereumWorkflow
                     .Where(l => l.IsLogForEvent<TEvent>())
                     .Select(l => l.DecodeEvent<TEvent>())
                     .ToList();
-            }, nameof(GetEvents) + "." + typeof(TEvent).ToString());
+            }, $"{nameof(GetEvents)}<{typeof(TEvent).ToString()}>");
         }
 
         private T DebugLogWrap<T>(Func<T> task, string name = "")
         {
-            log.Debug($"{name} start...", 1);
-            var result = task();
-            log.Debug($"{name} finished", 1);
-            return result;
+            return Stopwatch.Measure(log, name, task, debug: true).Value;
         }
     }
 }

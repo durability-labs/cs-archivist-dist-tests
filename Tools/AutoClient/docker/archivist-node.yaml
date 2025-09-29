@@ -15,6 +15,13 @@ services:
       - ARCHIVIST_STORAGE_QUOTA=20gb
       - NAT_PUBLIC_IP_AUTO=https://ip.archivist.storage
       - ARCHIVIST_ETH_PROVIDER=http://rpc-arbitrum
+
+      # Fast cleanup:
+      # TTL 3 hours
+      # 1000 blocks every minute
+      - ARCHIVIST_BLOCK_TTL=10800
+      - ARCHIVIST_BLOCK_MI=60
+      - ARCHIVIST_BLOCK_MN=1000
     logging:
       driver: json-file
       options:

@@ -57,13 +57,13 @@ namespace AutoClient
             }
         }
 
-        private int[] durationMinutes = [];
-        public int[] DurationMinutes
+        private TimeSpan[] durations = [];
+        public TimeSpan[] Durations
         {
             get
             {
-                if (durationMinutes.Length == 0) ParseDurationMinutes();
-                return durationMinutes;
+                if (durations.Length == 0) ParseDurationMinutes();
+                return durations;
             }
         }
 
@@ -71,8 +71,8 @@ namespace AutoClient
         {
             var tokens = ContractDurationStr.Split(",", StringSplitOptions.RemoveEmptyEntries);
             if (tokens.Length < 1 || tokens.Length > 2) throw new Exception("Expected 1 or 2 comma-separated int values for contract-duration options.");
-            durationMinutes = tokens.Select(t => Convert.ToInt32(t)).Order().ToArray();
-            if (durationMinutes[0] < 10) throw new Exception("contract-duration option must be 10 or greater.");
+            durations = tokens.Select(t => TimeSpan.FromMinutes(Convert.ToInt32(t))).Order().ToArray();
+            if (durations[0] < TimeSpan.FromMinutes(10)) throw new Exception("contract-duration option must be 10 or greater.");
         }
 
         private void ParseDurabilityValues()

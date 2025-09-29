@@ -59,15 +59,15 @@ namespace AutoClient
 
         private TimeSpan GetDuration()
         {
-            var dMins = app.Config.DurationMinutes;
-            if (dMins.Length == 1)
+            var durations = app.Config.Durations;
+            if (durations.Length == 1)
             {
-                return TimeSpan.FromSeconds(dMins[0]);
+                return durations[0];
             }
-            if (dMins.Length == 2)
+            if (durations.Length == 2)
             {
-                var mins = r.Next(dMins[0], dMins[1]);
-                return TimeSpan.FromSeconds(mins);
+                var seconds = r.Next(Convert.ToInt32(durations[0].TotalSeconds), Convert.ToInt32(durations[1].TotalSeconds));
+                return TimeSpan.FromSeconds(seconds);
             }
             throw new Exception("Misconfigured DurationMinutes");
         }

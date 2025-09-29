@@ -107,7 +107,6 @@ namespace ArchivistContractsPlugin.ChainMonitor
             var span = events.BlockInterval.TimeRange.Duration;
             var numBlocks = events.BlockInterval.NumberOfBlocks;
             if (numBlocks == 0) return;
-            var spanPerBlock = span / numBlocks;
 
             for (var b = events.BlockInterval.From; b <= events.BlockInterval.To; b++)
             {

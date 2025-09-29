@@ -26,9 +26,11 @@ namespace TestNetRewarder
             var uniformArgs = new ArgsUniform<Configuration>(PrintHelp, args);
             Config = uniformArgs.Parse(true);
 
-            Log = new LogSplitter(
-                new FileLog(Path.Combine(Config.LogPath, "testnetrewarder")),
-                new ConsoleLog()
+            Log = new TimestampPrefixer(                
+                new LogSplitter(
+                    new FileLog(Path.Combine(Config.LogPath, "testnetrewarder")),
+                    new ConsoleLog()
+                )
             );
 
             var diskStore = new DiskBlockBucketStore(Path.Join(Config.DataPath, "blockcache"));

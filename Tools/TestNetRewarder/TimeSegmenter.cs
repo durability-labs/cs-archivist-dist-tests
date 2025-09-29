@@ -46,7 +46,8 @@ namespace TestNetRewarder
 
             var postfix = "(Catching up...)";
             if (IsRealtime) postfix = "(Real-time)";
-            log.Log($"Time segment [{latest} to {end}] {postfix}({currentSegmentMult}x)");
+            log.Log($"Time segment [{Time.FormatTimestamp(latest)} to {Time.FormatTimestamp(end)}] {postfix}({currentSegmentMult}x)");
+
             
             var range = new TimeRange(latest, end);
             latest = end;

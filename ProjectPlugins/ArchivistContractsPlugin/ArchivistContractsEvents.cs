@@ -41,65 +41,68 @@ namespace ArchivistContractsPlugin
         public StorageRequestedEventDTO[] GetStorageRequestedEvents()
         {
             var events = gethNode.GetEvents<StorageRequestedEventDTO>(deployment.MarketplaceAddress, BlockInterval);
-            return events.Select(SetBlockOnEvent).ToArray();
+            return DebugLog(events.Select(SetBlockOnEvent).ToArray());
         }
 
         public RequestFulfilledEventDTO[] GetRequestFulfilledEvents()
         {
             var events = gethNode.GetEvents<RequestFulfilledEventDTO>(deployment.MarketplaceAddress, BlockInterval);
-            return events.Select(SetBlockOnEvent).ToArray();
+            return DebugLog(events.Select(SetBlockOnEvent).ToArray());
         }
 
         public RequestCancelledEventDTO[] GetRequestCancelledEvents()
         {
             var events = gethNode.GetEvents<RequestCancelledEventDTO>(deployment.MarketplaceAddress, BlockInterval);
-            return events.Select(SetBlockOnEvent).ToArray();
+            return DebugLog(events.Select(SetBlockOnEvent).ToArray());
         }
 
         public RequestFailedEventDTO[] GetRequestFailedEvents()
         {
             var events = gethNode.GetEvents<RequestFailedEventDTO>(deployment.MarketplaceAddress, BlockInterval);
-            return events.Select(SetBlockOnEvent).ToArray();
+            return DebugLog(events.Select(SetBlockOnEvent).ToArray());
         }
 
         public SlotFilledEventDTO[] GetSlotFilledEvents()
         {
             var events = gethNode.GetEvents<SlotFilledEventDTO>(deployment.MarketplaceAddress, BlockInterval);
-            return events.Select(e =>
+            return DebugLog(events.Select(e =>
             {
                 var result = e.Event;
                 result.Block = GetBlock(e.Log.BlockNumber.ToUlong());
                 result.Host = GetEthAddressFromTransaction(e.Log.TransactionHash);
                 return result;
-            }).ToArray();
+            }).ToArray());
         }
 
         public SlotFreedEventDTO[] GetSlotFreedEvents()
         {
             var events = gethNode.GetEvents<SlotFreedEventDTO>(deployment.MarketplaceAddress, BlockInterval);
-            return events.Select(SetBlockOnEvent).ToArray();
+            return DebugLog(events.Select(SetBlockOnEvent).ToArray());
         }
 
         public SlotReservationsFullEventDTO[] GetSlotReservationsFullEvents()
         {
             var events = gethNode.GetEvents<SlotReservationsFullEventDTO>(deployment.MarketplaceAddress, BlockInterval);
-            return events.Select(SetBlockOnEvent).ToArray();
+            return DebugLog(events.Select(SetBlockOnEvent).ToArray());
         }
 
         public ProofSubmittedEventDTO[] GetProofSubmittedEvents()
         {
             var events = gethNode.GetEvents<ProofSubmittedEventDTO>(deployment.MarketplaceAddress, BlockInterval);
-            return events.Select(SetBlockOnEvent).ToArray();
+            return DebugLog(events.Select(SetBlockOnEvent).ToArray());
         }
 
         public void GetReserveSlotCalls(Action<ReserveSlotFunction> onFunction)
         {
+            var count = 0;
             gethNode.IterateFunctionCalls<ReserveSlotFunction>(BlockInterval, (b, fn) =>
             {
                 if (b == null) throw new Exception("Block not provided for event. " + nameof(ReserveSlotFunction));
                 fn.Block = b;
                 onFunction(fn);
+                count++;
             });
+            log.Debug($"{BlockInterval} {nameof(ReserveSlotFunction)} => {count}");
         }
 
         private T SetBlockOnEvent<T>(EventLog<T> e) where T : IHasBlock
@@ -120,6 +123,12 @@ namespace ArchivistContractsPlugin
         {
             var transaction = gethNode.GetTransaction(transactionHash);
             return new EthAddress(transaction.From);
+        }
+
+        private T[] DebugLog<T>(T[] events)
+        {
+            log.Debug($"{BlockInterval} {typeof(T).Name} => {events.Length}");
+            return events;
         }
     }
 }
