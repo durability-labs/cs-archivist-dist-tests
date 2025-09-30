@@ -27,13 +27,13 @@ services:
       - SLOWMODEDELAYMINUTES=20
     volumes:
       - ./volumes/autoclient-data:/data
-      - /opt/EthereumMainnetPreMergeEraFiles:/target
+      - /ethereum/autoclient/EthereumMainnetPreMergeEraFiles:/target
     logging:
       driver: json-file
       options:
         max-size: 100m
         max-file: 5
-    network_mode: host
+    # network_mode: host
 
   archivist-1:
     extends:
@@ -49,6 +49,8 @@ services:
       - ./volumes/arch1-data:/data
     ports:
       - 8080:8080/tcp
+      - 8070:8070/tcp
+      - 8090:8090/udp
 
   archivist-2:
     extends:
@@ -64,6 +66,8 @@ services:
       - ./volumes/arch2-data:/data
     ports:
       - 8081:8081/tcp
+      - 8071:8071/tcp
+      - 8091:8091/udp
 
   archivist-3:
     extends:
@@ -79,6 +83,8 @@ services:
       - ./volumes/arch3-data:/data
     ports:
       - 8082:8082/tcp
+      - 8072:8072/tcp
+      - 8092:8092/udp
 
   # archivist-4:
   #   extends:
@@ -94,6 +100,8 @@ services:
   #     - ./volumes/arch4-data:/data
   #   ports:
   #     - 8083:8083/tcp
+  #     - 8073:8073/tcp
+  #     - 8093:8093/udp
 
   # archivist-5:
   #   extends:
@@ -109,6 +117,8 @@ services:
   #     - ./volumes/arch5-data:/data
   #   ports:
   #     - 8084:8084/tcp
+  #     - 8073:8073/tcp
+  #     - 8093:8093/udp
 
   # archivist-6:
   #   extends:
@@ -124,6 +134,8 @@ services:
   #     - ./volumes/arch6-data:/data
   #   ports:
   #     - 8085:8085/tcp
+  #     - 8075:8075/tcp
+  #     - 8095:8095/udp
 
   # archivist-7:
   #   extends:
@@ -139,6 +151,8 @@ services:
   #     - ./volumes/arch7-data:/data
   #   ports:
   #     - 8086:8086/tcp
+  #     - 8076:8076/tcp
+  #     - 8096:8096/udp
 
   # archivist-8:
   #   extends:
@@ -154,6 +168,8 @@ services:
   #     - ./volumes/arch8-data:/data
   #   ports:
   #     - 8087:8087/tcp
+  #     - 8077:8077/tcp
+  #     - 8097:8097/udp
 
   # archivist-9:
   #   extends:
@@ -169,6 +185,8 @@ services:
   #     - ./volumes/arch9-data:/data
   #   ports:
   #     - 8088:8088/tcp
+  #     - 8078:8078/tcp
+  #     - 8098:8098/udp
 
   # archivist-10:
   #   extends:
@@ -184,3 +202,5 @@ services:
   #     - ./volumes/arch10-data:/data
   #   ports:
   #     - 8089:8089/tcp
+  #     - 8079:8079/tcp
+  #     - 8099:8099/udp
