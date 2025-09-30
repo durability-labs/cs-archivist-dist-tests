@@ -70,14 +70,14 @@ namespace TestNetRewarder
             {
                 foreach (var s in r.Slots)
                 {
-                    if (s.CanMarkAsMissing || s.MarkedAsMissing)
+                    if (s.GetIsProofMissed())
                     {
                         missedSlots.Add(new MissedSlot(r.Request, s));
                     }
                 }
             }
 
-            eventsFormatter.OnMissedSlots(report.Period, missedSlots);
+            eventsFormatter.OnPeriodReport(new PeriodReportWithMisses(report, missedSlots.ToArray()));
         }
 
         private async Task<int> ProcessEvents(TimeRange timeRange)
@@ -95,6 +95,18 @@ namespace TestNetRewarder
             }
             return numberOfChainEvents;
         }
+    }
+
+    public class PeriodReportWithMisses
+    {
+        public PeriodReportWithMisses(PeriodReport periodReport, MissedSlot[] missedSlots)
+        {
+            PeriodReport = periodReport;
+            MissedSlots = missedSlots;
+        }
+
+        public PeriodReport PeriodReport { get; }
+        public MissedSlot[] MissedSlots { get; }
     }
 
     public class MissedSlot

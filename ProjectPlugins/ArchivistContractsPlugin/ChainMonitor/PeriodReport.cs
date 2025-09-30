@@ -1,7 +1,6 @@
 using ArchivistContractsPlugin.Marketplace;
 using Logging;
 using Nethereum.Hex.HexConvertors.Extensions;
-using System.Linq;
 using Utils;
 
 namespace ArchivistContractsPlugin.ChainMonitor

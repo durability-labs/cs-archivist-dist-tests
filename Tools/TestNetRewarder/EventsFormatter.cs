@@ -117,30 +117,78 @@ namespace TestNetRewarder
             errors.Add(msg);
         }
 
-        public void OnMissedSlots(ProofPeriod period, List<MissedSlot> slots)
+        private readonly List<PeriodReportWithMisses> reports = new List<PeriodReportWithMisses>();
+
+        public void OnPeriodReport(PeriodReportWithMisses report)
         {
-            var isMany = slots.Count > 10;
-            var lines = new List<string> {
-                $"In period {period.PeriodNumber}: ({period.TimeRange})"
-            };
+            reports.Add(report);
 
-            if (isMany)
+            if (ShouldPublishPeriodReports())
             {
-                lines.Add($"{slots.Count} storage proofs were missed! {emojiMaps.ManyProofsMissed}");
-                lines.Add("(number of missed proofs > 10: Details omitted from this message.)");
+                PublishPeriodReports();
+                reports.Clear();
             }
-            else
-            {
-                lines.Add($"{slots.Count} storage proofs were missed.");
-                foreach (var s in slots)
-                {
-                    var host = s.SlotReport.Host.AsStr();
-                    var request = FormatRequestId(s.Request);
-                    var idx = s.SlotReport.Index;
-                    var marked = s.SlotReport.MarkedAsMissing;
+        }
 
-                    lines.Add($" - '{host}' missed a proof for request {request} (slotIndex:{idx}, marked:{marked})");
+        private bool ShouldPublishPeriodReports()
+        {
+            if (reports.Count > 960) return true;
+            // At a rate of 30-seconds per period (arbitrum testnet config)
+            // This will yield 3 reports per day.
+
+            var totalMissed = 0;
+            foreach (var r in reports)
+            {
+                if (r.MissedSlots.Length > 10) return true;
+                // If any 1 period has more than 10 missed proofs, report.
+
+                totalMissed += r.MissedSlots.Length;
+            }
+
+            if (totalMissed > 100) return true;
+            // If there are more than 100 missed proof reports collected in total, report.
+
+            return false;
+        }
+
+        private void PublishPeriodReports()
+        {
+            var first = reports.Min(r => r.PeriodReport.Period.PeriodNumber);
+            var last = reports.Max(r => r.PeriodReport.Period.PeriodNumber);
+
+            var lines = new List<string>()
+            {
+                $"For proving periods [{first} to {last}]"
+            };
+            
+            var totalMissed = 0;
+            foreach (var report in reports)
+            {
+                var missed = report.MissedSlots.Length;
+                totalMissed += missed;
+
+                var msg = $"In period {report.PeriodReport.Period.PeriodNumber}: ";
+
+                if (missed > 10)
+                {
+                    lines.Add($"{msg} {missed} storage proofs were missed! {emojiMaps.ManyProofsMissed}");
                 }
+                if (missed > 0)
+                {
+                    lines.Add(msg);
+                    foreach (var s in report.MissedSlots)
+                    {
+                        var host = s.SlotReport.Host.AsStr();
+                        var request = FormatRequestId(s.Request);
+                        var idx = s.SlotReport.Index;
+                        var marked = s.SlotReport.MarkedAsMissing;
+                        lines.Add($" - '{host}' missed a proof for request {request} (slotIndex:{idx}, marked:{marked})");
+                    }
+                }
+            }
+            if (totalMissed == 0)
+            {
+                lines.Add($"No proofs were missed {emojiMaps.NoProofsMissed}");
             }
 
             AddBlock(0, $"{emojiMaps.ProofReport} **Proof system report**", lines.ToArray());
