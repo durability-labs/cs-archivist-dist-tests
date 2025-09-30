@@ -42,7 +42,7 @@ namespace TestNetRewarder
 
             BotClient = new BotClient(Config.DiscordHost, Config.DiscordPort, Log);
             node = connector.GethNode;
-            processor = new Processor(Config, null!, connector.GethNode, connector.ArchivistContracts, Log);
+            processor = new Processor(Config, BotClient, connector.GethNode, connector.ArchivistContracts, Log);
 
             EnsurePath(Config.DataPath);
             EnsurePath(Config.LogPath);
