@@ -183,7 +183,8 @@ namespace NethereumWorkflow
             return DebugLogWrap(() =>
             {
                 var logs = new List<FilterLog>();
-                var p = web3.Processing.Logs.CreateProcessor(
+                var p = web3.Processing.Logs.CreateProcessorForContract(
+                    address,
                     action: logs.Add,
                     minimumBlockConfirmations: 1,
                     criteria: l =>
