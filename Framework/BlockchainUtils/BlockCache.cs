@@ -1,3 +1,5 @@
+using Nethereum.Hex.HexTypes;
+using Nethereum.RPC.Eth.DTOs;
 using Newtonsoft.Json;
 
 namespace BlockchainUtils
@@ -57,6 +59,30 @@ namespace BlockchainUtils
             }
         }
 
+        public void AddTransactions(BlockWithTransactions blockWithTransactions)
+        {
+            lock (_lock)
+            {
+                var number = blockWithTransactions.Number.ToUlong();
+                var bucket = GetBucket(number);
+                if (!bucket.Transactions.ContainsKey(number))
+                {
+                    bucket.Transactions.Add(number, blockWithTransactions);
+                    store.Save(GetBucketNumber(number), bucket);
+                }
+            }
+        }
+
+        public BlockWithTransactions? GetTransactions(ulong number)
+        {
+            lock (_lock)
+            {
+                var bucket = GetBucket(number);
+                if (!bucket.Transactions.TryGetValue(number, out BlockWithTransactions? transactions)) return null;
+                return transactions;
+            }
+        }
+
         private BlockBucket GetBucket(ulong blockNumber)
         {
             if (buckets.Count > MaxBuckets)
@@ -98,6 +124,7 @@ namespace BlockchainUtils
     public class BlockBucket
     {
         public Dictionary<ulong, DateTime> Entries { get; set; } = new Dictionary<ulong, DateTime>();
+        public Dictionary<ulong, BlockWithTransactions> Transactions { get; set; } = new Dictionary<ulong, BlockWithTransactions>();
     }
 
     public interface IBlockBucketStore

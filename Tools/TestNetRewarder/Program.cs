@@ -1,3 +1,4 @@
+using ArchivistContractsPlugin;
 using ArgsUniform;
 using BlockchainUtils;
 using DiscordRewards;
@@ -35,7 +36,8 @@ namespace TestNetRewarder
 
             var diskStore = new DiskBlockBucketStore(Path.Join(Config.DataPath, "blockcache"));
             var blockCache = new BlockCache(diskStore);
-            var connector = GethConnector.GethConnector.Initialize(Log, blockCache);
+            var requestsCache = new DiskRequestsCache(Path.Join(Config.DataPath, "requestscache"));
+            var connector = GethConnector.GethConnector.Initialize(Log, blockCache, requestsCache);
             if (connector == null) throw new Exception("Invalid Eth RPC information");
 
             BotClient = new BotClient(Config.DiscordHost, Config.DiscordPort, Log);

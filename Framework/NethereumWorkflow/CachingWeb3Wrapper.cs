@@ -1,5 +1,6 @@
 ﻿using BlockchainUtils;
 using Logging;
+using Nethereum.RPC.Eth.DTOs;
 
 namespace NethereumWorkflow
 {
@@ -36,20 +37,25 @@ namespace NethereumWorkflow
         public BlockTimeEntry? GetTimestampForBlock(ulong blockNumber)
         {
             var entry = cache.Get(blockNumber);
-            if (entry != null)
-            {
-                log.Debug("\t\t\tfrom cache: " + blockNumber);
-                return entry;
-            }
+            if (entry != null) return entry;
 
             var blockTime = backingWeb3.GetTimestampForBlock(blockNumber);
             if (blockTime != null)
             {
                 cache.Add(blockTime);
-                log.Debug("\t\t\t\t\t\tactual fetch: " + blockNumber);
                 return blockTime;
             }
             return null;
+        }
+
+        public BlockWithTransactions GetBlockWithTransactions(ulong number)
+        {
+            var transactions = cache.GetTransactions(number);
+            if (transactions != null) return transactions;
+
+            var fetched = backingWeb3.GetBlockWithTransactions(number);
+            cache.AddTransactions(fetched);
+            return fetched;
         }
     }
 }

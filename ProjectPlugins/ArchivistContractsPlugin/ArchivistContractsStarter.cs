@@ -56,9 +56,9 @@ namespace ArchivistContractsPlugin
             }
         }
 
-        public IArchivistContracts Wrap(IGethNode gethNode, ArchivistContractsDeployment deployment)
+        public IArchivistContracts Wrap(IGethNode gethNode, ArchivistContractsDeployment deployment, IRequestsCache requestsCache)
         {
-            return new ArchivistContractsAccess(tools.GetLog(), gethNode, deployment);
+            return new ArchivistContractsAccess(tools.GetLog(), gethNode, deployment, requestsCache);
         }
 
         private ArchivistContractsDeployment DeployContract(RunningContainer container, IStartupWorkflow workflow, IGethNode gethNode)

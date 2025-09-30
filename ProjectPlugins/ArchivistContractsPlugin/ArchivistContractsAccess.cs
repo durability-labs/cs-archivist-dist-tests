@@ -52,12 +52,14 @@ namespace ArchivistContractsPlugin
     {
         private readonly ILog log;
         private readonly IGethNode gethNode;
+        private readonly IRequestsCache requestsCache;
 
-        public ArchivistContractsAccess(ILog log, IGethNode gethNode, ArchivistContractsDeployment deployment)
+        public ArchivistContractsAccess(ILog log, IGethNode gethNode, ArchivistContractsDeployment deployment, IRequestsCache requestsCache)
         {
             this.log = log;
             this.gethNode = gethNode;
             Deployment = deployment;
+            this.requestsCache = requestsCache;
         }
 
         public ArchivistContractsDeployment Deployment { get; }
@@ -131,6 +133,9 @@ namespace ArchivistContractsPlugin
 
         public Request GetRequest(byte[] requestId)
         {
+            var cached = requestsCache.Get(requestId);
+            if (cached != null) return cached;
+
             if (requestId == null) throw new ArgumentNullException(nameof(requestId));
             if (requestId.Length != 32) throw new InvalidDataException(nameof(requestId) + $"{nameof(requestId)} length should be 32 bytes, but was: {requestId.Length}" + requestId.Length);
             var func = new GetRequestFunction
@@ -139,7 +144,9 @@ namespace ArchivistContractsPlugin
             };
 
             var request = gethNode.Call<GetRequestFunction, GetRequestOutputDTO>(Deployment.MarketplaceAddress, func);
-            return request.ReturnValue1;
+            var result = request.ReturnValue1;
+            requestsCache.Add(requestId, result);
+            return result;
         }
 
         public ulong GetPeriodNumber(DateTime utc)
@@ -183,7 +190,7 @@ namespace ArchivistContractsPlugin
 
         public IArchivistContracts WithDifferentGeth(IGethNode node)
         {
-            return new ArchivistContractsAccess(log, node, Deployment);
+            return new ArchivistContractsAccess(log, node, Deployment, requestsCache);
         }
 
         public byte[] GetSlotId(byte[] requestId, decimal slotIndex)

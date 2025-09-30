@@ -213,11 +213,6 @@ namespace GethPlugin
             return StartInteraction().GetBlockForUtc(utc);
         }
 
-        public BlockWithTransactions GetBlk(ulong number)
-        {
-            return StartInteraction().GetBlockWithTransactions(number);
-        }
-
         public void IterateTransactions(BlockInterval blockRange, Action<Transaction, ulong, DateTime> action)
         {
             var i = StartInteraction();

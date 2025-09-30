@@ -13,10 +13,10 @@ namespace GethConnector
 
         public static GethConnector? Initialize(ILog log)
         {
-            return Initialize(log, new BlockCache());
+            return Initialize(log, new BlockCache(), new NullRequestsCache());
         }
 
-        public static GethConnector? Initialize(ILog log, BlockCache blockCache)
+        public static GethConnector? Initialize(ILog log, BlockCache blockCache, IRequestsCache requestsCache)
         {
             if (!string.IsNullOrEmpty(GethInput.LoadError))
             {
@@ -36,7 +36,7 @@ namespace GethConnector
                 tokenAddress: GethInput.TokenAddress
             );
 
-            var contracts = new ArchivistContractsAccess(log, gethNode, contractsDeployment);
+            var contracts = new ArchivistContractsAccess(log, gethNode, contractsDeployment, requestsCache);
 
             return new GethConnector(gethNode, contracts);
         }

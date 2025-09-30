@@ -11,7 +11,6 @@ namespace NethereumWorkflow
     public class NethereumInteraction
     {
         private readonly IWeb3Blocks blocks;
-
         private readonly ILog log;
         private readonly Web3 web3;
 
@@ -168,13 +167,7 @@ namespace NethereumWorkflow
         {
             return DebugLogWrap(() =>
             {
-                var retry = new Retry(nameof(GetBlockWithTransactions),
-                    maxTimeout: TimeSpan.FromMinutes(1.0),
-                    sleepAfterFail: TimeSpan.FromSeconds(1.0),
-                    onFail: f => { },
-                    failFast: false);
-
-                return retry.Run(() => Time.Wait(web3.Eth.Blocks.GetBlockWithTransactionsByNumber.SendRequestAsync(new BlockParameter(number))));
+                return blocks.GetBlockWithTransactions(number);
             }, nameof(GetBlockWithTransactions));
         }
 

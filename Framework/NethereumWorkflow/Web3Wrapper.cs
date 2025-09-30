@@ -63,6 +63,11 @@ namespace NethereumWorkflow
             });
         }
 
+        public BlockWithTransactions GetBlockWithTransactions(ulong number)
+        {
+            return Retry(() => Time.Wait(web3.Eth.Blocks.GetBlockWithTransactionsByNumber.SendRequestAsync(new BlockParameter(number))));
+        }
+
         private T Retry<T>(Func<T> action)
         {
             var retry = new Retry(nameof(Web3Wrapper),
