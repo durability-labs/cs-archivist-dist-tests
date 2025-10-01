@@ -54,7 +54,7 @@ namespace TestNetRewarder
         {
             EnsureGethOnline();
 
-            Log.Log("Starting TestNet Rewarder...");
+            Log.Log("Starting Testnet Rewarder...");
             var segmenter = new TimeSegmenter(Log, Config.Interval, Config.HistoryStartUtc, processor);
             await EnsureBotOnline();
             await processor.Initialize();
@@ -99,7 +99,7 @@ namespace TestNetRewarder
 
         private static void PrintHelp()
         {
-            Log.Log("TestNet Rewarder");
+            Log.Log("Testnet Rewarder");
         }
 
         private static void EnsurePath(string path)
