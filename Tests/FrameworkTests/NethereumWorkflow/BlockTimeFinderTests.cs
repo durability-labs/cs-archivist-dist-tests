@@ -9,7 +9,7 @@ namespace FrameworkTests.NethereumWorkflow
     public class BlockTimeFinderTests
     {
         private readonly Mock<ILog> log = new Mock<ILog>();
-        private readonly Mock<IBlockLadder> ladder = new Mock<IBlockLadder>();
+        private readonly IBlockLadder ladder = new DoNothingBlockLadder();
         private Mock<IWeb3Blocks> web3 = new Mock<IWeb3Blocks>();
         private Dictionary<ulong, Block> blocks = new Dictionary<ulong, Block>();
 
@@ -51,7 +51,7 @@ namespace FrameworkTests.NethereumWorkflow
             web3.Setup(w => w.GetEarliestSeen()).Returns(blocks.Min(b => b.Key));
             web3.Setup(w => w.GetLatestSeen()).Returns(blocks.Max(b => b.Key));
 
-            finder = new BlockTimeFinder(web3.Object, log.Object, ladder.Object);
+            finder = new BlockTimeFinder(web3.Object, log.Object, ladder);
         }
 
         [Test]
@@ -65,8 +65,8 @@ namespace FrameworkTests.NethereumWorkflow
             var b1Number = finder.GetHighestBlockNumberBefore(momentBetween);
             var b2Number = finder.GetLowestBlockNumberAfter(momentBetween);
 
-            Assert.That(b1Number, Is.EqualTo(b1.Number));
-            Assert.That(b2Number, Is.EqualTo(b2.Number));
+            Assert.That(b1Number?.BlockNumber, Is.EqualTo(b1.Number));
+            Assert.That(b2Number?.BlockNumber, Is.EqualTo(b2.Number));
         }
 
         [Test]
@@ -76,7 +76,7 @@ namespace FrameworkTests.NethereumWorkflow
 
             var firstNumber = finder.GetLowestBlockNumberAfter(first.JustBefore);
 
-            Assert.That(firstNumber, Is.EqualTo(first.Number));
+            Assert.That(firstNumber?.BlockNumber, Is.EqualTo(first.Number));
         }
 
         [Test]
@@ -86,7 +86,7 @@ namespace FrameworkTests.NethereumWorkflow
 
             var firstNumber = finder.GetHighestBlockNumberBefore(first.JustAfter);
 
-            Assert.That(firstNumber, Is.EqualTo(first.Number));
+            Assert.That(firstNumber?.BlockNumber, Is.EqualTo(first.Number));
         }
 
         [Test]
@@ -96,7 +96,7 @@ namespace FrameworkTests.NethereumWorkflow
 
             var lastNumber = finder.GetLowestBlockNumberAfter(last.JustBefore);
 
-            Assert.That(lastNumber, Is.EqualTo(last.Number));
+            Assert.That(lastNumber?.BlockNumber, Is.EqualTo(last.Number));
         }
 
         [Test]
@@ -106,7 +106,7 @@ namespace FrameworkTests.NethereumWorkflow
 
             var lastNumber = finder.GetHighestBlockNumberBefore(last.JustAfter);
 
-            Assert.That(lastNumber, Is.EqualTo(last.Number));
+            Assert.That(lastNumber?.BlockNumber, Is.EqualTo(last.Number));
         }
 
         [Test]
@@ -116,7 +116,7 @@ namespace FrameworkTests.NethereumWorkflow
 
             var firstNumber = finder.GetHighestBlockNumberBefore(first.Time);
 
-            Assert.That(firstNumber, Is.EqualTo(first.Number));
+            Assert.That(firstNumber?.BlockNumber, Is.EqualTo(first.Number));
         }
 
         [Test]
@@ -126,7 +126,7 @@ namespace FrameworkTests.NethereumWorkflow
 
             var lastNumber = finder.GetLowestBlockNumberAfter(last.Time);
 
-            Assert.That(lastNumber, Is.EqualTo(last.Number));
+            Assert.That(lastNumber?.BlockNumber, Is.EqualTo(last.Number));
         }
 
         [Test]
@@ -198,6 +198,19 @@ namespace FrameworkTests.NethereumWorkflow
         public override string ToString()
         {
             return $"[{Number}]";
+        }
+    }
+
+    public class DoNothingBlockLadder : IBlockLadder
+    {
+        public BlockTimeEntry GetClosestLower(BlockTimeEntry earliest, DateTime target)
+        {
+            return earliest;
+        }
+
+        public BlockTimeEntry GetClosestUpper(BlockTimeEntry current, DateTime target)
+        {
+            return current;
         }
     }
 }
