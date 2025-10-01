@@ -28,6 +28,7 @@ namespace ArchivistContractsPlugin.Marketplace
 
     public partial class Request
     {
+        [JsonIgnore]
         public EthAddress ClientAddress { get { return new EthAddress(Client); } }
     }
 

@@ -43,7 +43,17 @@ namespace ArchivistContractsPlugin
         {
             var filename = FilePath(requestId);
             if (!File.Exists(filename)) return null;
-            return JsonConvert.DeserializeObject<Request>(File.ReadAllText(filename));
+
+            try
+            {
+                var text = File.ReadAllText(filename);
+                return JsonConvert.DeserializeObject<Request>(text);
+            }
+            catch
+            {
+                File.Delete(filename);
+                return null;
+            }
         }
 
         private string FilePath(byte[] id)
