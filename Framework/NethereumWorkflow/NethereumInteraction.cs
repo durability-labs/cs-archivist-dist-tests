@@ -13,11 +13,13 @@ namespace NethereumWorkflow
         private readonly IWeb3Blocks blocks;
         private readonly ILog log;
         private readonly Web3 web3;
+        private readonly BlockCache blockCache;
 
         internal NethereumInteraction(ILog log, Web3 web3, BlockCache blockCache)
         {
             this.log = log;
             this.web3 = web3;
+            this.blockCache = blockCache;
             var wrapper = new Web3Wrapper(web3, log);
             blocks = new CachingWeb3Wrapper(log, wrapper, blockCache);
         }
@@ -158,7 +160,7 @@ namespace NethereumWorkflow
         {
             return DebugLogWrap(() =>
             {
-                var blockTimeFinder = new BlockTimeFinder(blocks, log);
+                var blockTimeFinder = new BlockTimeFinder(blocks, log, blockCache.Ladder);
                 return blockTimeFinder.GetHighestBlockNumberBefore(utc);
             }, nameof(GetBlockForUtc));
         }

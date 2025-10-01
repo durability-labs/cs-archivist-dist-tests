@@ -13,7 +13,7 @@ namespace GethConnector
 
         public static GethConnector? Initialize(ILog log)
         {
-            return Initialize(log, new BlockCache(), new NullRequestsCache());
+            return Initialize(log, new BlockCache(log), new NullRequestsCache());
         }
 
         public static GethConnector? Initialize(ILog log, BlockCache blockCache, IRequestsCache requestsCache)

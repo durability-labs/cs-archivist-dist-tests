@@ -22,7 +22,7 @@ namespace ArchivistTests
 {
     public class ArchivistDistTest : DistTest
     {
-        private readonly BlockCache blockCache = new BlockCache();
+        private readonly BlockCache blockCache = new BlockCache(new NullLog());
         private readonly List<IArchivistNode> nodes = new List<IArchivistNode>();
         private ArchivistTranscriptWriter? writer;
 

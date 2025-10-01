@@ -9,6 +9,7 @@ namespace FrameworkTests.NethereumWorkflow
     public class BlockTimeFinderTests
     {
         private readonly Mock<ILog> log = new Mock<ILog>();
+        private readonly Mock<IBlockLadder> ladder = new Mock<IBlockLadder>();
         private Mock<IWeb3Blocks> web3 = new Mock<IWeb3Blocks>();
         private Dictionary<ulong, Block> blocks = new Dictionary<ulong, Block>();
 
@@ -50,7 +51,7 @@ namespace FrameworkTests.NethereumWorkflow
             web3.Setup(w => w.GetEarliestSeen()).Returns(blocks.Min(b => b.Key));
             web3.Setup(w => w.GetLatestSeen()).Returns(blocks.Max(b => b.Key));
 
-            finder = new BlockTimeFinder(web3.Object, log.Object);
+            finder = new BlockTimeFinder(web3.Object, log.Object, ladder.Object);
         }
 
         [Test]

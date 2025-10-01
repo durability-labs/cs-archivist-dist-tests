@@ -18,7 +18,7 @@ namespace ArchivistReleaseTests.MarketTests
         public void CanTransferTestTokens()
         {
             var node = Ci.StartArchivistNode();
-            var blockCache = new BlockCache();
+            var blockCache = new BlockCache(GetTestLog());
             var geth = Ci.StartGethNode(blockCache, s => s.IsMiner());
             var contracts = Ci.StartArchivistContracts(geth, node.Version);
 
@@ -43,7 +43,7 @@ namespace ArchivistReleaseTests.MarketTests
         [Test]
         public void CanTransferEth()
         {
-            var blockCache = new BlockCache();
+            var blockCache = new BlockCache(GetTestLog());
             var geth = Ci.StartGethNode(blockCache, s => s.IsMiner());
 
             geth.SendEth(user1.EthAddress, 1.Eth());

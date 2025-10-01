@@ -62,7 +62,7 @@ namespace ArchivistNetDeployer
 
             Log("Deploying Geth instance...");
             var gethDeployment = DeployGeth(ci);
-            var gethNode = ci.WrapGethDeployment(gethDeployment, new BlockCache());
+            var gethNode = ci.WrapGethDeployment(gethDeployment, new BlockCache(new NullLog()));
 
             var bootNode = ci.StartArchivistNode();
             var versionInfo = bootNode.GetDebugInfo().Version;

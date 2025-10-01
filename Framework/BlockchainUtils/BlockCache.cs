@@ -1,6 +1,8 @@
+using Logging;
 using Nethereum.Hex.HexTypes;
 using Nethereum.RPC.Eth.DTOs;
 using Newtonsoft.Json;
+using System.Globalization;
 
 namespace BlockchainUtils
 {
@@ -9,20 +11,30 @@ namespace BlockchainUtils
         private static object _lock = new object();
         private const int MaxBuckets = 10;
         private readonly Dictionary<ulong, BlockBucket> buckets = new Dictionary<ulong, BlockBucket>();
+        private readonly BlockLadder ladder;
+        private readonly ILog log;
         private readonly IBlockBucketStore store;
 
-        public BlockCache()
-            : this(new MemoryBlockBucketStore())
+        public BlockCache(ILog log)
+            : this(log, new MemoryBlockBucketStore())
         {
         }
 
-        public BlockCache(IBlockBucketStore store)
+        public BlockCache(ILog log, IBlockBucketStore store)
         {
+            this.log = log;
             this.store = store;
+
+            ladder = new BlockLadder();
+
+            log.Log("Initializing BlockCache...");
+            Stopwatch.Measure(log, nameof(InitializeLadder), InitializeLadder);
         }
 
         public BlockTimeEntry? Earliest { get; private set; } = null;
         public BlockTimeEntry? Current { get; private set; } = null;
+
+        public IBlockLadder Ladder => ladder;
 
         public BlockTimeEntry Add(ulong number, DateTime dateTime)
         {
@@ -33,7 +45,7 @@ namespace BlockchainUtils
         {
             lock (_lock)
             {
-                var bucket = GetBucket(entry.BlockNumber);
+                var bucket = GetBucketByBlockNumber(entry.BlockNumber);
                 var entries = bucket.Entries;
                 if (!entries.ContainsKey(entry.BlockNumber))
                 {
@@ -44,6 +56,7 @@ namespace BlockchainUtils
                 var utc = entries[entry.BlockNumber];
                 var newEntry = new BlockTimeEntry(entry.BlockNumber, utc);
                 UpdateEarliestLatest(newEntry);
+                ladder.Add(newEntry);
                 return newEntry;
             }
         }
@@ -52,7 +65,7 @@ namespace BlockchainUtils
         {
             lock (_lock)
             {
-                var bucket = GetBucket(number);
+                var bucket = GetBucketByBlockNumber(number);
                 var entries = bucket.Entries;
                 if (!entries.TryGetValue(number, out DateTime utc)) return null;
                 return new BlockTimeEntry(number, utc);
@@ -64,7 +77,7 @@ namespace BlockchainUtils
             lock (_lock)
             {
                 var number = blockWithTransactions.Number.ToUlong();
-                var bucket = GetBucket(number);
+                var bucket = GetBucketByBlockNumber(number);
                 if (!bucket.Transactions.ContainsKey(number))
                 {
                     bucket.Transactions.Add(number, blockWithTransactions);
@@ -77,20 +90,40 @@ namespace BlockchainUtils
         {
             lock (_lock)
             {
-                var bucket = GetBucket(number);
+                var bucket = GetBucketByBlockNumber(number);
                 if (!bucket.Transactions.TryGetValue(number, out BlockWithTransactions? transactions)) return null;
                 return transactions;
             }
         }
 
-        private BlockBucket GetBucket(ulong blockNumber)
+        private void InitializeLadder()
+        {
+            lock (_lock)
+            {
+                var bucketNumbers = store.GetBucketNumbers().Order().ToArray();
+                foreach (var n in bucketNumbers)
+                {
+                    var bucket = GetBucketByBucketNumber(n);
+                    foreach (var entry in bucket.Entries)
+                    {
+                        ladder.Add(new BlockTimeEntry(entry.Key, entry.Value));
+                    }
+                }
+            }
+        }
+
+        private BlockBucket GetBucketByBlockNumber(ulong blockNumber)
+        {
+            return GetBucketByBucketNumber(GetBucketNumber(blockNumber));
+        }
+
+        private BlockBucket GetBucketByBucketNumber(ulong bucketNumber)
         {
             if (buckets.Count > MaxBuckets)
             {
                 buckets.Clear();
             }
 
-            var bucketNumber = GetBucketNumber(blockNumber);
             if (!buckets.ContainsKey(bucketNumber))
             {
                 var loaded = store.Load(bucketNumber);
@@ -129,6 +162,7 @@ namespace BlockchainUtils
 
     public interface IBlockBucketStore
     {
+        ulong[] GetBucketNumbers();
         void Save(ulong bucketNumber, BlockBucket bucket);
         BlockBucket Load(ulong bucketNumber);
     }
@@ -136,6 +170,11 @@ namespace BlockchainUtils
     public class MemoryBlockBucketStore : IBlockBucketStore
     {
         private readonly Dictionary<ulong, BlockBucket> buckets = new Dictionary<ulong, BlockBucket>();
+
+        public ulong[] GetBucketNumbers()
+        {
+            return buckets.Keys.ToArray();
+        }
 
         public BlockBucket Load(ulong bucketNumber)
         {
@@ -162,6 +201,24 @@ namespace BlockchainUtils
             Directory.CreateDirectory(dataDir);
         }
 
+        public ulong[] GetBucketNumbers()
+        {
+            var result = new List<ulong>();
+            var files = Directory.GetFiles(dataDir);
+            foreach (var file in files)
+            {
+                var name = Path.GetFileName(file);
+                if (name.EndsWith(".json"))
+                {
+                    if (ulong.TryParse(name.Substring(0, name.Length - 5), CultureInfo.InvariantCulture, out ulong n))
+                    {
+                        result.Add(n);
+                    }
+                }
+            }
+            return result.ToArray();
+        }
+
         public BlockBucket Load(ulong bucketNumber)
         {
             var filename = ToFilename(bucketNumber);
@@ -177,7 +234,7 @@ namespace BlockchainUtils
 
         private string ToFilename(ulong number)
         {
-            return Path.Join(dataDir, $"{number}.json");
+            return Path.Join(dataDir, $"{number.ToString(CultureInfo.InvariantCulture)}.json");
         }
     }
 }

@@ -65,7 +65,7 @@ namespace TraceContract
         private IGethNode ConnectGethNode()
         {
             var account = EthAccountGenerator.GenerateNew();
-            var blockCache = new BlockCache();
+            var blockCache = new BlockCache(log);
             return new CustomGethNode(log, blockCache, config.RpcEndpoint, config.GethPort, account.PrivateKey);
         }
 

@@ -8,12 +8,13 @@ namespace BlockchainUtils
         private readonly BlockchainBounds bounds;
         private readonly IWeb3Blocks web3;
         private readonly ILog log;
+        private readonly IBlockLadder ladder;
 
-        public BlockTimeFinder(IWeb3Blocks web3, ILog log)
+        public BlockTimeFinder(IWeb3Blocks web3, ILog log, IBlockLadder ladder)
         {
             this.web3 = web3;
             this.log = log;
-
+            this.ladder = ladder;
             bounds = new BlockchainBounds(log, web3);
             bounds.InitializeBounds();
         }
@@ -24,7 +25,7 @@ namespace BlockchainUtils
             if (moment == bounds.Earliest.Utc) return bounds.Earliest;
             if (moment >= bounds.Current.Utc) return bounds.Current;
 
-            return Log(() => Search(bounds.Earliest, bounds.Current, moment, HighestBeforeSelector));
+            return Log(() => StartSearch(bounds.Earliest, bounds.Current, moment, HighestBeforeSelector));
         }
 
         public BlockTimeEntry? GetLowestBlockNumberAfter(DateTime moment)
@@ -33,7 +34,7 @@ namespace BlockchainUtils
             if (moment == bounds.Current.Utc) return bounds.Current;
             if (moment <= bounds.Earliest.Utc) return bounds.Earliest;
 
-            return Log(()=> Search(bounds.Earliest, bounds.Current, moment, LowestAfterSelector)); ;
+            return Log(()=> StartSearch(bounds.Earliest, bounds.Current, moment, LowestAfterSelector)); ;
         }
 
         private T Log<T>(Func<T> operation)
@@ -42,6 +43,17 @@ namespace BlockchainUtils
             var result = operation();
             sw.End($"(Bounds: [{bounds.Earliest.BlockNumber}-{bounds.Current.BlockNumber}]");
             return result;
+        }
+
+        private BlockTimeEntry StartSearch(BlockTimeEntry lower, BlockTimeEntry upper, DateTime target, Func<DateTime, BlockTimeEntry, bool> isWhatIwant)
+        {
+            var lLower = ladder.GetClosestLower(lower, target);
+            var lUpper = ladder.GetClosestUpper(upper, target);
+
+            log.Debug($"Ladder improved lower bound from {lower} to {lLower}");
+            log.Debug($"Ladder improved upper bound from {upper} to {lUpper}");
+
+            return Search(lLower, lUpper, target, isWhatIwant);
         }
 
         private BlockTimeEntry Search(BlockTimeEntry lower, BlockTimeEntry upper, DateTime target, Func<DateTime, BlockTimeEntry, bool> isWhatIwant)

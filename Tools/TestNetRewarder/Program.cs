@@ -35,7 +35,7 @@ namespace TestNetRewarder
             );
 
             var diskStore = new DiskBlockBucketStore(Path.Join(Config.DataPath, "blockcache"));
-            var blockCache = new BlockCache(diskStore);
+            var blockCache = new BlockCache(Log, diskStore);
             var requestsCache = new DiskRequestsCache(Path.Join(Config.DataPath, "requestscache"));
             var connector = GethConnector.GethConnector.Initialize(Log, blockCache, requestsCache);
             if (connector == null) throw new Exception("Invalid Eth RPC information");
