@@ -24,7 +24,7 @@ namespace ArchivistContractsPlugin.ChainMonitor
 
         public PeriodMonitor(ILog log, IArchivistContracts contracts, IGethNode geth, IPeriodMonitorEventHandler eventHandler)
         {
-            this.log = log;
+            this.log = new LogPrefixer(log, "(PeriodMonitor)");
             this.contracts = contracts;
             this.geth = geth;
             this.eventHandler = eventHandler;
@@ -36,6 +36,7 @@ namespace ArchivistContractsPlugin.ChainMonitor
             {
                 if (block.BlockNumber != lastUpdate.BlockNumber + 1) throw new Exception("Discontinuous update called on PeriodMonitor");
             }
+            log.Debug($"Updating for block {block}...");
             lastUpdate = block;
 
             var updateToPeriodNumber = contracts.GetPeriodNumber(block.Utc);
@@ -63,11 +64,14 @@ namespace ArchivistContractsPlugin.ChainMonitor
         private CurrentPeriod CreateCurrentPeriod(BlockTimeEntry block, ulong periodNumber, IChainStateRequest[] requests)
         {
             var cRequests = requests.Select(r => CurrentRequest.CreateCurrentRequest(contracts, r)).ToArray();
+            log.Debug($"Created CurrentPeriod for period {periodNumber} with starting block {block}");
             return new CurrentPeriod(block, periodNumber, cRequests);
         }
 
         private void CreateReportForPeriod(BlockTimeEntry closingBlock, CurrentPeriod currentPeriod, IChainStateRequest[] requests)
         {
+            log.Debug($"Creating report for period {currentPeriod.PeriodNumber} with closing block {closingBlock}...");
+
             // Fetch function calls during period. Format report.
             var timeRange = contracts.GetPeriodTimeRange(currentPeriod.PeriodNumber);
             var blockRange = new BlockInterval(timeRange, currentPeriod.StartingBlock.BlockNumber, closingBlock.BlockNumber);

@@ -36,7 +36,9 @@ namespace ArchivistReleaseTests.MarketTests
         /// And you can't trust any of the other marketplace-relate tests until this is fixed.
         /// </summary>
         [Test]
-        public void IsProofRequired()
+        [Combinatorial]
+        public void IsProofRequired(
+            [Rerun] int rerun)
         {
             var mins = TimeSpan.FromMinutes(60.0);
 

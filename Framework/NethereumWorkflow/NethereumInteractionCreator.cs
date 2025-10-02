@@ -20,11 +20,12 @@ namespace NethereumWorkflow
             this.ip = ip;
             this.port = port;
             this.privateKey = privateKey;
+            
+            log.Debug($"Setup {nameof(NethereumInteractionCreator)} to " + ip + ":" + port);
         }
 
         public NethereumInteraction CreateWorkflow()
         {
-            log.Debug("Starting interaction to " + ip + ":" + port);
             return new NethereumInteraction(log, CreateWeb3(), blockCache);
         }
 

@@ -12,14 +12,16 @@ namespace TraceContract
     public class ChainTracer
     {
         private readonly ILog log;
+        private readonly ILog baseLog;
         private readonly IGethNode geth;
         private readonly IArchivistContracts contracts;
         private readonly Input input;
         private readonly Output output;
 
-        public ChainTracer(ILog log, IGethNode geth, IArchivistContracts contracts, Input input, Output output)
+        public ChainTracer(ILog log, ILog baseLog, IGethNode geth, IArchivistContracts contracts, Input input, Output output)
         {
             this.log = log;
+            this.baseLog = baseLog;
             this.geth = geth;
             this.contracts = contracts;
             this.input = input;
@@ -34,7 +36,7 @@ namespace TraceContract
 
             var creationEvent = FindRequestCreationEvent();
 
-            log.Log($"Request started at {creationEvent.Block.Utc}");
+            log.Log($"Request started at {Time.FormatTimestamp(creationEvent.Block.Utc)}");
             var contractEnd = RunToContractEnd(creationEvent);
 
             log.Log($"Request timeline: {creationEvent.Block} -> {contractEnd}");
@@ -66,8 +68,7 @@ namespace TraceContract
         {
             var utc = request.Block.Utc.AddMinutes(-1.0);
             var tracker = new ChainRequestTracker(output, input.PurchaseId);
-            var ignoreLog = new NullLog();
-            var chainState = new ChainState(ignoreLog, geth, contracts, tracker, utc, false, new DoNothingPeriodMonitorEventHandler());
+            var chainState = new ChainState(baseLog, geth, contracts, tracker, utc, false, new DoNothingPeriodMonitorEventHandler());
 
             while (!tracker.IsFinished)
             {
@@ -78,7 +79,7 @@ namespace TraceContract
                     return geth.GetBlockForUtc(DateTime.UtcNow)!;
                 }
 
-                log.Log($"Querying up to {utc}");
+                log.Log($"Querying up to {Time.FormatTimestamp(utc)}");
                 chainState.Update(utc);
             }
 

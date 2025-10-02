@@ -19,14 +19,23 @@ namespace TraceContract
             p.Run();
         }
 
-        private readonly ILog log = new ConsoleLog();
+        private readonly ILog baseLog;
+        private readonly ILog appLog;
         private readonly Input input = new();
         private readonly Config config = new();
         private readonly Output output;
 
         public Program()
         {
-            output = new(log, input, config);
+            baseLog = new TimestampPrefixer(
+                new LogSplitter(
+                    new ConsoleLog(),
+                    new FileLog(Path.Combine(config.DataDir, "logs"))
+                )
+            );
+
+            appLog = new LogPrefixer(baseLog, "(TraceContract)");
+            output = new(appLog, input, config);
         }
 
         private void Run()
@@ -37,26 +46,26 @@ namespace TraceContract
             }
             catch (Exception exc)
             {
-                log.Error(exc.ToString());
+                appLog.Error(exc.ToString());
             }
         }
 
         private void TracePurchase()
         { 
             Log("Setting up...");
-            var entryPoint = new EntryPoint(log, new KubernetesWorkflow.Configuration(null, TimeSpan.FromMinutes(1.0), TimeSpan.FromSeconds(10.0), "_Unused!_"), Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData));
+            var entryPoint = new EntryPoint(baseLog, new KubernetesWorkflow.Configuration(null, TimeSpan.FromMinutes(1.0), TimeSpan.FromSeconds(10.0), "_Unused!_"), Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData));
             entryPoint.Announce();
             var ci = entryPoint.CreateInterface();
             var geth = ConnectGethNode();
             var contracts = ConnectArchivistContracts(ci, geth);
 
-            var chainTracer = new ChainTracer(log, geth, contracts, input, output);
+            var chainTracer = new ChainTracer(appLog, baseLog, geth, contracts, input, output);
             var requestTimeRange = chainTracer.TraceChainTimeline();
 
             Log("Downloading storage nodes logs for the request timerange...");
             DownloadStorageNodeLogs(requestTimeRange, entryPoint.Tools);
 
-            output.ShowOutputFiles(log);
+            output.ShowOutputFiles(appLog);
 
             entryPoint.Decommission(false, false, false);
             Log("Done");
@@ -65,8 +74,8 @@ namespace TraceContract
         private IGethNode ConnectGethNode()
         {
             var account = EthAccountGenerator.GenerateNew();
-            var blockCache = new BlockCache(log);
-            return new CustomGethNode(log, blockCache, config.RpcEndpoint, config.GethPort, account.PrivateKey);
+            var blockCache = new BlockCache(baseLog, new DiskBlockBucketStore(Path.Combine(config.DataDir, "blocks_cache")));
+            return new CustomGethNode(baseLog, blockCache, config.RpcEndpoint, config.GethPort, account.PrivateKey);
         }
 
         private IArchivistContracts ConnectArchivistContracts(CoreInterface ci, IGethNode geth)
@@ -77,7 +86,7 @@ namespace TraceContract
                 abi: config.Abi,
                 tokenAddress: config.TokenAddress
             );
-            return ci.WrapArchivistContractsDeployment(geth, deployment);
+            return ci.WrapArchivistContractsDeployment(geth, deployment, new DiskRequestsCache(Path.Combine(config.DataDir, "requests_cache")));
         }
 
         private void DownloadStorageNodeLogs(TimeRange requestTimeRange, IPluginTools tools)
@@ -89,14 +98,14 @@ namespace TraceContract
                 Log($"Downloading logs from '{node}'...");
 
                 var targetFile = output.CreateNodeLogTargetFile(node);
-                var downloader = new ElasticSearchLogDownloader(log, tools, config);
+                var downloader = new ElasticSearchLogDownloader(baseLog, tools, config);
                 downloader.Download(targetFile, node, start, requestTimeRange.To);
             }
         }
 
         private void Log(string msg)
         {
-            log.Log(msg);
+            appLog.Log(msg);
         }
     }
 }

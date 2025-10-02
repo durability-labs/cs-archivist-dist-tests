@@ -21,7 +21,7 @@ namespace ArchivistContractsPlugin
     public interface IContractEventsCollector
     {
         IEventsCollector Collector { get; }
-        void Map(IGethNode gethNode);
+        void Map(ILog log, IGethNode gethNode);
     }
 
     public class ContractEventsCollector<TEvent> : IContractEventsCollector where TEvent : IEventDTO, new()
@@ -36,7 +36,7 @@ namespace ArchivistContractsPlugin
         public IEventsCollector Collector => collector;
         public List<TEvent> Events { get; } = new();
 
-        public void Map(IGethNode gethNode)
+        public void Map(ILog log, IGethNode gethNode)
         {
             foreach (var e in collector.Events)
             {
@@ -49,6 +49,8 @@ namespace ArchivistContractsPlugin
 
                 Events.Add(e.Event);
             }
+
+            if (Events.Count > 0) log.Debug($"Collector<{typeof(TEvent).Name}>: {Events.Count} events");
         }
 
         private void SetBlockOnEvent(IGethNode gethNode, EventLog<TEvent> e)
@@ -92,7 +94,7 @@ namespace ArchivistContractsPlugin
         public IContractEventsCollector[] GetEvents(params IContractEventsCollector[] collectors)
         {
             gethNode.GetEvents(deployment.MarketplaceAddress, BlockInterval, collectors.Select(c => c.Collector).ToArray());
-            foreach (var c in collectors) c.Map(gethNode);
+            foreach (var c in collectors) c.Map(log, gethNode);
             return collectors;
         }
 

@@ -39,11 +39,6 @@ namespace ArchivistContractsPlugin
             return starter.Deploy(ci, gethNode, versionInfo);
         }
 
-        public IArchivistContracts WrapDeploy(IGethNode gethNode, ArchivistContractsDeployment deployment)
-        {
-            return WrapDeploy(gethNode, deployment, new NullRequestsCache());
-        }
-
         public IArchivistContracts WrapDeploy(IGethNode gethNode, ArchivistContractsDeployment deployment, IRequestsCache requestsCache)
         {
             deployment = SerializeGate.Gate(deployment);

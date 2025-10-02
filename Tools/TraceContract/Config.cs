@@ -2,6 +2,7 @@ namespace TraceContract
 {
     public class Config
     {
+        public string DataDir { get; } = "tracecontract_datadir";
         public string RpcEndpoint { get; } = "https://rpc-arbitrum-discordbot.testnet.archivist.storage";
         public int GethPort { get; } = 443;
         public string MarketplaceAddress { get; } = "0x9fec9f5C5D6232E3cE55B92FC04758a41A528d2b";

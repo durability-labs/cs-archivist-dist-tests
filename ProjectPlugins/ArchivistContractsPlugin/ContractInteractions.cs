@@ -71,17 +71,6 @@ namespace ArchivistContractsPlugin
             return gethNode.SendTransaction(tokenAddress, function);
         }
 
-        public GetRequestOutputDTO GetRequest(string marketplaceAddress, byte[] requestId)
-        {
-
-            log.Debug($"({marketplaceAddress}) {requestId.ToHex(true)}");
-            var func = new GetRequestFunction
-            {
-                RequestId = requestId
-            };
-            return gethNode.Call<GetRequestFunction, GetRequestOutputDTO>(marketplaceAddress, func);
-        }
-
         public bool IsSynced(string marketplaceAddress, string marketplaceAbi)
         {
             log.Debug();

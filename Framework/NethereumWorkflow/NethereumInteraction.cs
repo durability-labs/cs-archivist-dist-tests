@@ -150,10 +150,7 @@ namespace NethereumWorkflow
 
         public BlockTimeEntry? GetBlockForNumber(ulong number)
         {
-            return DebugLogWrap(() =>
-            {
-                return blocks.GetTimestampForBlock(number);
-            }, nameof(GetBlockForNumber));
+            return blocks.GetTimestampForBlock(number);
         }
 
         public BlockTimeEntry? GetBlockForUtc(DateTime utc)
@@ -203,7 +200,7 @@ namespace NethereumWorkflow
                 }
 
                 return collectors;
-            }, $"{nameof(GetEvents)}<{string.Join(",", collectors.Select(c => c.Name).ToArray())}>");
+            }, $"{nameof(GetEvents)}<{string.Join(",", collectors.Select(c => c.Name).ToArray())}>[{fromBlockNumber} -> {toBlockNumber}]");
         }
 
         private T DebugLogWrap<T>(Func<T> task, string name = "")
