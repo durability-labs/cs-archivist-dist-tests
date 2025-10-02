@@ -79,6 +79,24 @@ namespace ArchivistClient
             );
         }
 
+        public AvailabilityReservation[] Map(ICollection<ArchivistOpenApi.Reservation> reservations)
+        {
+            return reservations.Select(r => Map(r)).ToArray();
+        }
+
+        public AvailabilityReservation Map(ArchivistOpenApi.Reservation r)
+        {
+            return new AvailabilityReservation
+            (
+                r.Id,
+                r.AvailabilityId,
+                r.Size,
+                r.RequestId,
+                r.SlotIndex,
+                r.ValidUntil
+            );
+        }
+
         public StoragePurchase Map(ArchivistOpenApi.Purchase purchase)
         {
             return new StoragePurchase

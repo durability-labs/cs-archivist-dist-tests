@@ -1,7 +1,9 @@
 using System.Numerics;
 using BlockchainUtils;
 using Logging;
+using Nethereum.BlockchainProcessing.Processor;
 using Nethereum.Contracts;
+using Nethereum.Hex.HexTypes;
 using Nethereum.RPC.Eth.DTOs;
 using Nethereum.Web3;
 using Utils;
@@ -148,6 +150,11 @@ namespace NethereumWorkflow
             return GetEvents(address, blockRange.From, blockRange.To, collectors);
         }
 
+        public IFunctionCallCollector[] GetFunctionCalls(string address, BlockInterval blockRange, params IFunctionCallCollector[] collectors)
+        {
+            return GetCalls(address, blockRange.From, blockRange.To, collectors);
+        }
+
         public BlockTimeEntry? GetBlockForNumber(ulong number)
         {
             return blocks.GetTimestampForBlock(number);
@@ -160,14 +167,6 @@ namespace NethereumWorkflow
                 var blockTimeFinder = new BlockTimeFinder(blocks, log, blockCache.Ladder);
                 return blockTimeFinder.GetHighestBlockNumberBefore(utc);
             }, nameof(GetBlockForUtc));
-        }
-
-        public BlockWithTransactions GetBlockWithTransactions(ulong number)
-        {
-            return DebugLogWrap(() =>
-            {
-                return blocks.GetBlockWithTransactions(number);
-            }, nameof(GetBlockWithTransactions));
         }
 
         private IEventsCollector[] GetEvents(string address, ulong fromBlockNumber, ulong toBlockNumber, params IEventsCollector[] collectors)
@@ -201,6 +200,50 @@ namespace NethereumWorkflow
 
                 return collectors;
             }, $"{nameof(GetEvents)}<{string.Join(",", collectors.Select(c => c.Name).ToArray())}>[{fromBlockNumber} -> {toBlockNumber}]");
+        }
+
+        private IFunctionCallCollector[] GetCalls(string address, ulong fromBlockNumber, ulong toBlockNumber, params IFunctionCallCollector[] collectors)
+        {
+            return DebugLogWrap(() =>
+            {
+                var p = web3.Processing.Blocks.CreateBlockProcessor(a =>
+                {
+                    a.TransactionStep.SetMatchCriteria(t => 
+                        t.Transaction.IsTo(address) &&
+                        IsFunctionCallForAnyCollector(t.Transaction, collectors)
+                    );
+
+                    a.TransactionStep.AddSynchronousProcessorHandler(t =>
+                    {
+                        foreach (var c in collectors)
+                        {
+                            if (c.IsFunction(t.Transaction))
+                            {
+                                var timestamp = Convert.ToInt64(t.Block.Timestamp.ToDecimal());
+                                var utc = DateTimeOffset.FromUnixTimeSeconds(timestamp).UtcDateTime;
+                                var block = blockCache.Add(t.Block.Number.ToUlong(), utc);
+                                c.AddCall(block, t.Transaction);
+                            }
+                        }
+                    });
+                });
+
+                var from = new BlockParameter(fromBlockNumber);
+                var to = new BlockParameter(toBlockNumber);
+                var ct = new CancellationTokenSource().Token;
+                Time.Wait(p.ExecuteAsync(toBlockNumber: to.BlockNumber, cancellationToken: ct, startAtBlockNumberIfNotProcessed: from.BlockNumber));
+
+                return collectors;
+            }, $"{nameof(GetCalls)}<{string.Join(",", collectors.Select(c => c.Name).ToArray())}>[{fromBlockNumber} -> {toBlockNumber}]");
+        }
+
+        private static bool IsFunctionCallForAnyCollector(Transaction transaction, IFunctionCallCollector[] collectors)
+        {
+            foreach (var c in collectors)
+            {
+                if (c.IsFunction(transaction)) return true;
+            }
+            return false;
         }
 
         private T DebugLogWrap<T>(Func<T> task, string name = "")

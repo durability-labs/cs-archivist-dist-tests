@@ -1,90 +1,106 @@
 ﻿using ArchivistContractsPlugin.Marketplace;
 using Nethereum.Contracts;
-using Nethereum.RPC.Eth.DTOs;
+using NethereumWorkflow;
 using Newtonsoft.Json;
+using System.Reflection;
 
 namespace ArchivistContractsPlugin.ChainMonitor
 {
     public class CallReporter
     {
         private readonly List<FunctionCallReport> reports;
-        private readonly Transaction t;
-        private readonly DateTime blockUtc;
-        private readonly ulong blockNumber;
+        private readonly IArchivistContractsEvents events;
 
-        public CallReporter(List<FunctionCallReport> reports, Transaction t, DateTime blockUtc, ulong blockNumber)
+        public CallReporter(List<FunctionCallReport> reports, IArchivistContractsEvents events)
         {
             this.reports = reports;
-            this.t = t;
-            this.blockUtc = blockUtc;
-            this.blockNumber = blockNumber;
+            this.events = events;
         }
 
         public void Run(Action<MarkProofAsMissingFunction> onMarkedAsMissing)
         {
-            // We want to report all calls, but we have a special interest in
-            // MarkProofAsMissingFunction calls: The period report should reflect
-            // this call, so it can accurately report missed proofs.
-            CreateFunctionCallReport(onMarkedAsMissing);
+            // We get all the marketplace function types from the assembly,
+            // sorted into view and transaction type buckets.
+            var marketplaceTypes = ArchivistContractTypes.GetMarketplaceFunctionTypes();
 
-            // These are view function.
+            // We wrap them each in collectors.
+            var views = marketplaceTypes.ViewFunctions.Select(t => new FunctionCollectorWrapper(t)).ToArray();
+            var transactions = marketplaceTypes.TransactionFunctions.Select(t => new FunctionCollectorWrapper(t)).ToArray();
+
+            // We load the function calls into the collectors.
+            events.GetFunctionCalls(
+                views.Select(v => v.Collector).Concat(
+                    transactions.Select(t => t.Collector)
+                ).ToArray()
+            );
+
+            // We create reports for each transaction call we see.
+            foreach (var t in transactions)
+            {
+                CreateFunctionCallReport(t.GetCalls(), onMarkedAsMissing);
+            }
+
+            // We throw for each view function we see.
             // They should not end up in transactions on the blockchain.
-            // If they do, we'll throw here.
-            ThrowForCall<CanMarkProofAsMissingFunction>();
-            ThrowForCall<CanReserveSlotFunction>();
-            ThrowForCall<ConfigurationFunction>();
-            ThrowForCall<TokenFunction>();
-            ThrowForCall<CurrentCollateralFunction>();
-            ThrowForCall<GetRequestFunction>();
-            ThrowForCall<GetHostFunction>();
-            ThrowForCall<MyRequestsFunction>();
-            ThrowForCall<MySlotsFunction>();
-            ThrowForCall<RequestStateFunction>();
-            ThrowForCall<SlotStateFunction>();
-            ThrowForCall<RequestEndFunction>();
-            ThrowForCall<RequestExpiryFunction>();
-            ThrowForCall<MissingProofsFunction>();
-            ThrowForCall<IsProofRequiredFunction>();
-            ThrowForCall<WillProofBeRequiredFunction>();
-            ThrowForCall<GetPointerFunction>();
-            ThrowForCall<GetActiveSlotFunction>();
-            ThrowForCall<GetChallengeFunction>();
-            ThrowForCall<SlotProbabilityFunction>();
-
-
-            // These functions are expected.
-            // We create reports for them.
-            CreateFunctionCallReport<FillSlotFunction>();
-            CreateFunctionCallReport<FreeSlot1Function>();
-            CreateFunctionCallReport<FreeSlotFunction>();
-            CreateFunctionCallReport<RequestStorageFunction>();
-            CreateFunctionCallReport<ReserveSlotFunction>();
-            CreateFunctionCallReport<SubmitProofFunction>();
-            CreateFunctionCallReport<WithdrawFundsFunction>();
-            CreateFunctionCallReport<WithdrawFunds1Function>();
-        }
-
-        private void CreateFunctionCallReport<TFunc>() where TFunc : FunctionMessage, new()
-        {
-            CreateFunctionCallReport<TFunc>(f => { });
-        }
-
-        private void CreateFunctionCallReport<TFunc>(Action<TFunc> onCall) where TFunc : FunctionMessage, new()
-        {
-            if (t.IsTransactionForFunctionMessage<TFunc>())
+            foreach (var t in views)
             {
-                var func = t.DecodeTransactionToFunctionMessage<TFunc>();
-                reports.Add(new FunctionCallReport(blockUtc, blockNumber, typeof(TFunc).Name, JsonConvert.SerializeObject(func)));
-                onCall(func);
+                ThrowForCall(t.GetCalls());
             }
         }
 
-        private void ThrowForCall<TFunc>() where TFunc : FunctionMessage, new()
+        public class FunctionCollectorWrapper
         {
-            if (t.IsTransactionForFunctionMessage<TFunc>())
+            private readonly Type type;
+
+            public FunctionCollectorWrapper(Type type)
             {
-                throw new Exception($"Call to '{typeof(TFunc).Name}' found in on-chain transaction. This should not happen.");
+                this.type = type;
+
+                Collector = CreateCollector();
             }
+
+            public IFunctionCallCollector Collector { get; }
+
+            public IFunctionCall[] GetCalls()
+            {
+                return Collector.GetCalls();
+            }
+
+            private IFunctionCallCollector CreateCollector()
+            {
+                var genericMethod = GetType().GetMethod(nameof(CreateTypedCollector), BindingFlags.Static | BindingFlags.NonPublic);
+                var typedMethod = genericMethod!.MakeGenericMethod(type);
+                var result = typedMethod.Invoke(this, []);
+                return (IFunctionCallCollector)result!;
+            }
+
+            private static IFunctionCallCollector CreateTypedCollector<TFunc>() where TFunc : FunctionMessage, new()
+            {
+                return new FunctionCallCollector<TFunc>();
+            }
+        }
+
+        private void CreateFunctionCallReport(IFunctionCall[] calls, Action<MarkProofAsMissingFunction> onCall)
+        {
+            foreach (var call in calls)
+            {
+                var block = call.Block;
+                var callData = call.GetCall();
+                reports.Add(new FunctionCallReport(block, callData.GetType().Name, JsonConvert.SerializeObject(callData)));
+
+                if (call.GetCall() is MarkProofAsMissingFunction markProofAsMissingFunction)
+                {
+                    onCall(markProofAsMissingFunction);
+                }
+            }
+        }
+
+        private void ThrowForCall(IFunctionCall[] calls)
+        {
+            if (calls.Length == 0) return;
+            var name = calls[0].GetCall().GetType().Name;
+            var msg = $"Detected transactions with calls to view function '{name}'. {string.Join(",", calls.Select(c => c.Block.ToString()).ToArray())}";
+            throw new Exception(msg);
         }
     }
 }

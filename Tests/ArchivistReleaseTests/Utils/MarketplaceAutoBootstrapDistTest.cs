@@ -139,7 +139,7 @@ namespace ArchivistReleaseTests.Utils
             {
                 if (a.FreeSpace.SizeInBytes != a.TotalSpace.SizeInBytes)
                 {
-                    throw new Exception(nameof(AssertHostAvailabilitiesAreEmpty) + $" free: {a.FreeSpace} total: {a.TotalSpace}");
+                    throw new Exception($"{nameof(AssertHostAvailabilitiesAreEmpty)} free: {a.FreeSpace} total: {a.TotalSpace}");
                 }
             }
         }

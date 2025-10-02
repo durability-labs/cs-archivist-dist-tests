@@ -1,5 +1,10 @@
 namespace BlockchainUtils
 {
+    public interface IHasBlock
+    {
+        BlockTimeEntry Block { get; set; }
+    }
+
     public class BlockTimeEntry
     {
         public BlockTimeEntry(ulong blockNumber, DateTime utc)

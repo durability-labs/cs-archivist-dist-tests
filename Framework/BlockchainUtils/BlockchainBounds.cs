@@ -1,5 +1,4 @@
 using Logging;
-using Nethereum.RPC.Eth.DTOs;
 
 namespace BlockchainUtils
 {
@@ -9,7 +8,6 @@ namespace BlockchainUtils
         BlockTimeEntry? GetTimestampForBlock(ulong blockNumber);
         ulong? GetEarliestSeen();
         ulong? GetLatestSeen();
-        BlockWithTransactions GetBlockWithTransactions(ulong number);
     }
 
     public class BlockchainBounds

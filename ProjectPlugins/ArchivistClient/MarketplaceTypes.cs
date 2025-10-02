@@ -139,4 +139,35 @@ namespace ArchivistClient
                 $"freeSpace: {FreeSpace})");
         }
     }
+
+    public class AvailabilityReservation
+    {
+        public AvailabilityReservation(string id, string availabilityId, long size, string requestId, long slotIndex, int validUntil)
+        {
+            Id = id;
+            AvailabilityId = availabilityId;
+            Size = size.Bytes();
+            RequestId = requestId;
+            SlotIndex = slotIndex;
+            ValidUntil = Time.ToUtcDateTime(validUntil);
+        }
+
+        public string Id { get; }
+        public string AvailabilityId { get; }
+        public ByteSize Size { get; }
+        public string RequestId { get; }
+        public long SlotIndex { get; }
+        public DateTime ValidUntil { get; }
+
+        public void Log(ILog log)
+        {
+            log.Log($"\tStorage Availability Reservation: (" +
+                $"id: {Id}, " +
+                $"availabilityId: {AvailabilityId}, " +
+                $"size: {Size}, " +
+                $"requestId: {RequestId}, " +
+                $"slotIndex: {SlotIndex}, " +
+                $"validUntil: {Time.FormatTimestamp(ValidUntil)})");
+        }
+    }
 }

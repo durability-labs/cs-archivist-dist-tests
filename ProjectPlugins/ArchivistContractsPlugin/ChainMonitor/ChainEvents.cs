@@ -1,4 +1,5 @@
 using ArchivistContractsPlugin.Marketplace;
+using BlockchainUtils;
 using Utils;
 
 namespace ArchivistContractsPlugin.ChainMonitor
