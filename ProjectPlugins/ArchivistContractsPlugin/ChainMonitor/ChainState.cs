@@ -102,32 +102,14 @@ namespace ArchivistContractsPlugin.ChainMonitor
             }
 
             log.Debug($"ChainState updating: {events.BlockInterval} = {events.All.Length} events.");
-            var numBlocks = events.BlockInterval.NumberOfBlocks;
 
             // Run through each block and apply the events to the state in order.
             // Even when there are no events in the list, still run through each block:
             // There might be time-based OR period-based actions that need to happen at each step.
-
-            // It's too time-consuming to get the blockentry for every block in the range.
-            // Instead, we make one up!
-            // We do this by assuming the blocks in the range are evenly spaced in time.
-            // While that's not necessarily true, it's a good enough approximation for our purposes.
-            var span = events.BlockInterval.TimeRange.Duration;
-            var spanPerBlock = span / numBlocks;
-            var blockUtc = events.BlockInterval.TimeRange.From;
-
+            var blockTimeGetter = new BlockTimeGetter(events.BlockInterval);
             for (var b = events.BlockInterval.From; b <= events.BlockInterval.To; b++)
             {
-                var entry = new BlockTimeEntry(b, blockUtc);
-                blockUtc += spanPerBlock;
-                if (blockUtc > events.BlockInterval.TimeRange.To)
-                {
-                    throw new InvalidOperationException(
-                        $"BlockRange: {events.BlockInterval} " +
-                        $"found spanPerBlock: '{Time.FormatDuration(spanPerBlock)}' - " +
-                        $"at block {b} found blockUtc at {Time.FormatTimestamp(blockUtc)} which is past end of time range.");
-                }
-
+                var entry = blockTimeGetter.Get(b);
                 var blockEvents = events.All.Where(e => e.Block.BlockNumber == b).ToArray();
                 ApplyEvents(entry, blockEvents);
                 UpdatePeriodMonitor(entry);
@@ -286,6 +268,40 @@ namespace ArchivistContractsPlugin.ChainMonitor
         private bool Equal(byte[] a, byte[] b)
         {
             return a.SequenceEqual(b);
+        }
+
+        private class BlockTimeGetter
+        {
+            private readonly BlockInterval interval;
+            private readonly TimeSpan spanPerBlock;
+            private DateTime blockUtc;
+
+            public BlockTimeGetter(BlockInterval interval)
+            {
+                var numBlocks = interval.NumberOfBlocks;
+                var span = interval.TimeRange.Duration;
+                spanPerBlock = span / numBlocks;
+                blockUtc = interval.TimeRange.From;
+                this.interval = interval;
+            }
+
+            public BlockTimeEntry Get(ulong blockNumber)
+            {
+                // It's too time-consuming to get the blockentry for every block in the range.
+                // Instead, we make one up!
+                // We do this by assuming the blocks in the range are evenly spaced in time.
+                // While that's not necessarily true, it's a good enough approximation for our purposes.
+                var entry = new BlockTimeEntry(blockNumber, blockUtc);
+                blockUtc += spanPerBlock;
+                if (blockUtc > interval.TimeRange.To)
+                {
+                    throw new InvalidOperationException(
+                        $"BlockRange: {interval} " +
+                        $"found spanPerBlock: '{Time.FormatDuration(spanPerBlock)}' - " +
+                        $"at block {blockNumber} found blockUtc at {Time.FormatTimestamp(blockUtc)} which is past end of time range.");
+                }
+                return entry;
+            }
         }
     }
 }

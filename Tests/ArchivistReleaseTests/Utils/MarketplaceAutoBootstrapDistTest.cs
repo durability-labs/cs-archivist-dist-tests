@@ -23,7 +23,11 @@ namespace ArchivistReleaseTests.Utils
         {
             var geth = StartGethNode(s => s.IsMiner());
             var contracts = Ci.StartArchivistContracts(geth, BootstrapNode.Version);
-            var monitor = SetupChainMonitor(GetTestLog(), geth, contracts, GetTestRunTimeRange().From);
+            // Do not use TestRunTimeRange().From to initialize the chain monitor:
+            // It'll find its earliest timestamps in the pre-mined blocks in the geth image
+            // and completely screw with chain state tracking.
+            // Use this moment, the start of the contract deployment instead.
+            var monitor = SetupChainMonitor(GetTestLog(), geth, contracts, DateTime.UtcNow);
             handle = new MarketplaceHandle(geth, contracts, monitor);
         }
 
