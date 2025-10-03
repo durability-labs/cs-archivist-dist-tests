@@ -102,16 +102,25 @@ namespace ArchivistContractsPlugin.ChainMonitor
             }
 
             log.Debug($"ChainState updating: {events.BlockInterval} = {events.All.Length} events.");
-
-            // Run through each block and apply the events to the state in order.
-            var span = events.BlockInterval.TimeRange.Duration;
+            if (events.All.Length == 0) return;
             var numBlocks = events.BlockInterval.NumberOfBlocks;
             if (numBlocks == 0) return;
 
+            // Run through each block and apply the events to the state in order.
+            // It's too time-consuming to get the blockentry for every block in the range.
+            // Instead, we make one up!
+            // We do this by assuming the blocks in the range are evenly spaced in time.
+            // While that's not necessarily true, it's a good enough approximation for our purposes.
+            var span = events.BlockInterval.TimeRange.Duration;
+            var spanPerBlock = span / numBlocks;
+            var blockUtc = events.BlockInterval.TimeRange.From;
+
             for (var b = events.BlockInterval.From; b <= events.BlockInterval.To; b++)
             {
-                var entry = geth.GetBlockForNumber(b);
-                if (entry == null) throw new Exception($"Failed to get blockTimeEntry while processing known block range {events.BlockInterval}");
+                var entry = new BlockTimeEntry(b, blockUtc);
+                blockUtc += spanPerBlock;
+                if (blockUtc > events.BlockInterval.TimeRange.To) throw new InvalidOperationException();
+
                 var blockEvents = events.All.Where(e => e.Block.BlockNumber == b).ToArray();
                 ApplyEvents(entry, blockEvents);
                 UpdatePeriodMonitor(entry);

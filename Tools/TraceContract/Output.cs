@@ -5,6 +5,7 @@ using ArchivistContractsPlugin.Marketplace;
 using Logging;
 using Newtonsoft.Json;
 using Utils;
+using Nethereum.Hex.HexConvertors.Extensions;
 
 namespace TraceContract
 {
@@ -50,7 +51,7 @@ namespace TraceContract
 
         public void LogRequestCreated(RequestEvent requestEvent)
         {
-            var msg = $"Storage request created: '{requestEvent.Request.RequestId}' = {Environment.NewLine}${JsonConvert.SerializeObject(requestEvent.Request.Request, Formatting.Indented)}{Environment.NewLine}";
+            var msg = $"Storage request created: '{requestEvent.Request.RequestId.ToHex()}' = {Environment.NewLine}{JsonConvert.SerializeObject(requestEvent.Request.Request, Formatting.Indented)}{Environment.NewLine}";
             Add(requestEvent.Block, msg);
         }
 

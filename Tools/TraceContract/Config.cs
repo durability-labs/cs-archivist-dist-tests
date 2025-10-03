@@ -25,31 +25,41 @@ namespace TraceContract
         }
 
         public string[] StorageNodesKubernetesPodNames = [
-            "archivist-1-1",
-            "archivist-2-1",
-            "archivist-3-1",
-            "archivist-4-1",
-            "archivist-5-1",
-            "archivist-6-1",
-            "archivist-7-1",
-            "archivist-8-1",
-            "archivist-9-1",
-            "archivist-10-1",
+            "archivist-storage-1-1",
+            "archivist-storage-2-1",
+            "archivist-storage-3-1",
+            "archivist-storage-4-1",
+            "archivist-storage-5-1",
+            "archivist-storage-6-1",
+            "archivist-storage-7-1",
+            "archivist-storage-8-1",
+            "archivist-storage-9-1",
+            "archivist-storage-10-1",
             // "archivist-validator-1-1",
         ];
 
         public Dictionary<string, string> LogReplacements = new()
         {
-            { "0x3620ec38d88e9f0cf7feceebf97864f27676aa3e", "archivist-01" },
-            { "0xd80dc50af2a826f2cddc13840d05aed4ee6536c3", "archivist-02" },
-            { "0x2d1cd0fa0c7e0d29e7b2482b9ff87d5e7b76b905", "archivist-03" },
-            { "0xd47063bb6e56c9a6edb7612d33ad7d49eeb55ee0", "archivist-04" },
-            { "0x069da63e29b12a3828984379fcbd7dd3ee3774aa", "archivist-05" },
-            { "0x43fcceb2a9ce4761ccaa4c9f8d390c7581c190aa", "archivist-06" },
-            { "0x1a30cef06dbbf8ec25062e4e8d22e8df292f5054", "archivist-07" },
-            { "0xe169b5dcbae9a7392072323aaf5a677a33d67ecd", "archivist-08" },
-            { "0x21f7428619ef9f53addc5dab6723c822a8a96b42", "archivist-09" },
-            { "0xf9bd20512de2d5ca0dcfd8d3cd08a2821917797a", "archivist-10" }
+            { "0xc4566f67a64A81Fee99Ef868B456f909db93Ef85", "archivist-storage-01" },
+            { "0xF18EEAF1ead1f209E5db07eaB176962ff9C46939", "archivist-storage-02" },
+            { "0xBF455fbe817943D14bF215864889969e4A396AE7", "archivist-storage-03" },
+            { "0xa377964E7E26a561c2a19b5Da361c3835993a1df", "archivist-storage-04" },
+            { "0xf9374e41cf3F80316e74194c9468314A5fB2Bd65", "archivist-storage-05" },
+            { "0xf242F5Fee2A878b3c027CBC4f9289F04aA025BD5", "archivist-storage-06" },
+            { "0xE94896F0Bd44ACeA9d38a248F5Ac08200d9c4D2d", "archivist-storage-07" },
+            { "0xf13584d50ea185AE0b1C5c7ff4398aad64dEf49a", "archivist-storage-08" },
+            { "0x511a8f1938a5E0C068F75143454197CF3FCC606f", "archivist-storage-09" },
+            { "0x1E36465bd79a6B1Cdf2bC1478cFADe8E3b732f12", "archivist-storage-10" },
+            { "0xad6b4700A8A946bE1a5006C2424234bC91a7f4a9", "archivist-storage-11" },
+            { "0xD48028b291BBADC5d422DF9d076f25a57e6C7B0f", "archivist-storage-12" },
+            { "0x98271F9c33136aA9E91E9A5ac6A479A7616Cfe26", "archivist-storage-13" },
+            { "0x2C36C54ABf5B4893228AF477DE25E55A97730FD2", "archivist-storage-14" },
+            { "0xfA7Bb406Fa63Ff2d1884b0B369554908E3CC90ef", "archivist-storage-15" },
+            { "0x3E0BD7effD3fb32384Ad3A3209dEfE44716B8A1E", "archivist-storage-16" },
+            { "0xad3dFaA627ac75cdf066BE6A8D91cfae63956C55", "archivist-storage-17" },
+            { "0x849b6f8af3d468F1841B17F77c94FED47Cf03AD4", "archivist-storage-18" },
+            { "0xf8f8026298B1a376b76E15E398CF9F24C4908ec4", "archivist-storage-19" },
+            { "0xCaAE5eAbB62B511405f70d4Cf1758cEba21609ef", "archivist-storage-20" }
         };
 
         public string GetElasticSearchUsername()

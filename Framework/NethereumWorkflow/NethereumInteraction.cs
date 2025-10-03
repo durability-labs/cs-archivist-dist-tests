@@ -206,11 +206,16 @@ namespace NethereumWorkflow
         {
             return DebugLogWrap(() =>
             {
+                var progressLogger = new ProgressLogger(new LogPrefixer(log, "(FunctionCallProcessor)"), fromBlockNumber, toBlockNumber);
                 var p = web3.Processing.Blocks.CreateBlockProcessor(a =>
                 {
-                    a.TransactionStep.SetMatchCriteria(t => 
-                        t.Transaction.IsTo(address) &&
-                        IsFunctionCallForAnyCollector(t.Transaction, collectors)
+                    a.TransactionStep.SetMatchCriteria(t =>
+                    {
+                        progressLogger.Progress(t.Block.Number.ToUlong());
+                        return
+                            t.Transaction.IsTo(address) &&
+                            IsFunctionCallForAnyCollector(t.Transaction, collectors);
+                        }
                     );
 
                     a.TransactionStep.AddSynchronousProcessorHandler(t =>
@@ -249,6 +254,55 @@ namespace NethereumWorkflow
         private T DebugLogWrap<T>(Func<T> task, string name = "")
         {
             return Stopwatch.Measure(log, name, task, debug: true).Value;
+        }
+
+        private class ProgressLogger
+        {
+            private readonly ILog log;
+            private readonly ulong from;
+            private readonly ulong to;
+            private DateTime utc;
+
+            public ProgressLogger(ILog log, ulong from, ulong to)
+            {
+                this.log = log;
+                this.from = from;
+                this.to = to;
+
+                utc = DateTime.UtcNow;
+            }
+
+            public void Progress(ulong current)
+            {
+                if (DateTime.UtcNow - utc > TimeSpan.FromSeconds(10.0))
+                {
+                    utc = DateTime.UtcNow;
+
+                    var factor = GetFactor(current);
+                    var line = $"[{from}] (";
+                    line += Repeat("-", factor * 30.0f);
+                    line += Repeat(" ", 30.0f - (factor * 30.0f));
+                    line += $") [{to}]";
+                    log.Log(line);
+                }
+            }
+
+            private static string Repeat(string str, float count)
+            {
+                var c = Convert.ToInt32(Math.Round(count));
+                var result = "";
+                for (var i = 0; i < c; i++) result += str;
+                return result;
+            }
+
+            private float GetFactor(ulong current)
+            {
+                var range = Convert.ToSingle(to - from);
+                var progress = Convert.ToSingle(current - from);
+                var result = progress / range;
+                result = Math.Clamp(result, 0.001f, 1.0f);
+                return result;
+            }
         }
     }
 }
