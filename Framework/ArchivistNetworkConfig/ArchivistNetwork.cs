@@ -13,6 +13,19 @@
     {
         public TeamNodesCategory[] Nodes { get; set; } = Array.Empty<TeamNodesCategory>();
         public ArchivistNetworkTeamUtilsObject Utils { get; set; } = new ArchivistNetworkTeamUtilsObject();
+
+        public Dictionary<string, string> GetNodesAsLogReplacements()
+        {
+            var result = new Dictionary<string, string>();
+            foreach (var node in Nodes)
+            {
+                foreach (var instance in node.Instances)
+                {
+                    result.Add(instance.EthAddress, instance.Name);
+                }
+            }
+            return result;
+        }
     }
 
     public class TeamNodesCategory

@@ -5,6 +5,7 @@ using Core;
 using GethPlugin;
 using Logging;
 using Utils;
+using ArchivistNetworkConfig;
 
 namespace TraceContract
 {
@@ -19,6 +20,7 @@ namespace TraceContract
             p.Run();
         }
 
+        private readonly ArchivistNetwork network;
         private readonly ILog baseLog;
         private readonly ILog appLog;
         private readonly Input input = new();
@@ -35,7 +37,11 @@ namespace TraceContract
             );
 
             appLog = new LogPrefixer(baseLog, "(TraceContract)");
-            output = new(appLog, input, config);
+
+            var connector = new ArchivistNetworkConnector();
+            network = connector.GetConfig();
+
+            output = new(appLog, input, config, network);
         }
 
         private void Run()
@@ -75,15 +81,15 @@ namespace TraceContract
         {
             var account = EthAccountGenerator.GenerateNew();
             var blockCache = new BlockCache(baseLog, new DiskBlockBucketStore(Path.Combine(config.DataDir, "blocks_cache")));
-            return new CustomGethNode(baseLog, blockCache, $"{config.RpcEndpoint}:{config.GethPort}", account.PrivateKey);
+            return new CustomGethNode(baseLog, blockCache, network.RPCs.First(), account.PrivateKey);
         }
 
         private IArchivistContracts ConnectArchivistContracts(CoreInterface ci, IGethNode geth)
         {
             var deployment = new ArchivistContractsDeployment(
                 config: new MarketplaceConfig(),
-                marketplaceAddress: config.MarketplaceAddress,
-                abi: config.Abi
+                marketplaceAddress: network.Marketplace.ContractAddress,
+                abi: network.Marketplace.ABI
             );
             return ci.WrapArchivistContractsDeployment(geth, deployment, new DiskRequestsCache(Path.Combine(config.DataDir, "requests_cache")));
         }
@@ -92,14 +98,22 @@ namespace TraceContract
         {
             var start = requestTimeRange.From - config.LogStartBeforeStorageContractStarts;
 
-            foreach (var node in config.StorageNodesKubernetesPodNames)
+            var podNames = GetStorageNodesPodNames();
+            foreach (var podName in podNames)
             {
-                Log($"Downloading logs from '{node}'...");
+                Log($"Downloading logs from '{podName}'...");
 
-                var targetFile = output.CreateNodeLogTargetFile(node);
-                var downloader = new ElasticSearchLogDownloader(baseLog, tools, config);
-                downloader.Download(targetFile, node, start, requestTimeRange.To);
+                var targetFile = output.CreateNodeLogTargetFile(podName);
+                var downloader = new ElasticSearchLogDownloader(baseLog, tools, config, network);
+                downloader.Download(targetFile, podName, start, requestTimeRange.To);
             }
+        }
+
+        private string[] GetStorageNodesPodNames()
+        {
+            return network.Team
+                .Nodes.Single(c => c.Category.ToLowerInvariant() == "hosts")
+                .Instances.Select(i => i.PodName).ToArray();
         }
 
         private void Log(string msg)

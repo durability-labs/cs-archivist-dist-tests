@@ -338,7 +338,6 @@ namespace ArchivistClient
             {
                 var addr = ethAccount.EthAddress.ToString();
                 log.AddStringReplace(addr, nodeName);
-                log.AddStringReplace(addr.ToLowerInvariant(), nodeName);
             }
         }
 

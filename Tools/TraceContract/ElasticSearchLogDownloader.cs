@@ -1,4 +1,5 @@
 using System.Text;
+using ArchivistNetworkConfig;
 using Core;
 using Logging;
 using Utils;
@@ -11,12 +12,14 @@ namespace TraceContract
         private readonly ILog log;
         private readonly IPluginTools tools;
         private readonly Config config;
+        private readonly ArchivistNetwork network;
 
-        public ElasticSearchLogDownloader(ILog log, IPluginTools tools, Config config)
+        public ElasticSearchLogDownloader(ILog log, IPluginTools tools, Config config, ArchivistNetwork network)
         {
             this.log = log;
             this.tools = tools;
             this.config = config;
+            this.network = network;
         }
 
         public void Download(LogFile targetFile, string podName, DateTime startUtc, DateTime endUtc)
@@ -69,11 +72,11 @@ namespace TraceContract
             //var k8sNamespace = "monitoring";
             //var address = new Address("ElasticSearchEndpoint", $"http://{serviceName}.{k8sNamespace}.svc.cluster.local", 9200);
 
-            var address = new Address("TestnetElasticSearchEndpoint", config.ElasticSearchUrl, 443);
+            var address = new Address("TestnetElasticSearchEndpoint", network.Team.Utils.ElasticSearch, 443);
             var baseUrl = "";
 
-            var username = config.GetElasticSearchUsername();
-            var password = config.GetElasticSearchPassword();
+            var username = config.ElasticSearchUsername;
+            var password = config.ElasticSearchPassword;
 
             var base64Creds = Convert.ToBase64String(
                 Encoding.ASCII.GetBytes($"{username}:{password}")
