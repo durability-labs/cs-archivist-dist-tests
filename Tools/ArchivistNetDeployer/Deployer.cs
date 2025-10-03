@@ -141,7 +141,6 @@ namespace ArchivistNetDeployer
                 port: addr.Port,
                 privKey: gethDeployment.Account.PrivateKey,
                 marketplaceAddress: contractsDeployment.MarketplaceAddress,
-                tokenAddress: contractsDeployment.TokenAddress,
                 abi: contractsDeployment.Abi
             );
 

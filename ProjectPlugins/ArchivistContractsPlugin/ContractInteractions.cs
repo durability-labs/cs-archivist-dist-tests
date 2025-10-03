@@ -2,7 +2,6 @@ using BlockchainUtils;
 using ArchivistContractsPlugin.Marketplace;
 using GethPlugin;
 using Logging;
-using Nethereum.Hex.HexConvertors.Extensions;
 using System.Numerics;
 using Utils;
 

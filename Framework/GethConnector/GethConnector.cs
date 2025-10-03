@@ -3,6 +3,8 @@ using ArchivistContractsPlugin;
 using ArchivistContractsPlugin.Marketplace;
 using GethPlugin;
 using Logging;
+using ArchivistNetworkConfig;
+using Utils;
 
 namespace GethConnector
 {
@@ -11,6 +13,8 @@ namespace GethConnector
         public IGethNode GethNode { get; }
         public IArchivistContracts ArchivistContracts { get; }
 
+        private const string GethPrivKeyVar = "GETH_PRIVATE_KEY";
+
         public static GethConnector? Initialize(ILog log)
         {
             return Initialize(log, new BlockCache(log), new NullRequestsCache());
@@ -18,27 +22,36 @@ namespace GethConnector
 
         public static GethConnector? Initialize(ILog log, BlockCache blockCache, IRequestsCache requestsCache)
         {
-            if (!string.IsNullOrEmpty(GethInput.LoadError))
-            {
-                var msg = "Geth input incorrect: " + GethInput.LoadError;
-                log.Error(msg);
-                return null;
-            }
+            var privateKey = EnvVar.GetOrThrow(GethPrivKeyVar);
+            var networkConfig = FetchNetworkConfig(log);
 
-            var gethNode = new CustomGethNode(log, blockCache, GethInput.GethHost, GethInput.GethPort, GethInput.PrivateKey);
+            var gethNode = new CustomGethNode(log, blockCache, networkConfig.RPCs.First(), privateKey);
 
-            var config = GetArchivistMarketplaceConfig(gethNode, GethInput.MarketplaceAddress);
+            var config = GetArchivistMarketplaceConfig(gethNode, networkConfig.Marketplace.ContractAddress);
 
             var contractsDeployment = new ArchivistContractsDeployment(
                 config: config,
-                marketplaceAddress: GethInput.MarketplaceAddress,
-                abi: GethInput.ABI,
-                tokenAddress: GethInput.TokenAddress
+                marketplaceAddress: networkConfig.Marketplace.ContractAddress,
+                abi: networkConfig.Marketplace.ABI
             );
 
             var contracts = new ArchivistContractsAccess(log, gethNode, contractsDeployment, requestsCache);
 
             return new GethConnector(gethNode, contracts);
+        }
+
+        private static ArchivistNetwork FetchNetworkConfig(ILog log)
+        {
+            try
+            {
+                var networkConnector = new ArchivistNetworkConnector();
+                return networkConnector.GetConfig();
+            }
+            catch (Exception ex)
+            {
+                log.Error($"Unable to load ArchivistNetworkConfig: " + ex);
+                throw;
+            }
         }
 
         private static MarketplaceConfig GetArchivistMarketplaceConfig(IGethNode gethNode, string marketplaceAddress)

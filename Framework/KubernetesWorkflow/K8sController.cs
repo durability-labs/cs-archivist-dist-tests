@@ -4,6 +4,7 @@ using KubernetesWorkflow.Recipe;
 using KubernetesWorkflow.Types;
 using Logging;
 using Utils;
+using EnvVar = KubernetesWorkflow.Recipe.EnvVar;
 
 namespace KubernetesWorkflow
 {

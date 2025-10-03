@@ -75,7 +75,7 @@ namespace TraceContract
         {
             var account = EthAccountGenerator.GenerateNew();
             var blockCache = new BlockCache(baseLog, new DiskBlockBucketStore(Path.Combine(config.DataDir, "blocks_cache")));
-            return new CustomGethNode(baseLog, blockCache, config.RpcEndpoint, config.GethPort, account.PrivateKey);
+            return new CustomGethNode(baseLog, blockCache, $"{config.RpcEndpoint}:{config.GethPort}", account.PrivateKey);
         }
 
         private IArchivistContracts ConnectArchivistContracts(CoreInterface ci, IGethNode geth)
@@ -83,8 +83,7 @@ namespace TraceContract
             var deployment = new ArchivistContractsDeployment(
                 config: new MarketplaceConfig(),
                 marketplaceAddress: config.MarketplaceAddress,
-                abi: config.Abi,
-                tokenAddress: config.TokenAddress
+                abi: config.Abi
             );
             return ci.WrapArchivistContractsDeployment(geth, deployment, new DiskRequestsCache(Path.Combine(config.DataDir, "requests_cache")));
         }

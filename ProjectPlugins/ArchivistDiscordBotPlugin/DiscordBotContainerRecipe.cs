@@ -30,7 +30,6 @@ namespace ArchivistDiscordBotPlugin
             AddEnvVar("GETH_HTTP_PORT", gethInfo.Port.ToString());
             AddEnvVar("GETH_PRIVATE_KEY", gethInfo.PrivKey);
             AddEnvVar("ARCHIVISTCONTRACTS_MARKETPLACEADDRESS", gethInfo.MarketplaceAddress);
-            AddEnvVar("ARCHIVISTCONTRACTS_TOKENADDRESS", gethInfo.TokenAddress);
             AddEnvVar("ARCHIVISTCONTRACTS_ABI", gethInfo.Abi);
 
             AddEnvVar("NODISCORD", "1");
