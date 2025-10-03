@@ -10,7 +10,10 @@ namespace ArchivistNetworkConfig
         private ArchivistNetwork? model = null;
 
         public ArchivistNetworkConnector()
-            : this("testnet", "latest")
+            : this(
+                GetEnvVarOrDefault("ARCHIVIST_NETWORK", "testnet"),
+                GetEnvVarOrDefault("ARCHIVIST_VERSION", "latest")
+            )
         {
         }
 
@@ -28,6 +31,13 @@ namespace ArchivistNetworkConfig
                 model = MapToVersion(fullModel);
             }
             return model;
+        }
+
+        private static string GetEnvVarOrDefault(string varName, string defaultValue)
+        {
+            var v = Environment.GetEnvironmentVariable(varName);
+            if (v == null) return defaultValue;
+            return v;
         }
 
         private NetworkConfig FetchModel()
