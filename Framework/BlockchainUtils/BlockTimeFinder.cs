@@ -128,10 +128,10 @@ namespace BlockchainUtils
             return Time.ToUnixTimeSeconds(utc);
         }
 
-        private BlockTimeEntry GetBlock(ulong number, bool retry = false)
+        private BlockTimeEntry GetBlock(ulong number)
         {
             var entry = web3.GetTimestampForBlock(number);
-            if (entry == null) throw new Exception("Failed to get dateTime for block.");
+            if (entry == null) throw new Exception("Failed to get dateTime for block: " + number);
             return entry;
         }
     }

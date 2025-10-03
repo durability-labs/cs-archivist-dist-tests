@@ -143,12 +143,11 @@ namespace ArchivistContractsPlugin.ChainMonitor
         {
             var callReports = new List<FunctionCallReport>();
             var missedCalls = new List<MarkProofAsMissingFunction>();
-            geth.IterateTransactions(blockRange, (t, blkI, blkUtc) =>
-            {
-                var reporter = new CallReporter(callReports, t, blkUtc, blkI);
-                reporter.Run(missedCalls.Add);
 
-            });
+            var events = contracts.GetEvents(blockRange);
+            var reporter = new CallReporter(callReports, events);
+            reporter.Run(missedCalls.Add);
+
             return (callReports.ToArray(), missedCalls.ToArray());
         }
     }

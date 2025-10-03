@@ -1,6 +1,5 @@
 ﻿using BlockchainUtils;
 using Logging;
-using Nethereum.RPC.Eth.DTOs;
 
 namespace NethereumWorkflow
 {
@@ -46,16 +45,6 @@ namespace NethereumWorkflow
                 return blockTime;
             }
             return null;
-        }
-
-        public BlockWithTransactions GetBlockWithTransactions(ulong number)
-        {
-            var transactions = cache.GetTransactions(number);
-            if (transactions != null) return transactions;
-
-            var fetched = backingWeb3.GetBlockWithTransactions(number);
-            cache.AddTransactions(fetched);
-            return fetched;
         }
     }
 }

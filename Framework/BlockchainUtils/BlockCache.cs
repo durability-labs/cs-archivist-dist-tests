@@ -1,6 +1,4 @@
 using Logging;
-using Nethereum.Hex.HexTypes;
-using Nethereum.RPC.Eth.DTOs;
 using Newtonsoft.Json;
 using System.Globalization;
 
@@ -12,7 +10,6 @@ namespace BlockchainUtils
         private const int MaxBuckets = 10;
         private readonly Dictionary<ulong, BlockBucket> buckets = new Dictionary<ulong, BlockBucket>();
         private readonly BlockLadder ladder;
-        private readonly ILog log;
         private readonly IBlockBucketStore store;
 
         public BlockCache(ILog log)
@@ -22,7 +19,6 @@ namespace BlockchainUtils
 
         public BlockCache(ILog log, IBlockBucketStore store)
         {
-            this.log = log;
             this.store = store;
 
             ladder = new BlockLadder();
@@ -69,30 +65,6 @@ namespace BlockchainUtils
                 var entries = bucket.Entries;
                 if (!entries.TryGetValue(number, out DateTime utc)) return null;
                 return new BlockTimeEntry(number, utc);
-            }
-        }
-
-        public void AddTransactions(BlockWithTransactions blockWithTransactions)
-        {
-            lock (_lock)
-            {
-                var number = blockWithTransactions.Number.ToUlong();
-                var bucket = GetBucketByBlockNumber(number);
-                if (!bucket.Transactions.ContainsKey(number))
-                {
-                    bucket.Transactions.Add(number, blockWithTransactions);
-                    store.Save(GetBucketNumber(number), bucket);
-                }
-            }
-        }
-
-        public BlockWithTransactions? GetTransactions(ulong number)
-        {
-            lock (_lock)
-            {
-                var bucket = GetBucketByBlockNumber(number);
-                if (!bucket.Transactions.TryGetValue(number, out BlockWithTransactions? transactions)) return null;
-                return transactions;
             }
         }
 
@@ -157,7 +129,6 @@ namespace BlockchainUtils
     public class BlockBucket
     {
         public Dictionary<ulong, DateTime> Entries { get; set; } = new Dictionary<ulong, DateTime>();
-        public Dictionary<ulong, BlockWithTransactions> Transactions { get; set; } = new Dictionary<ulong, BlockWithTransactions>();
     }
 
     public interface IBlockBucketStore

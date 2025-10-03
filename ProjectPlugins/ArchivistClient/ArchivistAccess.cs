@@ -155,6 +155,12 @@ namespace ArchivistClient
             return mapper.Map(collection);
         }
 
+        public AvailabilityReservation[] GetReservations(string availabilityId)
+        {
+            var reservations = OnArchivist(api => api.GetReservationsAsync(availabilityId));
+            return mapper.Map(reservations);
+        }
+
         public string RequestStorage(StoragePurchaseRequest request)
         {
             var body = mapper.Map(request);

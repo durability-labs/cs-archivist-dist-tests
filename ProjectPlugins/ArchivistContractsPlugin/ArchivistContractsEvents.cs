@@ -14,8 +14,10 @@ namespace ArchivistContractsPlugin
     {
         BlockInterval BlockInterval { get; }
         IContractEventsCollector[] GetEvents(params IContractEventsCollector[] collectors);
+        IFunctionCallCollector[] GetFunctionCalls(params IFunctionCallCollector[] collectors);
         TEvent[] GetEvents<TEvent>() where TEvent : IEventDTO, new();
-        void GetReserveSlotCalls(Action<ReserveSlotFunction> onFunction);
+        TFunc[] GetFunctionCalls<TFunc>() where TFunc : FunctionMessage, new();
+       void GetReserveSlotCalls(Action<ReserveSlotFunction> onFunction);
     }
 
     public interface IContractEventsCollector
@@ -98,6 +100,11 @@ namespace ArchivistContractsPlugin
             return collectors;
         }
 
+        public IFunctionCallCollector[] GetFunctionCalls(params IFunctionCallCollector[] collectors)
+        {
+            return gethNode.GetFunctionCalls(deployment.MarketplaceAddress, BlockInterval, collectors);
+        }
+
         public TEvent[] GetEvents<TEvent>() where TEvent : IEventDTO, new()
         {
             var collector = new ContractEventsCollector<TEvent>();
@@ -105,17 +112,26 @@ namespace ArchivistContractsPlugin
             return collector.Events.ToArray();
         }
 
+        public TFunc[] GetFunctionCalls<TFunc>() where TFunc : FunctionMessage, new()
+        {
+            var collector = new FunctionCallCollector<TFunc>();
+            GetFunctionCalls(collector);
+
+            // This is kind of wonky:
+            // We're unpacking the FunctionCall wrapper type which has the Block information object
+            // But we need to use customizations of the calls and events to add this info back in.
+            // Composition > Inheritance: TODO: remove the customizations and use the wrapper types.
+            return collector.Calls.Select(c => c.Call).ToArray();
+        }
+
         public void GetReserveSlotCalls(Action<ReserveSlotFunction> onFunction)
         {
-            var count = 0;
-            gethNode.IterateFunctionCalls<ReserveSlotFunction>(BlockInterval, (b, fn) =>
+            var calls = GetFunctionCalls<ReserveSlotFunction>();
+            foreach (var call in calls)
             {
-                if (b == null) throw new Exception("Block not provided for event. " + nameof(ReserveSlotFunction));
-                fn.Block = b;
-                onFunction(fn);
-                count++;
-            });
-            log.Debug($"{BlockInterval} {nameof(ReserveSlotFunction)} => {count}");
+                onFunction(call);
+            }
+            log.Debug($"{BlockInterval} {nameof(ReserveSlotFunction)} => {calls.Length}");
         }
     }
 }

@@ -1,4 +1,5 @@
 using ArchivistContractsPlugin.Marketplace;
+using BlockchainUtils;
 using Logging;
 using Nethereum.Hex.HexConvertors.Extensions;
 using Utils;
@@ -174,22 +175,20 @@ namespace ArchivistContractsPlugin.ChainMonitor
 
     public class FunctionCallReport
     {
-        public FunctionCallReport(DateTime utc, ulong blockNumber, string name, string payload)
+        public FunctionCallReport(BlockTimeEntry block, string name, string payload)
         {
-            Utc = utc;
-            BlockNumber = blockNumber;
+            Block = block;
             Name = name;
             Payload = payload;
         }
 
-        public DateTime Utc { get; }
-        public ulong BlockNumber { get; }
+        public BlockTimeEntry Block { get; }
         public string Name { get; }
         public string Payload { get; }
 
         public override string ToString()
         {
-            return $"[{Time.FormatTimestamp(Utc)}][{BlockNumber}] {Name} = \"{Payload}\"";
+            return $"{Block} {Name} = \"{Payload}\"";
         }
     }
 }

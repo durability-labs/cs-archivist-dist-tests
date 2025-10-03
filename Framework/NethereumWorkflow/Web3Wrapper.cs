@@ -43,29 +43,33 @@ namespace NethereumWorkflow
 
         public BlockTimeEntry? GetTimestampForBlock(ulong blockNumber)
         {
-            return Retry(() =>
+            if (blockNumber == 0) return null;
+
+            var timeout = DateTime.UtcNow + TimeSpan.FromSeconds(90);
+            while (DateTime.UtcNow < timeout)
             {
-                try
+                var block = GetBlockTimestamp(blockNumber);
+                if (block != null)
                 {
-                    if (blockNumber == 0) return null;
-                    var block = Time.Wait(web3.Eth.Blocks.GetBlockWithTransactionsByNumber.SendRequestAsync(new BlockParameter(blockNumber)));
-                    if (block == null) return null;
                     var timestamp = Convert.ToInt64(block.Timestamp.ToDecimal());
-                    if (timestamp < 1) return null;
-                    var utc = DateTimeOffset.FromUnixTimeSeconds(timestamp).UtcDateTime;
-                    return new BlockTimeEntry(blockNumber, utc);
+                    if (timestamp > 0)
+                    {
+                        var utc = DateTimeOffset.FromUnixTimeSeconds(timestamp).UtcDateTime;
+                        return new BlockTimeEntry(blockNumber, utc);
+                    }
                 }
-                catch (Exception ex)
-                {
-                    log.Error("Exception while getting timestamp for block: " + ex);
-                    return null;
-                }
-            });
+
+                Thread.Sleep(TimeSpan.FromSeconds(3));
+            }
+            throw new TimeoutException($"{nameof(GetTimestampForBlock)} {blockNumber}");
         }
 
-        public BlockWithTransactions GetBlockWithTransactions(ulong number)
+        private BlockWithTransactions GetBlockTimestamp(ulong blockNumber)
         {
-            return Retry(() => Time.Wait(web3.Eth.Blocks.GetBlockWithTransactionsByNumber.SendRequestAsync(new BlockParameter(number))));
+            return Retry(() =>
+            {
+                return Time.Wait(web3.Eth.Blocks.GetBlockWithTransactionsByNumber.SendRequestAsync(new BlockParameter(blockNumber)));
+            });
         }
 
         private T Retry<T>(Func<T> action)

@@ -31,13 +31,13 @@ namespace TraceContract
         public TimeRange TraceChainTimeline()
         {
             log.Log("Querying blockchain...");
-            var request = GetRequest();
+            var request = Measure(GetRequest, nameof(GetRequest));
             if (request == null) throw new Exception("Failed to find the purchase in the last week of transactions.");
 
-            var creationEvent = FindRequestCreationEvent();
+            var creationEvent = Measure(FindRequestCreationEvent, nameof(FindRequestCreationEvent));
 
             log.Log($"Request started at {Time.FormatTimestamp(creationEvent.Block.Utc)}");
-            var contractEnd = RunToContractEnd(creationEvent);
+            var contractEnd = Measure(() => RunToContractEnd(creationEvent), nameof(RunToContractEnd));
 
             log.Log($"Request timeline: {creationEvent.Block} -> {contractEnd}");
 
@@ -49,19 +49,27 @@ namespace TraceContract
 
             var events = contracts.GetEvents(blockRange);
 
-            events.GetReserveSlotCalls(call =>
+            Stopwatch.Measure(log, nameof(events.GetReserveSlotCalls), () =>
             {
-                if (IsThisRequest(call.RequestId))
+                events.GetReserveSlotCalls(call =>
                 {
-                    output.LogReserveSlotCall(call);
-                    log.Log("Found reserve-slot call for slotIndex " + call.SlotIndex);
-                }
+                    if (IsThisRequest(call.RequestId))
+                    {
+                        output.LogReserveSlotCall(call);
+                        log.Log("Found reserve-slot call for slotIndex " + call.SlotIndex);
+                    }
+                });
             });
 
             log.Log("Writing blockchain output...");
             output.WriteContractEvents();
 
             return blockRange.TimeRange;
+        }
+
+        private T Measure<T>(Func<T> task, string name)
+        {
+            return Stopwatch.Measure(log, name, task).Value;
         }
 
         private BlockTimeEntry RunToContractEnd(StorageRequestedEventDTO request)

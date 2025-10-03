@@ -8,6 +8,7 @@ namespace ArchivistClient
     {
         string MakeStorageAvailable(CreateStorageAvailability availability);
         StorageAvailability[] GetAvailabilities();
+        AvailabilityReservation[] GetReservations(string availabilitiesId);
         IStoragePurchaseContract RequestStorage(StoragePurchaseRequest purchase);
     }
 
@@ -75,6 +76,14 @@ namespace ArchivistClient
             return result;
         }
 
+        public AvailabilityReservation[] GetReservations(string availabilitiesId)
+        {
+            var result = archivistAccess.GetReservations(availabilitiesId);
+            Log($"Got {result.Length} availability reservations:");
+            foreach (var a in result) a.Log(log);
+            return result;
+        }
+
         private void Log(string msg)
         {
             log.Log($"{archivistAccess.GetName()} {msg}");
@@ -96,6 +105,12 @@ namespace ArchivistClient
         }
 
         public StorageAvailability[] GetAvailabilities()
+        {
+            Unavailable();
+            throw new NotImplementedException();
+        }
+
+        public AvailabilityReservation[] GetReservations(string availabilitiesId)
         {
             Unavailable();
             throw new NotImplementedException();
