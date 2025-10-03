@@ -119,7 +119,13 @@ namespace ArchivistContractsPlugin.ChainMonitor
             {
                 var entry = new BlockTimeEntry(b, blockUtc);
                 blockUtc += spanPerBlock;
-                if (blockUtc > events.BlockInterval.TimeRange.To) throw new InvalidOperationException();
+                if (blockUtc > events.BlockInterval.TimeRange.To)
+                {
+                    throw new InvalidOperationException(
+                        $"BlockRange: {events.BlockInterval} " +
+                        $"found spanPerBlock: '{Time.FormatDuration(spanPerBlock)}' - " +
+                        $"at block {b} found blockUtc at {Time.FormatTimestamp(blockUtc)} which is past end of time range.");
+                }
 
                 var blockEvents = events.All.Where(e => e.Block.BlockNumber == b).ToArray();
                 ApplyEvents(entry, blockEvents);

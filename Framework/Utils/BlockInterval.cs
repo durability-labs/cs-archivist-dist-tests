@@ -25,7 +25,7 @@ namespace Utils
 
         public override string ToString()
         {
-            return $"[{From} - {To}]";
+            return $"[{From} - {To}]({TimeRange})";
         }
     }
 }
