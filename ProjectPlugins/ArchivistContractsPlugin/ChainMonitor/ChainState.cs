@@ -102,11 +102,12 @@ namespace ArchivistContractsPlugin.ChainMonitor
             }
 
             log.Debug($"ChainState updating: {events.BlockInterval} = {events.All.Length} events.");
-            if (events.All.Length == 0) return;
             var numBlocks = events.BlockInterval.NumberOfBlocks;
-            if (numBlocks == 0) return;
 
             // Run through each block and apply the events to the state in order.
+            // Even when there are no events in the list, still run through each block:
+            // There might be time-based OR period-based actions that need to happen at each step.
+
             // It's too time-consuming to get the blockentry for every block in the range.
             // Instead, we make one up!
             // We do this by assuming the blocks in the range are evenly spaced in time.

@@ -34,7 +34,10 @@ namespace ArchivistContractsPlugin.ChainMonitor
         {
             if (lastUpdate != null)
             {
-                if (block.BlockNumber != lastUpdate.BlockNumber + 1) throw new Exception("Discontinuous update called on PeriodMonitor");
+                if (block.BlockNumber != lastUpdate.BlockNumber + 1)
+                {
+                    throw new Exception($"Discontinuous update called on PeriodMonitor. lastUpdate: {lastUpdate} call: {block}");
+                }
             }
             log.Debug($"Updating for block {block}...");
             lastUpdate = block;
