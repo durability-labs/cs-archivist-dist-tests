@@ -105,8 +105,9 @@ namespace ArchivistReleaseTests.MarketTests
         {
             var start = DateTime.UtcNow;
             var timeout = CalculateContractFailTimespan();
+            var context = $"{nameof(WaitForSlotFreedEvent)} requestId: '{contract.PurchaseId.ToLowerInvariant()}' slotIndex: {slotIndex}";
 
-            Log($"{nameof(WaitForSlotFreedEvent)} {Time.FormatDuration(timeout)} requestId: '{contract.PurchaseId.ToLowerInvariant()}' slotIndex: {slotIndex}");
+            Log($"{context} {Time.FormatDuration(timeout)}");
 
             while (DateTime.UtcNow < start + timeout)
             {
@@ -117,21 +118,20 @@ namespace ArchivistReleaseTests.MarketTests
                 foreach (var free in slotsFreed)
                 {
                     var freedId = free.RequestId.ToHex().ToLowerInvariant();
-                    Log($"Free for requestId '{freedId}' slotIndex: {free.SlotIndex}");
+                    Log($"{context} - Free for requestId '{freedId}' slotIndex: {free.SlotIndex}");
 
-                    if (freedId == contract.PurchaseId.ToLowerInvariant())
+                    if (freedId.Equals(contract.PurchaseId, StringComparison.InvariantCultureIgnoreCase))
                     {
                         if (free.SlotIndex == slotIndex)
                         {
-                            Log("Found the correct slotFree event");
+                            Log($"{context} - Done: found the correct slotFree event.");
                             return;
                         }
                     }
                 }
-
                 GetContracts().WaitUntilNextPeriod();
             }
-            Assert.Fail($"{nameof(WaitForSlotFreedEvent)} for contract {contract.PurchaseId} and slotIndex {slotIndex} failed after {Time.FormatDuration(timeout)}");
+            Assert.Fail($"{context} - Failed after {Time.FormatDuration(timeout)}");
         }
 
         private void WaitForNewSlotFilledEvent(IStoragePurchaseContract contract, ulong slotIndex)
