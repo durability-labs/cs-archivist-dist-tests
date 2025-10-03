@@ -1,3 +1,4 @@
+using ArchivistNetworkConfig;
 using ArgsUniform;
 using BiblioTech.ArchivistChecking;
 using BiblioTech.Commands;
@@ -52,6 +53,8 @@ namespace BiblioTech
             {
                 replacement = new CustomReplacement(Config);
                 replacement.Load();
+
+                LoadReplacementsFromNetworkConfig(replacement);
             }
             catch (Exception ex)
             {
@@ -124,6 +127,17 @@ namespace BiblioTech
         {
             if (Directory.Exists(path)) return;
             Directory.CreateDirectory(path);
+        }
+
+        private void LoadReplacementsFromNetworkConfig(CustomReplacement replacement)
+        {
+            var connector = new ArchivistNetworkConnector();
+            var config = connector.GetConfig();
+            var r = config.Team.GetNodesAsLogReplacements();
+            foreach (var pair in r)
+            {
+                replacement.Add(pair.Key, pair.Value);
+            }
         }
     }
 }

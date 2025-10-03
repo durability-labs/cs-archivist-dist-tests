@@ -27,7 +27,13 @@ namespace ArchivistNetworkConfig
         {
             if (model == null)
             {
-                var fullModel = FetchModel();
+                var retry = new Retry(nameof(FetchModel),
+                    maxTimeout: TimeSpan.FromMinutes(5.0),
+                    sleepAfterFail: TimeSpan.FromSeconds(10.0),
+                    onFail: f => { },
+                    failFast: false);
+
+                var fullModel = retry.Run(FetchModel);
                 model = MapToVersion(fullModel);
             }
             return model;
