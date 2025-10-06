@@ -53,6 +53,7 @@ namespace ArchivistContractsPlugin
         private readonly ILog log;
         private readonly IGethNode gethNode;
         private readonly IRequestsCache requestsCache;
+        private string tokenAddress = string.Empty;
 
         public ArchivistContractsAccess(ILog log, IGethNode gethNode, ArchivistContractsDeployment deployment, IRequestsCache requestsCache)
         {
@@ -66,7 +67,25 @@ namespace ArchivistContractsPlugin
 
         public bool IsDeployed()
         {
-            return !string.IsNullOrEmpty(StartInteraction().GetTokenName(Deployment.TokenAddress));
+            try
+            {
+                GetTokenAddress();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                log.Error($"Failed to fetch tokenAddress: {ex}");
+                return false;
+            }
+        }
+
+        private string GetTokenAddress()
+        {
+            if (string.IsNullOrEmpty(tokenAddress))
+            {
+                tokenAddress = StartInteraction().GetTokenAddress(Deployment.MarketplaceAddress);
+            }
+            return tokenAddress;
         }
 
         public string MintTestTokens(IHasEthAddress owner, TestToken testTokens)
@@ -76,7 +95,7 @@ namespace ArchivistContractsPlugin
 
         public string MintTestTokens(EthAddress ethAddress, TestToken testTokens)
         {
-            return StartInteraction().MintTestTokens(ethAddress, testTokens.TstWei, Deployment.TokenAddress);
+            return StartInteraction().MintTestTokens(ethAddress, testTokens.TstWei, GetTokenAddress());
         }
 
         public TestToken GetTestTokenBalance(IHasEthAddress owner)
@@ -86,13 +105,13 @@ namespace ArchivistContractsPlugin
 
         public TestToken GetTestTokenBalance(EthAddress ethAddress)
         {
-            var balance = StartInteraction().GetBalance(Deployment.TokenAddress, ethAddress.Address);
+            var balance = StartInteraction().GetBalance(GetTokenAddress(), ethAddress.Address);
             return balance.TstWei();
         }
 
         public string TransferTestTokens(EthAddress to, TestToken amount)
         {
-            return StartInteraction().TransferTestTokens(Deployment.TokenAddress, to.Address, amount.TstWei);
+            return StartInteraction().TransferTestTokens(GetTokenAddress(), to.Address, amount.TstWei);
         }
 
         public IArchivistContractsEvents GetEvents(TimeRange timeRange)

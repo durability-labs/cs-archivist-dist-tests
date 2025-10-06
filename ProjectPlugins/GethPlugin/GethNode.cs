@@ -68,7 +68,7 @@ namespace GethPlugin
             var address = StartResult.Container.GetAddress(GethContainerRecipe.HttpPortTag);
             var account = StartResult.Account;
 
-            var creator = new NethereumInteractionCreator(log, blockCache, address.Host, address.Port, account.PrivateKey);
+            var creator = new NethereumInteractionCreator(log, blockCache, $"{address.Host}:{address.Port}", account.PrivateKey);
             return creator.CreateWorkflow();
         }
 
@@ -92,23 +92,21 @@ namespace GethPlugin
     {
         private readonly ILog log;
         private readonly BlockCache blockCache;
-        private readonly string gethHost;
-        private readonly int gethPort;
+        private readonly string rpcUrl;
         private readonly string privateKey;
 
         public GethDeployment StartResult => throw new NotImplementedException();
         public RunningContainer Container => throw new NotImplementedException();
         public EthAddress CurrentAddress { get; }
 
-        public CustomGethNode(ILog log, BlockCache blockCache, string gethHost, int gethPort, string privateKey)
+        public CustomGethNode(ILog log, BlockCache blockCache, string rpcUrl, string privateKey)
         {
             this.log = log;
             this.blockCache = blockCache;
-            this.gethHost = gethHost;
-            this.gethPort = gethPort;
+            this.rpcUrl = rpcUrl;
             this.privateKey = privateKey;
 
-            var creator = new NethereumInteractionCreator(log, blockCache, gethHost, gethPort, privateKey);
+            var creator = new NethereumInteractionCreator(log, blockCache, rpcUrl, privateKey);
             CurrentAddress = creator.GetEthAddress();
         }
 
@@ -119,12 +117,12 @@ namespace GethPlugin
 
         public IGethNode WithDifferentAccount(EthAccount account)
         {
-            return new CustomGethNode(log, blockCache, gethHost, gethPort, account.PrivateKey);
+            return new CustomGethNode(log, blockCache, rpcUrl, account.PrivateKey);
         }
 
         protected override NethereumInteraction StartInteraction()
         {
-            var creator = new NethereumInteractionCreator(log, blockCache, gethHost, gethPort, privateKey);
+            var creator = new NethereumInteractionCreator(log, blockCache, rpcUrl, privateKey);
             return creator.CreateWorkflow();
         }
     }

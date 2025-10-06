@@ -29,13 +29,6 @@ namespace BiblioTech.Rewards
         public void Add(string from, string to)
         {
             AddOrUpdate(from, to);
-
-            var lower = from.ToLowerInvariant();
-            if (lower != from)
-            {
-                AddOrUpdate(lower, to);
-            }
-
             Save();
         }
 
@@ -50,21 +43,23 @@ namespace BiblioTech.Rewards
             var result = msg;
             foreach (var pair in  replacements)
             {
-                result = result.Replace(pair.Key, pair.Value);
+                result = result.Replace(pair.Key, pair.Value, StringComparison.InvariantCultureIgnoreCase);
             }
             return result;
         }
 
         private void AddOrUpdate(string from, string to)
         {
-            if (replacements.ContainsKey(from))
+            foreach (var pair in replacements)
             {
-                replacements[from] = to;
+                if (string.Equals(pair.Key, from, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    replacements[pair.Key] = to;
+                    return;
+                }
             }
-            else
-            {
-                replacements.Add(from, to);
-            }
+
+            replacements.Add(from, to);
         }
 
         private void Save()

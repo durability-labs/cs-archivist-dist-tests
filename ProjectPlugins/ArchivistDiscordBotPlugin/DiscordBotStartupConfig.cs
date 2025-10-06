@@ -49,13 +49,12 @@ namespace ArchivistDiscordBotPlugin
 
     public class DiscordBotGethInfo
     {
-        public DiscordBotGethInfo(string host, int port, string privKey, string marketplaceAddress, string tokenAddress, string abi)
+        public DiscordBotGethInfo(string host, int port, string privKey, string marketplaceAddress, string abi)
         {
             Host = host;
             Port = port;
             PrivKey = privKey;
             MarketplaceAddress = marketplaceAddress;
-            TokenAddress = tokenAddress;
             Abi = abi;
         }
 
@@ -63,7 +62,6 @@ namespace ArchivistDiscordBotPlugin
         public int Port { get; }
         public string PrivKey { get; }
         public string MarketplaceAddress { get; }
-        public string TokenAddress { get; }
         public string Abi { get; }
     }
 }

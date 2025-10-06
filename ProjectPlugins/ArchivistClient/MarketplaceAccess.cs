@@ -52,7 +52,6 @@ namespace ArchivistClient
 
             var logName = $"<Purchase-{response.Substring(0, 3)}>";
             log.AddStringReplace(response, logName);
-            log.AddStringReplace(response.ToLowerInvariant(), logName);
             return new StoragePurchaseContract(log, archivistAccess, response, purchase, hooks);
         }
 

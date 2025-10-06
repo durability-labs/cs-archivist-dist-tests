@@ -71,7 +71,7 @@ namespace Logging
         public virtual void AddStringReplace(string from, string to)
         {
             if (string.IsNullOrWhiteSpace(from)) return;
-            if (replacements.Any(r => r.From == from)) return;
+            if (replacements.Any(r => string.Equals(r.From, from, StringComparison.InvariantCultureIgnoreCase))) return;
             replacements.Add(new BaseLogStringReplacement(from, to));
         }
 
@@ -120,7 +120,7 @@ namespace Logging
 
         public string Apply(string msg)
         {
-            return msg.Replace(From, To);
+            return msg.Replace(From, To, StringComparison.InvariantCultureIgnoreCase);
         }
     }
 }

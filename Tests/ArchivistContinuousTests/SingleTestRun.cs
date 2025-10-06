@@ -5,7 +5,6 @@ using System.Reflection;
 using ArchivistPlugin;
 using DistTestCore.Logs;
 using Core;
-using KubernetesWorkflow.Types;
 using TaskFactory = Utils.TaskFactory;
 using ArchivistClient;
 

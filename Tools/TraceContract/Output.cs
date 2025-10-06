@@ -6,6 +6,7 @@ using Logging;
 using Newtonsoft.Json;
 using Utils;
 using Nethereum.Hex.HexConvertors.Extensions;
+using ArchivistNetworkConfig;
 
 namespace TraceContract
 {
@@ -26,15 +27,10 @@ namespace TraceContract
         private readonly ILog log;
         private readonly List<Entry> entries = new();
         private readonly string folder;
-        private readonly Input input;
-        private readonly Config config;
 
-        public Output(ILog log, Input input, Config config)
+        public Output(ILog log, Input input, Config config, ArchivistNetwork network)
         {
-            this.input = input;
-            this.config = config;
-
-            folder = config.GetOuputFolder();
+            folder = config.OuputFolder;
             Directory.CreateDirectory(folder);
 
             var filename = Path.Combine(folder, $"contract_{input.PurchaseId}");
@@ -42,10 +38,9 @@ namespace TraceContract
             log.Log($"Logging to '{filename}'");
 
             this.log = new LogSplitter(fileLog, log);
-            foreach (var pair in config.LogReplacements)
+            foreach (var pair in network.Team.GetNodesAsLogReplacements())
             {
                 this.log.AddStringReplace(pair.Key, pair.Value);
-                this.log.AddStringReplace(pair.Key.ToLowerInvariant(), pair.Value);
             }
         }
 

@@ -98,7 +98,7 @@ namespace ArchivistContractsPlugin
             ConfigShouldEqual(config.Proofs.Timeout, ArchivistContractsContainerRecipe.TimeoutSeconds, "Timeout");
             ConfigShouldEqual(config.Proofs.Downtime, ArchivistContractsContainerRecipe.DowntimeSeconds, "Downtime");
 
-            return new ArchivistContractsDeployment(config, marketplaceAddress, abi, tokenAddress);
+            return new ArchivistContractsDeployment(config, marketplaceAddress, abi);
         }
 
         private void ConfigShouldEqual(ulong value, int expected, string name)

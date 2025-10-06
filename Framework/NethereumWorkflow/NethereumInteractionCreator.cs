@@ -9,19 +9,17 @@ namespace NethereumWorkflow
     {
         private readonly ILog log;
         private readonly BlockCache blockCache;
-        private readonly string ip;
-        private readonly int port;
+        private readonly string rpcUrl;
         private readonly string privateKey;
 
-        public NethereumInteractionCreator(ILog log, BlockCache blockCache, string ip, int port, string privateKey)
+        public NethereumInteractionCreator(ILog log, BlockCache blockCache, string rpcUrl, string privateKey)
         {
             this.log = log;
             this.blockCache = blockCache;
-            this.ip = ip;
-            this.port = port;
+            this.rpcUrl = rpcUrl;
             this.privateKey = privateKey;
             
-            log.Debug($"Setup {nameof(NethereumInteractionCreator)} to " + ip + ":" + port);
+            log.Debug($"Setup {nameof(NethereumInteractionCreator)} to " + rpcUrl);
         }
 
         public NethereumInteraction CreateWorkflow()
@@ -38,7 +36,7 @@ namespace NethereumWorkflow
         private Web3 CreateWeb3()
         {
             var account = new Nethereum.Web3.Accounts.Account(privateKey);
-            return new Web3(account, $"{ip}:{port}");
+            return new Web3(account, rpcUrl);
         }
     }
 }
