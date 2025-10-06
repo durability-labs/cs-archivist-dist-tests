@@ -270,18 +270,16 @@ namespace ArchivistContractsPlugin.ChainMonitor
             return a.SequenceEqual(b);
         }
 
-        private class BlockTimeGetter
+        public class BlockTimeGetter
         {
             private readonly BlockInterval interval;
             private readonly TimeSpan spanPerBlock;
-            private DateTime blockUtc;
 
             public BlockTimeGetter(BlockInterval interval)
             {
                 var numBlocks = interval.NumberOfBlocks;
                 var span = interval.TimeRange.Duration;
                 spanPerBlock = span / numBlocks;
-                blockUtc = interval.TimeRange.From;
                 this.interval = interval;
             }
 
@@ -291,8 +289,13 @@ namespace ArchivistContractsPlugin.ChainMonitor
                 // Instead, we make one up!
                 // We do this by assuming the blocks in the range are evenly spaced in time.
                 // While that's not necessarily true, it's a good enough approximation for our purposes.
+
+                if (blockNumber > interval.To) throw new Exception($"Block number {blockNumber} is out of range {interval} (over)");
+                if (blockNumber < interval.From) throw new Exception($"Block number {blockNumber} is out of range {interval} (under)");
+
+                var count = blockNumber - interval.From;
+                var blockUtc = interval.TimeRange.From + (count * spanPerBlock);
                 var entry = new BlockTimeEntry(blockNumber, blockUtc);
-                blockUtc += spanPerBlock;
                 if (blockUtc > interval.TimeRange.To)
                 {
                     throw new InvalidOperationException(
