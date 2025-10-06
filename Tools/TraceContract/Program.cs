@@ -38,7 +38,7 @@ namespace TraceContract
 
             appLog = new LogPrefixer(baseLog, "(TraceContract)");
 
-            var connector = new ArchivistNetworkConnector();
+            var connector = new ArchivistNetworkConnector(baseLog);
             network = connector.GetConfig();
 
             output = new(appLog, input, config, network);

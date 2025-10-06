@@ -44,7 +44,7 @@ namespace GethConnector
         {
             try
             {
-                var networkConnector = new ArchivistNetworkConnector();
+                var networkConnector = new ArchivistNetworkConnector(log);
                 return networkConnector.GetConfig();
             }
             catch (Exception ex)

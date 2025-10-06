@@ -131,7 +131,7 @@ namespace BiblioTech
 
         private void LoadReplacementsFromNetworkConfig(CustomReplacement replacement)
         {
-            var connector = new ArchivistNetworkConnector();
+            var connector = new ArchivistNetworkConnector(Log);
             var config = connector.GetConfig();
             var r = config.Team.GetNodesAsLogReplacements();
             foreach (var pair in r)

@@ -1,24 +1,50 @@
-﻿using Newtonsoft.Json;
+﻿using Logging;
+using Newtonsoft.Json;
 using Utils;
 
 namespace ArchivistNetworkConfig
 {
     public class ArchivistNetworkConnector
     {
+        /// <summary>
+        /// Archivist network for which information is fetched.
+        /// Optional. Default: "testnet"
+        /// </summary>
+        private const string EnvVar_Network = "ARCHIVIST_NETWORK";
+
+        /// <summary>
+        /// Archivist version for which information is fetched.
+        /// Optional. Default: "latest"
+        /// </summary>
+        private const string EnvVar_Version = "ARCHIVIST_VERSION";
+
+        /// <summary>
+        /// Optional override. If set, use this URL to fetch config JSON.
+        /// </summary>
+        private const string EnvVar_ConfigUrl = "ARCHIVIST_CONFIG_URL";
+
+        /// <summary>
+        /// Optional override. If set, use this filepath to read config JSON.
+        /// </summary>
+        private const string EnvVar_ConfigFile = "ARCHIVIST_CONFIG_FILE";
+
         private readonly string network;
         private readonly string version;
+        private readonly ILog log;
         private ArchivistNetwork? model = null;
 
-        public ArchivistNetworkConnector()
+        public ArchivistNetworkConnector(ILog log)
             : this(
+                log,
                 EnvVar.GetOrDefault("ARCHIVIST_NETWORK", "testnet"),
                 EnvVar.GetOrDefault("ARCHIVIST_VERSION", "latest")
             )
         {
         }
 
-        public ArchivistNetworkConnector(string network, string version)
+        public ArchivistNetworkConnector(ILog log, string network, string version)
         {
+            this.log = new LogPrefixer(log, $"({nameof(ArchivistNetworkConnector)})");
             this.network = network.ToLowerInvariant();
             this.version = version.ToLowerInvariant();
         }
@@ -35,16 +61,48 @@ namespace ArchivistNetworkConfig
 
                 var fullModel = retry.Run(FetchModel);
                 model = MapToVersion(fullModel);
+                log.Log("Success");
             }
             return model;
         }
 
         private NetworkConfig FetchModel()
         {
-            using var client = new HttpClient();
-            var response = Time.Wait(client.GetAsync($"https://config.archivist.storage/{network}.json"));
-            var str = Time.Wait(response.Content.ReadAsStringAsync());
+            var str = FetchModelJson();
             return JsonConvert.DeserializeObject<NetworkConfig>(str)!;
+        }
+
+        private string FetchModelJson()
+        {
+            var overrideFile = EnvVar.GetOrDefault(EnvVar_ConfigFile, string.Empty);
+            if (!string.IsNullOrEmpty(overrideFile))
+            {
+                return FetchModelFromFile(overrideFile);
+            }
+
+            return FetchModelFromUrl();
+        }
+
+        private string FetchModelFromFile(string overrideFile)
+        {
+            log.Log($"Loading from file '{overrideFile}' ...");
+            return File.ReadAllText(overrideFile);
+        }
+
+        private string FetchModelFromUrl()
+        {
+            using var client = new HttpClient();
+            var url = GetFetchUrl();
+            log.Log($"Loading from URL '{url}' ...");
+            var response = Time.Wait(client.GetAsync(url));
+            return Time.Wait(response.Content.ReadAsStringAsync());
+        }
+
+        private string? GetFetchUrl()
+        {
+            var overrideUrl = EnvVar.GetOrDefault(EnvVar_ConfigUrl, string.Empty);
+            if (!string.IsNullOrEmpty(overrideUrl)) return overrideUrl;
+            return $"https://config.archivist.storage/{network}.json";
         }
 
         private ArchivistNetwork MapToVersion(NetworkConfig fullModel)
