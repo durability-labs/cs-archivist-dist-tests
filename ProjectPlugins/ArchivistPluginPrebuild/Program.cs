@@ -15,6 +15,7 @@ public static class Program
         var pluginRoot = FindArchivistPluginFolder();
         var clientRoot = FindArchivistClientFolder();
         Console.WriteLine("Located ArchivistPlugin: " + pluginRoot);
+        Console.WriteLine("Located ArchivistClient: " + clientRoot);
         var openApiFile = Path.Combine(clientRoot, "openapi.yaml");
         var clientFile = Path.Combine(clientRoot, "obj", "openapiClient.cs");
         var targetFile = Path.Combine(pluginRoot, "ApiChecker.cs");

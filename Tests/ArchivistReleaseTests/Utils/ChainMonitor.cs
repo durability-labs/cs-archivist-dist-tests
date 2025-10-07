@@ -16,13 +16,9 @@ namespace ArchivistReleaseTests.Utils
         private readonly TimeSpan updateInterval;
         private CancellationTokenSource cts = new CancellationTokenSource();
         private Task worker = Task.CompletedTask;
+        private bool monitorProofPeriods;
 
-        public ChainMonitor(ILog log, IGethNode gethNode, IArchivistContracts contracts, IPeriodMonitorEventHandler periodMonitorEventHandler, DateTime startUtc)
-            : this(log, gethNode, contracts, periodMonitorEventHandler, startUtc, TimeSpan.FromSeconds(3.0))
-        {
-        }
-
-        public ChainMonitor(ILog log, IGethNode gethNode, IArchivistContracts contracts, IPeriodMonitorEventHandler periodMonitorEventHandler, DateTime startUtc, TimeSpan updateInterval)
+        public ChainMonitor(ILog log, IGethNode gethNode, IArchivistContracts contracts, IPeriodMonitorEventHandler periodMonitorEventHandler, DateTime startUtc, TimeSpan updateInterval, bool monitorProofPeriods)
         {
             this.log = log;
             this.gethNode = gethNode;
@@ -30,6 +26,7 @@ namespace ArchivistReleaseTests.Utils
             this.periodMonitorEventHandler = periodMonitorEventHandler;
             this.startUtc = startUtc;
             this.updateInterval = updateInterval;
+            this.monitorProofPeriods = monitorProofPeriods;
         }
 
         public void Start(Action onFailure)
@@ -51,7 +48,7 @@ namespace ArchivistReleaseTests.Utils
         {
             try
             {
-                var state = new ChainState(log, gethNode, contracts, new DoNothingThrowingChainEventHandler(), startUtc, true, periodMonitorEventHandler);
+                var state = new ChainState(log, gethNode, contracts, new DoNothingThrowingChainEventHandler(), startUtc, monitorProofPeriods, periodMonitorEventHandler);
                 Thread.Sleep(updateInterval);
 
                 log.Log($"Chain monitoring started. Update interval: {Time.FormatDuration(updateInterval)}");

@@ -37,7 +37,7 @@ namespace ArchivistReleaseTests.MarketTests
 
             Log("Starting ChainMonitor...");
             var failed = false;
-            monitor = new ChainMonitor(GetTestLog(), GetGeth(), GetContracts(), this, DateTime.UtcNow);
+            monitor = new ChainMonitor(GetTestLog(), GetGeth(), GetContracts(), this, DateTime.UtcNow, TimeSpan.FromSeconds(3.0), true);
             monitor.Start(() =>
             {
                 failed = true;

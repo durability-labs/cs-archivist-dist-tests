@@ -111,7 +111,7 @@ namespace ArchivistClient
 
     public class StorageAvailability
     {
-        public StorageAvailability(string id, ByteSize totalSpace, TimeSpan maxDuration, TestToken minPricePerBytePerSecond, TestToken totalCollateral, ByteSize freeSpace)
+        public StorageAvailability(string id, ByteSize totalSpace, TimeSpan maxDuration, TestToken minPricePerBytePerSecond, TestToken totalCollateral, ByteSize freeSpace, AvailabilityReservation[] reservations)
         {
             Id = id;
             TotalSpace = totalSpace;
@@ -119,6 +119,7 @@ namespace ArchivistClient
             MinPricePerBytePerSecond = minPricePerBytePerSecond;
             TotalCollateral = totalCollateral;
             FreeSpace = freeSpace;
+            Reservations = reservations;
         }
 
         public string Id { get; }
@@ -127,6 +128,7 @@ namespace ArchivistClient
         public TestToken MinPricePerBytePerSecond { get; }
         public TestToken TotalCollateral { get; } 
         public ByteSize FreeSpace { get; }
+        public AvailabilityReservation[] Reservations { get; }
 
         public void Log(ILog log)
         {
@@ -136,7 +138,10 @@ namespace ArchivistClient
                 $"maxDuration: {Time.FormatDuration(MaxDuration)}, " + 
                 $"minPricePerBytePerSecond: {MinPricePerBytePerSecond}, " +
                 $"totalCollateral: {TotalCollateral}, " +
-                $"freeSpace: {FreeSpace})");
+                $"freeSpace: {FreeSpace}, " +
+                $"reservations: {Reservations.Length})");
+
+            foreach (var r in Reservations) r.Log(log);
         }
     }
 

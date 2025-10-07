@@ -64,6 +64,7 @@ namespace ArchivistReleaseTests.Utils
         protected abstract ByteSize HostAvailabilitySize { get; }
         protected virtual TimeSpan HostAvailabilityMaxDuration => TimeSpan.FromHours(3.0);
         protected virtual bool MonitorChainState { get; } = true;
+        protected virtual bool MonitorProofPeriods { get; } = true;
         protected TimeSpan HostBlockTTL { get; } = TimeSpan.FromMinutes(1.0);
         protected virtual void OnPeriod(PeriodReport report)
         {
@@ -71,7 +72,14 @@ namespace ArchivistReleaseTests.Utils
 
         public IArchivistNodeGroup StartHosts()
         {
-            var hosts = StartArchivist(NumberOfHosts, s => s
+            return StartHosts(s => { });
+        }
+
+        public IArchivistNodeGroup StartHosts(Action<IArchivistSetup> additional)
+        {
+            var hosts = StartArchivist(NumberOfHosts, s =>
+            {
+                s
                 .WithName("host")
                 .WithBlockTTL(HostBlockTTL)
                 .WithBlockMaintenanceNumber(1000)
@@ -79,8 +87,9 @@ namespace ArchivistReleaseTests.Utils
                 .EnableMarketplace(GetGeth(), GetContracts(), m => m
                     .WithInitial(StartingBalanceEth.Eth(), StartingBalanceTST.Tst())
                     .AsStorageNode()
-                )
-            );
+                );
+                additional(s);
+            });
 
             var config = GetContracts().Deployment.Config;
             foreach (var host in hosts)
@@ -129,23 +138,17 @@ namespace ArchivistReleaseTests.Utils
             var retry = GetAvailabilitySpaceAssertRetry();
             retry.Run(() =>
             {
-                foreach (var host in hosts)
+                var availabilities = hosts.SelectMany(h => h.Marketplace.GetAvailabilities()).ToArray();
+
+                foreach (var a in availabilities)
                 {
-                    AssertHostAvailabilitiesAreEmpty(host);
+                    if (a.FreeSpace.SizeInBytes != a.TotalSpace.SizeInBytes)
+                    {
+                        throw new Exception($"{nameof(AssertHostAvailabilitiesAreEmpty)} free: {a.FreeSpace} total: {a.TotalSpace}");
+                    }
+                    CollectionAssert.IsEmpty(a.Reservations);
                 }
             });
-        }
-
-        private void AssertHostAvailabilitiesAreEmpty(IArchivistNode host)
-        {
-            var availabilities = host.Marketplace.GetAvailabilities();
-            foreach (var a in availabilities)
-            {
-                if (a.FreeSpace.SizeInBytes != a.TotalSpace.SizeInBytes)
-                {
-                    throw new Exception($"{nameof(AssertHostAvailabilitiesAreEmpty)} free: {a.FreeSpace} total: {a.TotalSpace}");
-                }
-            }
         }
 
         public void AssertTstBalance(IArchivistNode node, TestToken expectedBalance, string message)
@@ -318,7 +321,10 @@ namespace ArchivistReleaseTests.Utils
         {
             if (!MonitorChainState) return null;
 
-            var result = new ChainMonitor(log, gethNode, contracts, this, startUtc);
+            var result = new ChainMonitor(log, gethNode, contracts, this, startUtc, 
+                updateInterval: TimeSpan.FromSeconds(3.0),
+                monitorProofPeriods: MonitorProofPeriods);
+
             result.Start(() =>
             {
                 Assert.Fail("Failure in chain monitor.");
