@@ -81,7 +81,7 @@ namespace TraceContract
         {
             var account = EthAccountGenerator.GenerateNew();
             var blockCache = new BlockCache(baseLog, new DiskBlockBucketStore(Path.Combine(config.DataDir, "blocks_cache")));
-            return new CustomGethNode(baseLog, blockCache, network.RPCs.First(), account.PrivateKey);
+            return new CustomGethNode(baseLog, blockCache, network.Team.Utils.BotRpc, account.PrivateKey);
         }
 
         private IArchivistContracts ConnectArchivistContracts(CoreInterface ci, IGethNode geth)

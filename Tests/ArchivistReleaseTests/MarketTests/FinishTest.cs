@@ -1,5 +1,4 @@
 using ArchivistClient;
-using ArchivistPlugin;
 using ArchivistReleaseTests.Utils;
 using NUnit.Framework;
 using Utils;

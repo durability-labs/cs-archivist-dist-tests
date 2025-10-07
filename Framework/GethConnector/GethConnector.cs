@@ -25,8 +25,7 @@ namespace GethConnector
             var privateKey = EnvVar.GetOrThrow(GethPrivKeyVar);
             var networkConfig = FetchNetworkConfig(log);
 
-            var gethNode = new CustomGethNode(log, blockCache, networkConfig.RPCs.First(), privateKey);
-
+            var gethNode = new CustomGethNode(log, blockCache, networkConfig.Team.Utils.BotRpc, privateKey);
             var config = GetArchivistMarketplaceConfig(gethNode, networkConfig.Marketplace.ContractAddress);
 
             var contractsDeployment = new ArchivistContractsDeployment(
