@@ -50,9 +50,15 @@ namespace ArchivistContractsPlugin.ChainMonitor
         public EthAddress Client { get; }
         public RequestHosts Hosts { get; }
 
-        public void UpdateState(ulong blockNumber, RequestState newState)
+        public void UpdateStateFromEvent(IHasBlockAndRequestId triggeringEvent, RequestState newState)
         {
-            Log($"[{blockNumber}] Transit: {State} -> {newState}");
+            Log($"Contract event {triggeringEvent.GetType().Name} at {triggeringEvent.Block} causes Transit: {State} -> {newState}");
+            State = newState;
+        }
+
+        public void UpdateStateFromTime(BlockTimeEntry matchingBlock, string eventName, RequestState newState)
+        {
+            Log($"Time event {eventName} at {matchingBlock} causes Transit: {State} -> {newState}");
             State = newState;
         }
 

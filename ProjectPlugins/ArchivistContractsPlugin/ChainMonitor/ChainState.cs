@@ -154,7 +154,7 @@ namespace ArchivistContractsPlugin.ChainMonitor
         {
             var r = FindRequest(@event);
             if (r == null) return;
-            r.UpdateState(@event.Block.BlockNumber, RequestState.Started);
+            r.UpdateStateFromEvent(@event, RequestState.Started);
             handler.OnRequestFulfilled(new RequestEvent(@event.Block, r));
         }
 
@@ -162,7 +162,7 @@ namespace ArchivistContractsPlugin.ChainMonitor
         {
             var r = FindRequest(@event);
             if (r == null) return;
-            r.UpdateState(@event.Block.BlockNumber, RequestState.Cancelled);
+            r.UpdateStateFromEvent(@event, RequestState.Cancelled);
             handler.OnRequestCancelled(new RequestEvent(@event.Block, r));
         }
 
@@ -170,7 +170,7 @@ namespace ArchivistContractsPlugin.ChainMonitor
         {
             var r = FindRequest(@event);
             if (r == null) return;
-            r.UpdateState(@event.Block.BlockNumber, RequestState.Failed);
+            r.UpdateStateFromEvent(@event, RequestState.Failed);
             handler.OnRequestFailed(new RequestEvent(@event.Block, r));
         }
 
@@ -180,7 +180,7 @@ namespace ArchivistContractsPlugin.ChainMonitor
             if (r == null) return;
             var slotIndex = (int)@event.SlotIndex;
             var isRepair = !r.Hosts.IsFilled(slotIndex) && r.Hosts.WasPreviouslyFilled(slotIndex);
-            r.Log($"[{@event.Block.BlockNumber}] SlotFilled (host:'{@event.Host}', slotIndex:{@event.SlotIndex}, isRepair:{isRepair})");
+            r.Log($"{@event.Block} SlotFilled (host:'{@event.Host}', slotIndex:{@event.SlotIndex}, isRepair:{isRepair})");
             r.Hosts.HostFillsSlot(@event.Host, slotIndex);
             handler.OnSlotFilled(new RequestEvent(@event.Block, r), @event.Host, @event.SlotIndex, isRepair);
         }
@@ -189,7 +189,8 @@ namespace ArchivistContractsPlugin.ChainMonitor
         {
             var r = FindRequest(@event);
             if (r == null) return;
-            r.Log($"[{@event.Block.BlockNumber}] SlotFreed (slotIndex:{@event.SlotIndex})");
+            var host = r.Hosts.GetHost((int)@event.SlotIndex);
+            r.Log($"{@event.Block} SlotFreed (slotIndex:{@event.SlotIndex}, previousHost:{host.AsStr()} )");
             r.Hosts.SlotFreed((int)@event.SlotIndex);
             handler.OnSlotFreed(new RequestEvent(@event.Block, r), @event.SlotIndex);
         }
@@ -198,7 +199,7 @@ namespace ArchivistContractsPlugin.ChainMonitor
         {
             var r = FindRequest(@event);
             if (r == null) return;
-            r.Log($"[{@event.Block.BlockNumber}] SlotReservationsFull (slotIndex:{@event.SlotIndex})");
+            r.Log($"{@event.Block} SlotReservationsFull (slotIndex:{@event.SlotIndex})");
             handler.OnSlotReservationsFull(new RequestEvent(@event.Block, r), @event.SlotIndex);
         }
 
@@ -208,7 +209,7 @@ namespace ArchivistContractsPlugin.ChainMonitor
 
             var proofOrigin = SearchForProofOrigin(id);
 
-            log.Log($"[{@event.Block.BlockNumber}] Proof submitted (id:{id} {proofOrigin})");
+            log.Log($"{@event.Block} Proof submitted (id:{id} {proofOrigin})");
             handler.OnProofSubmitted(@event.Block, id);
         }
 
@@ -237,7 +238,10 @@ namespace ArchivistContractsPlugin.ChainMonitor
                 if (r.State == RequestState.Started
                     && r.FinishedUtc < entry.Utc)
                 {
-                    r.UpdateState(entry.BlockNumber, RequestState.Finished);
+                    r.UpdateStateFromTime(
+                        matchingBlock: entry,
+                        eventName: "RequestFinished",
+                        newState: RequestState.Finished);
                     handler.OnRequestFinished(new RequestEvent(entry, r));
                 }
             }

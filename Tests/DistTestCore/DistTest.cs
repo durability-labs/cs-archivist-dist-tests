@@ -118,6 +118,8 @@ namespace DistTestCore
 
         public void Log(string msg)
         {
+            var callerName = DebugStack.GetCallerName(skipFrames: 0);
+            msg = $"({callerName}) {msg}";
             TestContext.Progress.WriteLine(msg);
             GetTestLog().Log(msg);
         }
@@ -125,7 +127,7 @@ namespace DistTestCore
         public void Debug(string msg)
         {
             TestContext.Progress.WriteLine(msg);
-            GetTestLog().Debug(msg);
+            GetTestLog().Debug(msg, skipFrames: 1);
         }
 
         public void Measure(string name, Action action)

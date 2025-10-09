@@ -134,7 +134,7 @@ namespace ArchivistTests
 
         public void WaitAndCheckNodesStaysAlive(TimeSpan duration, params IArchivistNode[] nodes)
         {
-            Log($"{nameof(WaitAndCheckNodesStaysAlive)} {Time.FormatDuration(duration)}...");
+            Log($"{Time.FormatDuration(duration)}...");
 
             var timeout = TimeSpan.FromSeconds(3.0);
             Assert.That(duration.TotalSeconds, Is.GreaterThan(timeout.TotalSeconds));
@@ -152,7 +152,7 @@ namespace ArchivistTests
                 }
             }
 
-            Log($"{nameof(WaitAndCheckNodesStaysAlive)} OK");
+            Log("OK");
         }
 
         public void AssertNodesContainFile(ContentId cid, IArchivistNodeGroup nodes)
@@ -162,7 +162,7 @@ namespace ArchivistTests
 
         public void AssertNodesContainFile(ContentId cid, params IArchivistNode[] nodes)
         {
-            Log($"{nameof(AssertNodesContainFile)} {nodes.Names()} {cid}...");
+            Log($"{nodes.Names()} {cid}...");
 
             foreach (var node in nodes)
             {
@@ -170,7 +170,7 @@ namespace ArchivistTests
                 CollectionAssert.Contains(localDatasets.Content.Select(c => c.Cid), cid);
             }
 
-            Log($"{nameof(AssertNodesContainFile)} OK");
+            Log("OK");
         }
 
         private string GetBasicNodeStatus(IArchivistNode node)

@@ -59,20 +59,24 @@ namespace ArchivistReleaseTests.MarketTests
             WaitAndCheckNodesStaysAlive(config.PeriodDuration * 5, hosts);
 
             // No proofs were missed so far.
-            Assert.That(proofsMissed, Is.EqualTo(0), "Proofs were missed *BEFORE* any hosts were shut down.");
+            Assert.That(proofsMissed, Is.EqualTo(0), $"Proofs were missed *BEFORE* any hosts were shut down.");
             
             var requestState = GetContracts().GetRequestState(contract.PurchaseId.HexToByteArray());
             Assert.That(requestState, Is.Not.EqualTo(RequestState.Failed));
 
             for (var i = 0; i < numFailures; i++)
             {
+                var fills = GetOnChainSlotFills(hosts);
+
                 Log($"Failure step: {i}");
                 Log($"Running hosts: [{string.Join(", ", hosts.Select(h => h.GetName()))}]");
+                Log($"Current fills: {string.Join(", ", fills.Select(f => f.ToString()))}");
 
                 // Start a new host. Add it to the back of the list:
                 hosts.Add(StartOneHost());
 
-                var fill = GetSlotFillByOldestHost(hosts);
+                // Pick a filled slot by a host at or near the front of the list.
+                var fill = GetSlotFillByOldestHost(fills, hosts);
 
                 Log($"Causing failure for host: {fill.Host.GetName()} slotIndex: {fill.SlotFilledEvent.SlotIndex}");
                 hosts.Remove(fill.Host);
@@ -85,7 +89,6 @@ namespace ArchivistReleaseTests.MarketTests
                 WaitForNewSlotFilledEvent(contract, fill.SlotFilledEvent.SlotIndex);
             }
         }
-
 
         protected override void OnPeriod(PeriodReport report)
         {
@@ -103,75 +106,91 @@ namespace ArchivistReleaseTests.MarketTests
 
         private void WaitForSlotFreedEvent(IStoragePurchaseContract contract, ulong slotIndex)
         {
-            var start = DateTime.UtcNow;
             var timeout = CalculateContractFailTimespan();
-            var context = $"{nameof(WaitForSlotFreedEvent)} requestId: '{contract.PurchaseId.ToLowerInvariant()}' slotIndex: {slotIndex}";
+            var context = $"(requestId: '{contract.PurchaseId.ToLowerInvariant()}' slotIndex: {slotIndex}) - ";
+            Log($"{context} Timeout: {Time.FormatDuration(timeout)}");
 
-            Log($"{context} {Time.FormatDuration(timeout)}");
-
-            while (DateTime.UtcNow < start + timeout)
-            {
-                var events = GetContracts().GetEvents(GetTestRunTimeRange());
-                var slotsFreed = events.GetEvents<SlotFreedEventDTO>();
-                Log($"Slots freed this period: {slotsFreed.Length}");
-
-                foreach (var free in slotsFreed)
+            WaitForNewEventWithTimeout(
+                timeout: timeout,
+                waiter: () => GetContracts().WaitUntilNextPeriod(),
+                checker: events =>
                 {
-                    var freedId = free.RequestId.ToHex().ToLowerInvariant();
-                    Log($"{context} - Free for requestId '{freedId}' slotIndex: {free.SlotIndex}");
+                    var slotsFreed = events.GetEvents<SlotFreedEventDTO>();
+                    Log($"{context} Slots freed this period: {slotsFreed.Length}");
 
-                    if (freedId.Equals(contract.PurchaseId, StringComparison.InvariantCultureIgnoreCase))
+                    foreach (var free in slotsFreed)
                     {
-                        if (free.SlotIndex == slotIndex)
+                        var freedId = free.RequestId.ToHex().ToLowerInvariant();
+                        Log($"{context} {free.Block} Free for requestId '{freedId}' slotIndex: {free.SlotIndex}");
+
+                        if (freedId.Equals(contract.PurchaseId, StringComparison.InvariantCultureIgnoreCase))
                         {
-                            Log($"{context} - Done: found the correct slotFree event.");
-                            return;
+                            if (free.SlotIndex == slotIndex)
+                            {
+                                Log($"{context} {free.Block} Done: found the correct slotFree event.");
+                                return true;
+                            }
                         }
                     }
-                }
-                GetContracts().WaitUntilNextPeriod();
-            }
-            Assert.Fail($"{context} - Failed after {Time.FormatDuration(timeout)}");
+                    return false;
+                });
         }
 
         private void WaitForNewSlotFilledEvent(IStoragePurchaseContract contract, ulong slotIndex)
         {
-            Log(nameof(WaitForNewSlotFilledEvent));
-            var start = DateTime.UtcNow - TimeSpan.FromSeconds(10.0);
             var timeout = contract.Purchase.Expiry;
+            var context = $"(requestId: '{contract.PurchaseId.ToLowerInvariant()}' slotIndex: {slotIndex}) - ";
+            Log($"{context} Timeout: {Time.FormatDuration(timeout)}");
+
+            WaitForNewEventWithTimeout(
+                timeout: timeout,
+                waiter: () => Thread.Sleep(TimeSpan.FromSeconds(15)),
+                checker: events =>
+                {
+                    var slotFillEvents = events.GetEvents<SlotFilledEventDTO>();
+                    Log($"{context} Slots filled in last 15 seconds: {slotFillEvents.Length}");
+
+                    var matches = slotFillEvents.Where(f =>
+                    {
+                        return
+                            f.RequestId.ToHex().ToLowerInvariant() == contract.PurchaseId.ToLowerInvariant() &&
+                            f.SlotIndex == slotIndex;
+                    }).ToArray();
+
+                    if (matches.Length > 1)
+                    {
+                        var msg = string.Join(",", matches.Select(f => f.ToString()));
+                        Assert.Fail($"{context} Somehow, the slot got filled multiple times: {msg}");
+                    }
+                    if (matches.Length == 1)
+                    {
+                        Log($"{context} Found the correct new slotFilled event: {matches[0].ToString()}");
+                        return true;
+                    }
+                    return false;
+                });
+        }
+
+        private void WaitForNewEventWithTimeout(TimeSpan timeout, Action waiter, Func<IArchivistContractsEvents, bool> checker)
+        {
+            var start = DateTime.UtcNow;
+            var loop = start;
+            Thread.Sleep(TimeSpan.FromSeconds(3.0));
 
             while (DateTime.UtcNow < start + timeout)
             {
-                var newTimeRange = new TimeRange(start, DateTime.UtcNow); // We only want to see new fill events.
-                var events = GetContracts().GetEvents(newTimeRange);
-                var slotFillEvents = events.GetEvents<SlotFilledEventDTO>();
+                var loopStart = loop;
+                loop = DateTime.UtcNow;
+                var events = GetContracts().GetEvents(new TimeRange(loopStart, loop));
 
-                var matches = slotFillEvents.Where(f =>
-                {
-                    return
-                        f.RequestId.ToHex().ToLowerInvariant() == contract.PurchaseId.ToLowerInvariant() &&
-                        f.SlotIndex == slotIndex;
-                }).ToArray();
-
-                if (matches.Length > 1)
-                {
-                    var msg = string.Join(",", matches.Select(f => f.ToString()));
-                    Assert.Fail($"Somehow, the slot got filled multiple times: {msg}");
-                }
-                if (matches.Length == 1)
-                {
-                    Log($"Found the correct new slotFilled event: {matches[0].ToString()}");
-                    return;
-                }
-
-                Thread.Sleep(TimeSpan.FromSeconds(15));
+                if (checker(events)) return;
+                waiter();
             }
-            Assert.Fail($"{nameof(WaitForSlotFreedEvent)} for contract {contract.PurchaseId} and slotIndex {slotIndex} failed after {Time.FormatDuration(timeout)}");
+            Assert.Fail($"{nameof(WaitForNewEventWithTimeout)} Failed after {Time.FormatDuration(timeout)}");
         }
 
-        private SlotFill GetSlotFillByOldestHost(List<IArchivistNode> hosts)
+        private SlotFill GetSlotFillByOldestHost(SlotFill[] fills, List<IArchivistNode> hosts)
         {
-            var fills = GetOnChainSlotFills(hosts);
             var copy = hosts.ToArray();
             foreach (var host in copy)
             {

@@ -495,6 +495,11 @@ namespace ArchivistReleaseTests.Utils
 
             public SlotFilledEventDTO SlotFilledEvent { get; }
             public IArchivistNode Host { get; }
+
+            public override string ToString()
+            {
+                return SlotFilledEvent.ToString();
+            }
         }
 
         private class MarketplaceHandle
