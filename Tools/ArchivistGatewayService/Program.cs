@@ -23,6 +23,7 @@ namespace ArchivistGatewayService
             builder.Services.AddSingleton<ILog>(log);
             builder.Services.AddSingleton(config);
             builder.Services.AddSingleton<NodeSelector>();
+            builder.Services.AddSingleton<AppMetrics>();
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -32,6 +33,7 @@ namespace ArchivistGatewayService
             var app = builder.Build();
 
             app.Services.GetService<NodeSelector>()!.Initialize().Wait();
+            app.Services.GetService<AppMetrics>()!.Initialize();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
