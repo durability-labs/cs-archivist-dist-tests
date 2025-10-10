@@ -102,6 +102,6 @@ public class Program
 
     private static void PrintHelp()
     {
-        Console.WriteLine("Generates fake data and creates Archivist storage contracts for it.");
+        Console.WriteLine("Uploads files and creates Archivist storage contracts for them.");
     }
 }

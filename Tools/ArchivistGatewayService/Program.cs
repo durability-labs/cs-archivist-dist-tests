@@ -1,3 +1,5 @@
+using ArgsUniform;
+using Logging;
 
 namespace ArchivistGatewayService
 {
@@ -5,9 +7,22 @@ namespace ArchivistGatewayService
     {
         public static void Main(string[] args)
         {
+            var uniformArgs = new ArgsUniform<Configuration>(PrintHelp, args);
+            var config = uniformArgs.Parse(true);
+
+            var log = new TimestampPrefixer(
+                new LogSplitter(
+                    new FileLog(Path.Combine(config.DataPath, "gateway")),
+                    new ConsoleLog()
+                )
+            );
+
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
+            builder.Services.AddSingleton<ILog>(log);
+            builder.Services.AddSingleton(config);
+            builder.Services.AddSingleton<NodeSelector>();
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -15,6 +30,8 @@ namespace ArchivistGatewayService
             builder.Services.AddSwaggerGen();
 
             var app = builder.Build();
+
+            app.Services.GetService<NodeSelector>()!.Initialize().Wait();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -27,10 +44,14 @@ namespace ArchivistGatewayService
 
             app.UseAuthorization();
 
-
             app.MapControllers();
 
             app.Run();
+        }
+
+        private static void PrintHelp()
+        {
+            Console.WriteLine("Archivist Gateway Service");
         }
     }
 }

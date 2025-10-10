@@ -1,4 +1,3 @@
-using System.Threading;
 using ArchivistOpenApi;
 using Logging;
 using Newtonsoft.Json;
