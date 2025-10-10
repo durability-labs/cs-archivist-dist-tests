@@ -9,11 +9,13 @@ public class GatewayController : ControllerBase
 {
     private readonly HttpClient client = new HttpClient();
     private readonly NodeSelector selector;
+    private readonly AppMetrics metrics;
     private readonly ILog log;
 
-    public GatewayController(NodeSelector selector, Configuration config, ILog log)
+    public GatewayController(NodeSelector selector, Configuration config, AppMetrics metrics, ILog log)
     {
         this.selector = selector;
+        this.metrics = metrics;
         this.log = log;
         client.Timeout = TimeSpan.FromMinutes(config.RequestTimeoutMinutes);
     }
@@ -25,6 +27,7 @@ public class GatewayController : ControllerBase
         var nodeUrl = selector.GetNodeUrl(cid);
         var sourceUrl = $"{nodeUrl}data/{cid}/network/manifest";
         await StreamResponse(sourceUrl, MediaTypeWithQualityHeaderValue.Parse("application/json"));
+        metrics.OnManifestRequest();
     }
 
     [HttpGet()]
@@ -35,6 +38,7 @@ public class GatewayController : ControllerBase
         var sourceUrl = $"{nodeUrl}data/{cid}/network/stream";
 
         await StreamResponse(sourceUrl, MediaTypeWithQualityHeaderValue.Parse("application/octet-stream"));
+        metrics.OnDataRequest();
     }
 
     private async Task StreamResponse(string sourceUrl, MediaTypeWithQualityHeaderValue acceptHeader)

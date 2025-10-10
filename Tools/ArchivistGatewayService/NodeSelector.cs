@@ -1,4 +1,6 @@
-﻿using Logging;
+﻿using System.Security.Cryptography;
+using System.Threading.Tasks;
+using Logging;
 
 namespace ArchivistGatewayService
 {
@@ -36,6 +38,21 @@ namespace ArchivistGatewayService
         {
             var endpoint = GetEndpointFor(cid);
             return $"{endpoint}/api/archivist/v1/";
+        }
+
+        public async Task CheckOneNode()
+        {
+            var endpoint = "";
+            lock (_mapLock)
+            {
+                // Cycle through the endpoints.
+                endpoint = nodeEndpoints[0];
+                nodeEndpoints.RemoveAt(0);
+                nodeEndpoints.Add(endpoint);
+            }
+
+            using var client = new HttpClient();
+            await CheckEndpoint(endpoint, client);
         }
 
         private async Task CheckEndpoint(string endpoint, HttpClient client)

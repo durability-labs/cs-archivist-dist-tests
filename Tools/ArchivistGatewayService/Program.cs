@@ -48,7 +48,7 @@ namespace ArchivistGatewayService
 
             app.MapControllers();
 
-            app.Run();
+            app.Run(config.ListenUrl);
         }
 
         private static void PrintHelp()

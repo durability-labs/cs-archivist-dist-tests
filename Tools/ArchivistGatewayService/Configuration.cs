@@ -4,21 +4,19 @@ namespace ArchivistGatewayService
 {
     public class Configuration
     {
-        [Uniform("archivist-endpoints", "ce", "ARCHIVISTENDPOINTS", false, "Archivist endpoints. Semi-colon separated. (default 'http://localhost:8080')")]
-        public string ArchivistEndpoints { get; set; } =
-            "http://localhost:8080" + ";" +
-            "http://localhost:8081" + ";" +
-            "http://localhost:8082" + ";" +
-            "http://localhost:8083" + ";" +
-            "http://localhost:8084" + ";" +
-            "http://localhost:8085" + ";" +
-            "http://localhost:8086" + ";" +
-            "http://localhost:8087";
+        [Uniform("listen-url", "l", "LISTENURL", false, "API server listen URL. (default: 'https://0.0.0.0:8080')")]
+        public string ListenUrl { get; set; } = "https://0.0.0.0:8080";
 
-        [Uniform("datapath", "dp", "DATAPATH", false, "Root path where all data files will be saved.")]
+        [Uniform("metrics-port", "mp", "METRICSPORT", false, "Local port for metrics endpoint. (default: '8008')")]
+        public int MetricsPort { get; set; } = 8008;
+
+        [Uniform("archivist-endpoints", "ce", "ARCHIVISTENDPOINTS", true, "Archivist endpoints. Semi-colon separated.")]
+        public string ArchivistEndpoints { get; set; } = "";
+
+        [Uniform("datapath", "dp", "DATAPATH", false, "Root path where all data files will be saved. (default: 'datapath'")]
         public string DataPath { get; set; } = "datapath";
 
-        [Uniform("timeout", "t", "TIMEOUT", false, "Timeout (in minutes) used for outgoing HTTP requests.")]
+        [Uniform("timeout", "t", "TIMEOUT", false, "Timeout (in minutes) used for outgoing HTTP requests. (default: 30)")]
         public int RequestTimeoutMinutes { get; set; } = 30;
     }
 }
