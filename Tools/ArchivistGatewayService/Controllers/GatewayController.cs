@@ -1,3 +1,4 @@
+using Logging;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Http.Headers;
 
@@ -8,11 +9,12 @@ public class GatewayController : ControllerBase
 {
     private readonly HttpClient client = new HttpClient();
     private readonly NodeSelector selector;
+    private readonly ILog log;
 
-    public GatewayController(NodeSelector selector, Configuration config)
+    public GatewayController(NodeSelector selector, Configuration config, ILog log)
     {
         this.selector = selector;
-
+        this.log = log;
         client.Timeout = TimeSpan.FromMinutes(config.RequestTimeoutMinutes);
     }
 
@@ -22,7 +24,6 @@ public class GatewayController : ControllerBase
     {
         var nodeUrl = selector.GetNodeUrl(cid);
         var sourceUrl = $"{nodeUrl}data/{cid}/network/manifest";
-
         await StreamResponse(sourceUrl, MediaTypeWithQualityHeaderValue.Parse("application/json"));
     }
 
@@ -38,6 +39,8 @@ public class GatewayController : ControllerBase
 
     private async Task StreamResponse(string sourceUrl, MediaTypeWithQualityHeaderValue acceptHeader)
     {
+        log.Log($"GET: '{sourceUrl}'");
+
         using var request = new HttpRequestMessage();
         request.Method = new HttpMethod("GET");
         request.Headers.Accept.Add(acceptHeader);

@@ -6,7 +6,9 @@ namespace ArchivistGatewayService
     {
         private readonly ILog log;
         private readonly Configuration config;
+        private readonly object _mapLock = new object();
         private readonly List<string> nodeEndpoints = new();
+        private readonly Dictionary<string, string> knownMappings = new Dictionary<string, string>();
 
         public NodeSelector(ILog log, Configuration config)
         {
@@ -18,7 +20,12 @@ namespace ArchivistGatewayService
         {
             Log("Initializing...");
 
-            nodeEndpoints.AddRange(config.ArchivistEndpoints.Split(";", StringSplitOptions.RemoveEmptyEntries));
+            nodeEndpoints.AddRange(config.ArchivistEndpoints
+                .Split(";", StringSplitOptions.RemoveEmptyEntries)
+                .Select(s => s.TrimEnd('/')));
+
+            if (!nodeEndpoints.Any()) throw new Exception("No Archivist endpoints configured");
+
             using var client = new HttpClient();
             foreach (var n in nodeEndpoints) await CheckEndpoint(n, client);
 
@@ -27,8 +34,8 @@ namespace ArchivistGatewayService
 
         public string GetNodeUrl(string cid)
         {
-            Log("getting url for " + cid);
-            return "http://192.168.178.26:8081/api/archivist/v1/";
+            var endpoint = GetEndpointFor(cid);
+            return $"{endpoint}/api/archivist/v1/";
         }
 
         private async Task CheckEndpoint(string endpoint, HttpClient client)
@@ -42,6 +49,27 @@ namespace ArchivistGatewayService
             {
                 Log($"Invalid response received");
                 throw new Exception($"Invalid response received from endpoint '{endpoint}'");
+            }
+        }
+
+        private string GetEndpointFor(string cid)
+        {
+            // If the CID was previously assigned to a node,
+            // use the same node for the same CID.
+            // It might still have (some of) the data.
+            lock (_mapLock)
+            {
+                if (knownMappings.TryGetValue(cid, out string? value))
+                {
+                    return value;
+                }
+                // Cycle through the endpoints and assign them.
+                var endpoint = nodeEndpoints[0];
+                nodeEndpoints.RemoveAt(0);
+                nodeEndpoints.Add(endpoint);
+                knownMappings.Add(cid, endpoint);
+                Log($"CID '{cid}' mapped to endpoint '{endpoint}'");
+                return endpoint;
             }
         }
 
