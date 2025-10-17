@@ -1,4 +1,5 @@
 using Core;
+using KubernetesWorkflow;
 using KubernetesWorkflow.Types;
 using Logging;
 using System.Security.Cryptography;
@@ -10,7 +11,7 @@ namespace ArchivistPlugin
     public class ApiChecker
     {
         // <INSERT-OPENAPI-YAML-HASH>
-        private const string OpenApiYamlHash = "A7-A3-22-A1-47-8B-75-E2-A6-22-C6-E3-67-AA-86-99-D2-A2-CC-27-9C-CE-46-DF-D6-4A-D8-DD-C4-6B-AE-97";
+        private const string OpenApiYamlHash = "A4-32-F1-C6-C5-20-E9-9D-FF-9D-C4-BA-53-FA-13-AC-F3-7C-B7-B4-51-E5-B8-60-0F-C2-40-E2-CF-E5-60-F9";
         private const string OpenApiFilePath = "/archivist/openapi.yaml";
         private const string DisableEnvironmentVariable = "ARCHIVISTPLUGIN_DISABLE_APICHECK";
 
@@ -60,9 +61,13 @@ namespace ArchivistPlugin
             if (string.IsNullOrEmpty(containerApi))
             {
                 log.Error(Warning);
+                Fail();
+            }
 
-                checkPassed = true;
-                return;
+            if (!CheckSystemTestingOptionsEnabled(container, workflow))
+            {
+                log.Error("Application is not built with system testing options enabled.");
+                Fail();
             }
 
             var containerHash = Hash(containerApi);
@@ -75,6 +80,17 @@ namespace ArchivistPlugin
 
             OverwriteOpenApiYaml(containerApi);
 
+            Fail();
+        }
+
+        private bool CheckSystemTestingOptionsEnabled(RunningContainer container, IStartupWorkflow workflow)
+        {
+            var lines = workflow.DownloadContainerLog(container);
+            return lines.GetLinesContaining("This application was compiled with system testing options enabled").Any();
+        }
+
+        private void Fail()
+        {
             log.Error(Failure);
             throw new Exception(Failure);
         }

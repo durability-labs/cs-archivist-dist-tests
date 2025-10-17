@@ -5,3 +5,4 @@ bin
 Tools/AutoClient/datapath
 .editorconfig
 Tools/ArchivistGatewayService/datapath
+Tools/EphemeralClient/volumes

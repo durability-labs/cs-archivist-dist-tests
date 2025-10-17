@@ -91,6 +91,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArchivistNetworkConfig", "F
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArchivistGatewayService", "Tools\ArchivistGatewayService\ArchivistGatewayService.csproj", "{00464EA7-DC92-405A-98E9-8343941FDDD8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EphemeralClient", "Tools\EphemeralClient\EphemeralClient.csproj", "{97033BB6-3EDF-4171-B0A2-F167130B4DF8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -249,6 +251,10 @@ Global
 		{00464EA7-DC92-405A-98E9-8343941FDDD8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{00464EA7-DC92-405A-98E9-8343941FDDD8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{00464EA7-DC92-405A-98E9-8343941FDDD8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{97033BB6-3EDF-4171-B0A2-F167130B4DF8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{97033BB6-3EDF-4171-B0A2-F167130B4DF8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{97033BB6-3EDF-4171-B0A2-F167130B4DF8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{97033BB6-3EDF-4171-B0A2-F167130B4DF8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -292,6 +298,7 @@ Global
 		{58CDACE0-8F8D-2BB7-EA3A-0CB6A994A7F8} = {7591C5B3-D86E-4AE4-8ED2-B272D17FE7E3}
 		{D690C0EF-3703-473E-9B43-57B4B69AC6DC} = {81AE04BC-CBFA-4E6F-B039-8208E9AFAAE7}
 		{00464EA7-DC92-405A-98E9-8343941FDDD8} = {7591C5B3-D86E-4AE4-8ED2-B272D17FE7E3}
+		{97033BB6-3EDF-4171-B0A2-F167130B4DF8} = {7591C5B3-D86E-4AE4-8ED2-B272D17FE7E3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {237BF0AA-9EC4-4659-AD9A-65DEB974250C}

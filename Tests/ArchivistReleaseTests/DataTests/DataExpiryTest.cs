@@ -88,7 +88,6 @@ namespace ArchivistReleaseTests.DataTests
         }
 
         [Test]
-        [Ignore("Issue not fixed. Ticket: https://github.com/durability-labs/archivist-node/issues/1291")]
         public void StorageRequestsKeepManifests()
         {
             var bootstrapNode = StartArchivist(s => s.WithName("Bootstrap"));
