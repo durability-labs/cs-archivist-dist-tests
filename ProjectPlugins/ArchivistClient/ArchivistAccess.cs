@@ -81,26 +81,52 @@ namespace ArchivistClient
             public string Spr { get; set; } = string.Empty;
         }
 
+        //public DebugPeer GetDebugPeer(string peerId)
+        //{
+        //    // Cannot use openAPI: debug/peer endpoint is not specified there.
+        //    return CrashCheck(() =>
+        //    {
+        //        var endpoint = GetEndpoint();
+        //        var str = endpoint.HttpGetString($"debug/peer/{peerId}");
+
+        //        if (str.ToLowerInvariant() == "unable to find peer!")
+        //        {
+        //            return new DebugPeer
+        //            {
+        //                IsPeerFound = false
+        //            };
+        //        }
+
+        //        var result = endpoint.Deserialize<DebugPeer>(str);
+        //        result.IsPeerFound = true;
+        //        return result;
+        //    });
+        //}
+
         public DebugPeer GetDebugPeer(string peerId)
         {
-            // Cannot use openAPI: debug/peer endpoint is not specified there.
-            return CrashCheck(() =>
+            try
             {
-                var endpoint = GetEndpoint();
-                var str = endpoint.HttpGetString($"debug/peer/{peerId}");
-
-                if (str.ToLowerInvariant() == "unable to find peer!")
+                var response = OnArchivist(api => api.GetDebugPeerAsync(peerId));
+                var a = OnArchivist(async api =>
                 {
-                    return new DebugPeer
-                    {
-                        IsPeerFound = false
-                    };
+                    await api.SetSTOAsync("key", "value");
+                    return string.Empty;
                 }
+                );
 
-                var result = endpoint.Deserialize<DebugPeer>(str);
-                result.IsPeerFound = true;
-                return result;
-            });
+                return mapper.Map(response);
+            }
+            catch
+            {
+                return new DebugPeer
+                {
+                    PeerId = peerId,
+                    IsPeerFound = false,
+                    Addresses = Array.Empty<string>()
+                };
+            }
+
         }
 
         public void ConnectToPeer(string peerId, string[] peerMultiAddresses)
