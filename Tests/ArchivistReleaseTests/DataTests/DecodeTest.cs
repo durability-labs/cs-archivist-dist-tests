@@ -59,16 +59,7 @@ namespace ArchivistReleaseTests.DataTests
             // The dataset is partially deleted.
 
             // What happens when we request storage for it?
-            var request = clients[0].Marketplace.RequestStorage(new ArchivistClient.StoragePurchaseRequest(bCid)
-            {
-                Expiry = TimeSpan.FromMinutes(5.0),
-                Duration = TimeSpan.FromMinutes(100.0),
-                CollateralPerByte = 100.Tst(),
-                MinRequiredNumberOfNodes = 6,
-                NodeFailureTolerance = 3,
-                PricePerBytePerSecond = 100.Tst(),
-                ProofProbability = 20
-            });
+            var request = clients[0].Marketplace.RequestStorage(new StoragePurchaseRequest(bCid));
             var eCid = request.ContentId;
 
             Assert.That(bCid.Id, Is.Not.EqualTo(eCid.Id));
