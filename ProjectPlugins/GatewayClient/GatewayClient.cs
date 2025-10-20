@@ -20,15 +20,16 @@ namespace GatewayClient
         {
         }
 
-        public LocalDataset GetManifest(ContentId cid)
-        {
-            return GetManifest(cid.Id);
-        }
-
         public LocalDataset GetManifest(string cid)
         {
             var response = Time.Wait(api.ManifestAsync(cid));
             return mapper.Map(response);
+        }
+
+        public Stream Download(string cid)
+        {
+            var response = Time.Wait(api.DataAsync(cid));
+            return response.Stream;
         }
     }
 }

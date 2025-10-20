@@ -1,6 +1,7 @@
-﻿using System.Diagnostics;
-using ArchivistClient;
+﻿using ArchivistNetworkConfig;
+using FileUtils;
 using Logging;
+using Utils;
 
 namespace EphemeralClient
 {
@@ -8,25 +9,121 @@ namespace EphemeralClient
     {
         public static void Main(string[] args)
         {
-            Console.WriteLine("Ephemeral client");
-            var log = new ConsoleLog();
+            var p = new Program();
+            p.Run();
+        }
 
-            log.Log("Starting...");
-            Process.Start("docker", "compose up -d");
+        private readonly TimeSpan loopDelay = TimeSpan.FromMinutes(30);
+        private readonly ByteSize fileSize = 100.MB();
 
-            Thread.Sleep(TimeSpan.FromSeconds(30));
+        private readonly ILog log;
+        private readonly LocalNode localNode;
+        private readonly GatewayClient.GatewayClient gateway;
+        private readonly IFileManager fileManager;
+        private readonly string downloadFolder = "temp_downloadfiles";
 
-            var factory = new ArchivistNodeFactory(log, "datadir");
-            var instance = ArchivistInstance.CreateFromApiEndpoint(
-                "name",
-                new Utils.Address("name", "http://localhost", 8089)
+        public Program()
+        {
+            log = new TimestampPrefixer(
+                new LogSplitter(
+                    new FileLog(Path.Combine("logs", "autoclient")),
+                    new ConsoleLog()
+                )
             );
-            var node = factory.CreateArchivistNode(instance);
 
-            log.Log(node.GetDebugInfo().ToString());
+            localNode = new LocalNode(log);
 
-            log.Log("Stopping...");
-            Process.Start("docker", "compose down");
+            var networkConnector = new ArchivistNetworkConnector(log);
+            var network = networkConnector.GetConfig();
+            gateway = new GatewayClient.GatewayClient(network);
+
+            fileManager = new FileManager(log, "temp_uploadfiles");
+        }
+
+        private void Run()
+        {
+            Console.WriteLine("Ephemeral client");
+
+            Sleep(10);
+
+            while (true)
+            {
+                RunCheck();
+
+                Sleep(loopDelay);
+            }
+        }
+
+        private void RunCheck()
+        {
+            try
+            {
+                RunWithNode();
+            }
+            catch (Exception ex)
+            {
+                log.Error($"Exception during check: {ex}");
+            }
+        }
+
+        private void RunWithNode()
+        {
+            var node = localNode.Start();
+            Directory.CreateDirectory(downloadFolder);
+
+            try
+            {
+                fileManager.ScopedFiles(() =>
+                {
+                    RunCheckSteps(node);
+                });
+            }
+            finally
+            {
+                Directory.Delete(downloadFolder, true);
+                localNode.StopAndClean();
+            }
+        }
+
+        private void RunCheckSteps(ArchivistClient.IArchivistNode node)
+        {
+            var file = fileManager.GenerateFile(fileSize);
+
+            var cid = new ArchivistClient.ContentId();
+            var uploadTime = Stopwatch.Measure(log, nameof(node.UploadFile), () =>
+            {
+                cid = node.UploadFile(file);
+            });
+
+            var filename = Path.Combine(downloadFolder, Guid.NewGuid().ToString());
+            var downloadTime = Stopwatch.Measure(log, nameof(gateway.Download), () =>
+            {
+                using var fileStream = File.OpenWrite(filename);
+                {
+                    var stream = gateway.Download(cid.Id);
+                    stream.CopyTo(fileStream);
+                }
+            });
+
+            var downloaded = TrackedFile.FromPath(log, filename);
+            try
+            {
+                file.AssertIsEqual(downloaded);
+            }
+            catch (Exception ex)
+            {
+                log.Error($"Downloaded file was not equal to uploaded file: {ex}");
+            }
+        }
+
+        private static void Sleep(TimeSpan span)
+        {
+            Thread.Sleep(span);
+        }
+
+        private static void Sleep(int sec)
+        {
+            Sleep(TimeSpan.FromSeconds(sec));
         }
     }
 }
