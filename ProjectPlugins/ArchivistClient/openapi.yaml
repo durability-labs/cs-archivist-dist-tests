@@ -1065,7 +1065,7 @@ paths:
       operationId: getDebugPeer
 
       parameters:
-        - in: query
+        - in: path
           name: peerId
           required: true
           schema:
@@ -1088,12 +1088,12 @@ paths:
       operationId: setSTO
 
       parameters:
-        - in: query
+        - in: path
           name: key
           required: true
           schema:
             type: string
-        - in: query
+        - in: path
           name: value
           required: true
           schema:
