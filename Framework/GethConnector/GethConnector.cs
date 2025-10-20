@@ -17,13 +17,22 @@ namespace GethConnector
 
         public static GethConnector? Initialize(ILog log)
         {
-            return Initialize(log, new BlockCache(log), new NullRequestsCache());
+            return Initialize(log, FetchNetworkConfig(log), new BlockCache(log), new NullRequestsCache());
+        }
+
+        public static GethConnector? Initialize(ILog log, ArchivistNetwork network)
+        {
+            return Initialize(log, network, new BlockCache(log), new NullRequestsCache());
         }
 
         public static GethConnector? Initialize(ILog log, BlockCache blockCache, IRequestsCache requestsCache)
         {
+            return Initialize(log, FetchNetworkConfig(log), blockCache, requestsCache);
+        }
+
+        public static GethConnector? Initialize(ILog log, ArchivistNetwork networkConfig, BlockCache blockCache, IRequestsCache requestsCache)
+        {
             var privateKey = EnvVar.GetOrThrow(GethPrivKeyVar);
-            var networkConfig = FetchNetworkConfig(log);
 
             var gethNode = new CustomGethNode(log, blockCache, networkConfig.Team.Utils.BotRpc, privateKey);
             var config = GetArchivistMarketplaceConfig(gethNode, networkConfig.Marketplace.ContractAddress);

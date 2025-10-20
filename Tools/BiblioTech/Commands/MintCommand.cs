@@ -168,7 +168,7 @@ namespace BiblioTech.Commands
 
         private string FormatTransactionLink(string transaction)
         {
-            var url = Program.Config.TransactionLinkFormat.Replace("<ID>", transaction);
+            var url = Program.Network.Team.Utils.TransactionLinkFormat.Replace("<ID>", transaction);
             return $"- [View on block explorer](<{url}>){Environment.NewLine}Transaction ID - `{transaction}`";
         }
     }
