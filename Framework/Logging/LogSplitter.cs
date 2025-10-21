@@ -14,6 +14,11 @@ namespace Logging
             OnAll(l => l.AddStringReplace(from, to));
         }
 
+        public string ApplyStringReplace(string str)
+        {
+            return targetLogs[0].ApplyStringReplace(str);
+        }
+
         public LogFile CreateSubfile(string addName, string ext = "log")
         {
             return targetLogs.First().CreateSubfile(addName, ext);

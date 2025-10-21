@@ -20,6 +20,11 @@ namespace DistTestCore.Logs
             backingLog.AddStringReplace(from, to);
         }
 
+        public string ApplyStringReplace(string str)
+        {
+            return backingLog.ApplyStringReplace(str);
+        }
+
         public LogFile CreateSubfile(string addName, string ext = "log")
         {
             return backingLog.CreateSubfile(addName, ext);

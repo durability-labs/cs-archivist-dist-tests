@@ -134,25 +134,35 @@ namespace ArchivistTests
 
         public void WaitAndCheckNodesStaysAlive(TimeSpan duration, params IArchivistNode[] nodes)
         {
-            Log($"{Time.FormatDuration(duration)}...");
+            WaitAndCheck(nameof(WaitAndCheckNodesStaysAlive),
+                duration,
+                loopTime: TimeSpan.FromSeconds(3.0),
+                check: () =>
+                {
+                    foreach (var node in nodes)
+                    {
+                        Assert.That(node.HasCrashed(), Is.False);
 
-            var timeout = TimeSpan.FromSeconds(3.0);
-            Assert.That(duration.TotalSeconds, Is.GreaterThan(timeout.TotalSeconds));
+                        var info = node.GetDebugInfo();
+                        Assert.That(!string.IsNullOrEmpty(info.Id));
+                    }
+                });
+        }
+
+        public void WaitAndCheck(string name, TimeSpan duration, TimeSpan loopTime, Action check)
+        {
+            Log($"{name}: {Time.FormatDuration(duration)}...");
+
+            Assert.That(duration.TotalSeconds, Is.GreaterThan(loopTime.TotalSeconds));
 
             var start = DateTime.UtcNow;
             while ((DateTime.UtcNow - start) < duration)
             {
-                Thread.Sleep(timeout);
-                foreach (var node in nodes)
-                {
-                    Assert.That(node.HasCrashed(), Is.False);
-
-                    var info = node.GetDebugInfo();
-                    Assert.That(!string.IsNullOrEmpty(info.Id));
-                }
+                Thread.Sleep(loopTime);
+                check();
             }
 
-            Log("OK");
+            Log($"{name}: OK");
         }
 
         public void AssertNodesContainFile(ContentId cid, IArchivistNodeGroup nodes)
