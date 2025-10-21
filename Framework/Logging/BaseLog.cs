@@ -9,6 +9,7 @@ namespace Logging
         void Error(string message);
         void Raw(string message);
         void AddStringReplace(string from, string to);
+        string ApplyStringReplace(string str);
         LogFile CreateSubfile(string addName, string ext = "log");
         string GetFullName();
     }
@@ -73,6 +74,11 @@ namespace Logging
             if (string.IsNullOrWhiteSpace(from)) return;
             if (replacements.Any(r => string.Equals(r.From, from, StringComparison.InvariantCultureIgnoreCase))) return;
             replacements.Add(new BaseLogStringReplacement(from, to));
+        }
+
+        public virtual string ApplyStringReplace(string str)
+        {
+            return ApplyReplacements(str);
         }
 
         public virtual void Delete()

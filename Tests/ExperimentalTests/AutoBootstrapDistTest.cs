@@ -14,7 +14,7 @@ namespace ArchivistTests
         public void SetupBootstrapNode()
         {
             isBooting = true;
-            BootstrapNode = StartArchivist(s => s.WithName("BOOTSTRAP_" + GetTestNamespace()));
+            BootstrapNode = StartArchivist(s => s.WithName("BOOTSTRAP"));
             isBooting = false;
         }
 

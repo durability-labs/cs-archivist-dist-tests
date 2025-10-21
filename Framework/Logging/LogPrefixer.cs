@@ -42,6 +42,11 @@ namespace Logging
             backingLog.AddStringReplace(from, to);
         }
 
+        public string ApplyStringReplace(string str)
+        {
+            return backingLog.ApplyStringReplace(str);
+        }
+
         public void Raw(string message)
         {
             backingLog.Raw(message);

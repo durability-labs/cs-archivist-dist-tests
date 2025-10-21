@@ -25,6 +25,8 @@ namespace KubernetesWorkflow
 
     public class WriteToFileLogHandler : LogHandler, ILogHandler
     {
+        private readonly ILog sourceLog;
+
         public WriteToFileLogHandler(ILog sourceLog, string description, string addFileName)
         {
             LogFile = sourceLog.CreateSubfile(addFileName);
@@ -34,6 +36,7 @@ namespace KubernetesWorkflow
 
             LogFile.Write(msg);
             LogFile.Write(description);
+            this.sourceLog = sourceLog;
         }
 
         public LogFile LogFile { get; }
@@ -45,6 +48,7 @@ namespace KubernetesWorkflow
             if (line.Contains("Received JSON-RPC response") && !line.Contains("topics=")) return;
             if (line.Contains("object field not marked with serialize, skipping")) return;
 
+            line = sourceLog.ApplyStringReplace(line);
             LogFile.Write(line);
         }
     }

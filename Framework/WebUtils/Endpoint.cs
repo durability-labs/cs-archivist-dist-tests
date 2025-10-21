@@ -12,6 +12,7 @@ namespace WebUtils
         T HttpGetJson<T>(string route);
         TResponse HttpPostJson<TRequest, TResponse>(string route, TRequest body);
         string HttpPostJson<TRequest>(string route, TRequest body);
+        string HttpPostString(string route, string body);
         TResponse HttpPostString<TResponse>(string route, string body);
         string HttpPostStream(string route, Stream stream);
         Stream HttpGetStream(string route);
@@ -76,6 +77,14 @@ namespace WebUtils
             }, $"HTTP-POST-JSON: {route}");
         }
 
+        public string HttpPostString(string route, string body)
+        {
+            return http.OnClient(client =>
+            {
+                return PostJsonString(client, route, body);
+            }, $"HTTP-POST: {route}");
+        }
+
         public TResponse HttpPostString<TResponse>(string route, string body)
         {
             return http.OnClient(client =>
@@ -85,7 +94,7 @@ namespace WebUtils
                 var result = Deserialize<TResponse>(response);
                 if (result == null) throw new Exception("Failed to deserialize response");
                 return result;
-            }, $"HTTP-POST-JSON: {route}");
+            }, $"HTTP-POST: {route}");
         }
 
         public string HttpPostStream(string route, Stream stream)
