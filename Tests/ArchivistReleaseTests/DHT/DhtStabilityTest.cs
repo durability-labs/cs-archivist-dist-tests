@@ -6,6 +6,7 @@ using Utils;
 namespace ArchivistReleaseTests.DHT
 {
     [TestFixture]
+    [Ignore("wip: waiting for failure rate system testing option")]
     public class DhtStabilityTest : AutoBootstrapDistTest
     {
         private int NumberOfNodes => 30;
