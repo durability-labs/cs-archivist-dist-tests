@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       purchaseid:
-        description: "Testnet Purchase ID"
+        description: "Purchase ID"
         required: true
         type: string
       network:
