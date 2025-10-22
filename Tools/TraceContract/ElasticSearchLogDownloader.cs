@@ -57,13 +57,12 @@ namespace TraceContract
             //container_name : archivist3-5 - deploymentName as stored in pod
             // pod_namespace : archivist - continuous - nolimits - tests - 1
 
-            //var source = "{ \"sort\": [ { \"@timestamp\": { \"order\": \"asc\" } } ], \"fields\": [ { \"field\": \"@timestamp\", \"format\": \"strict_date_optional_time\" }, { \"field\": \"pod_name\" }, { \"field\": \"message\" } ], \"size\": <SIZE>, <SEARCHAFTER> \"_source\": false, \"query\": { \"bool\": { \"must\": [], \"filter\": [ { \"range\": { \"@timestamp\": { \"format\": \"strict_date_optional_time\", \"gte\": \"<STARTTIME>\", \"lte\": \"<ENDTIME>\" } } }, { \"match_phrase\": { \"pod_name\": \"<PODNAME>\" } } ] } } }";
-            var source = "{ \"sort\": [ { \"@timestamp\": { \"order\": \"asc\" } } ], \"fields\": [ { \"field\": \"@timestamp\", \"format\": \"strict_date_optional_time\" }, { \"field\": \"message\" } ], \"size\": <SIZE>, <SEARCHAFTER> \"_source\": false, \"query\": { \"bool\": { \"must\": [], \"filter\": [ { \"range\": { \"@timestamp\": { \"format\": \"strict_date_optional_time\", \"gte\": \"<STARTTIME>\", \"lte\": \"<ENDTIME>\" } } }, { \"match_phrase\": { \"pod_name\": \"<PODNAME>\" } } ] } } }";
+            var source = "{\"sort\": [{\"@timestamp\": {\"order\": \"asc\"}}],\"fields\": [{\"field\": \"@timestamp\",\"format\": \"strict_date_optional_time\"},{\"field\": \"message\"}],\"size\": <SIZE>, <SEARCHAFTER> \"_source\": false,\"query\": {\"bool\": {\"must\": [{\"match\": {\"network\": \"<NETWORK>\"}}],\"filter\": [{\"range\": {\"@timestamp\": {\"format\": \"strict_date_optional_time\",\"gte\": \"<STARTTIME>\",\"lte\": \"<ENDTIME>\"}}},{\"match_phrase\": {\"pod_name\": \"<PODNAME>\"}}]}}}";
             return source
+                .Replace("<NETWORK>", network.Name.ToLowerInvariant())
                 .Replace("<STARTTIME>", start)
                 .Replace("<ENDTIME>", end)
                 .Replace("<PODNAME>", podName);
-                //.Replace("<NAMESPACENAME>", config.StorageNodesKubernetesNamespace);
         }
 
         private IEndpoint CreateElasticSearchEndpoint()

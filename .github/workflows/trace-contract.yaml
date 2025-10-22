@@ -7,6 +7,14 @@ on:
         description: "Testnet Purchase ID"
         required: true
         type: string
+      network:
+        description: "Network"
+        required: true
+        default: 'testnet'
+        type: choice
+        options:
+          - testnet
+          - devnet
 
 env:
   SOURCE: ${{ format('{0}/{1}', github.server_url, github.repository) }}
@@ -29,6 +37,7 @@ jobs:
       - name: Variables
         run: |
           echo "PURCHASE_ID=${{ inputs.purchaseid }}" >> $GITHUB_ENV
+          echo "ARCHIVIST_NETWORK=${{ inputs.network }}" >> $GITHUB_ENV
 
       - name: Run Trace
         run: |

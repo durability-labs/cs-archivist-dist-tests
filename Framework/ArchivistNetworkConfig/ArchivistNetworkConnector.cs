@@ -111,6 +111,7 @@ namespace ArchivistNetworkConfig
 
             return new ArchivistNetwork
             {
+                Name = network,
                 Version = fullModel.Archivist.Single(v => v.Version == selected),
                 SPR = fullModel.SPRs.First(s => s.SupportedVersions.Contains(selected)),
                 RPCs = fullModel.RPCs,
