@@ -46,7 +46,7 @@ namespace ArchivistReleaseTests.MarketTests
             proofsMissed = 0;
             var contract = CreateStorageRequest(client);
             contract.WaitForStorageContractStarted();
-            // All slots are filled.
+            client.Stop(waitTillStopped: true);
 
             AssertContentIsRetrievableByNewNode(contract.ContentId);
 
