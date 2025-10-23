@@ -14,7 +14,7 @@ namespace ArchivistPlugin
         public bool MetricsEnabled { get; set; }
         public MarketplaceInitialConfig? MarketplaceConfig { get; set; }
         public string? BootstrapSpr { get; set; }
-        public int? BlockTTL { get; set; }
+        public TimeSpan? BlockTTL { get; set; }
         public uint? SimulateProofFailures { get; set; }
         public bool? EnableValidator { get; set; }
         public TimeSpan? BlockMaintenanceInterval { get; set; }

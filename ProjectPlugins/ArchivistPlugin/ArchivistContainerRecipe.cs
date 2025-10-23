@@ -72,7 +72,7 @@ namespace ArchivistPlugin
             }
             if (config.BlockTTL != null)
             {
-                AddEnvVar("ARCHIVIST_BLOCK_TTL", config.BlockTTL.ToString()!);
+                AddEnvVar("ARCHIVIST_BLOCK_TTL", Convert.ToInt32(config.BlockTTL.Value.TotalSeconds).ToString());
             }
             if (config.BlockMaintenanceInterval != null)
             {

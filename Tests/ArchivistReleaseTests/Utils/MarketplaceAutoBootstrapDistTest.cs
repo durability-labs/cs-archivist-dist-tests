@@ -65,7 +65,17 @@ namespace ArchivistReleaseTests.Utils
         protected virtual TimeSpan HostAvailabilityMaxDuration => TimeSpan.FromHours(3.0);
         protected virtual bool MonitorChainState { get; } = true;
         protected virtual bool MonitorProofPeriods { get; } = true;
-        protected TimeSpan HostBlockTTL { get; } = TimeSpan.FromMinutes(1.0);
+        protected TimeSpan HostBlockTTL
+        {
+            get
+            {
+                // Blocks are downloaded using the default TTL when slots are being filled.
+                // If the block expiries are not updated to match the storage contract
+                // within 5 period durations, we assume it failed and the data should
+                // be cleaned up.
+                return GetPeriodDuration() * 5;
+            }
+        }
         protected virtual void OnPeriod(PeriodReport report)
         {
         }
@@ -184,6 +194,15 @@ namespace ArchivistReleaseTests.Utils
                         $" expected: {expectedBalance} but was: {balance} - message: " + message);
                 }
             });
+        }
+
+        protected void AssertNoSlotsFreed(PeriodReport report)
+        {
+            foreach (var c in report.FunctionCalls)
+            {
+                Assert.That(c.Name, Is.Not.EqualTo(nameof(FreeSlot1Function)));
+                Assert.That(c.Name, Is.Not.EqualTo(nameof(FreeSlotFunction)));
+            }
         }
 
         public IArchivistNodeGroup StartClients()
