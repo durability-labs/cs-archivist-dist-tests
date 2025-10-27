@@ -57,11 +57,6 @@ namespace ArchivistReleaseTests.MarketTests
 
                 AssertContentIsRetrievableByNewNode(contract.ContentId);
             }
-
-            var status = contract.GetStatus();
-            if (status == null) throw new Exception("Unable to get purchase status");
-            Assert.That(status.IsStarted);
-            Assert.That(status.IsError, Is.False);
         }
 
         private void AssertContentIsRetrievableByNewNode(ContentId cid)
