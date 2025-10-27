@@ -82,7 +82,14 @@ namespace ArchivistContractsPlugin.ChainMonitor
         private void Initialize(DateTime startingUtc)
         {
             var entry = geth.GetBlockForUtc(startingUtc);
-            if (entry == null) throw new Exception("Unable to find block for starting utc: " + Time.FormatTimestamp(startingUtc));
+            if (entry == null)
+            {
+                log.Error("Unable to find block for starting utc: " + Time.FormatTimestamp(startingUtc));
+                log.Error("Going with block 1 instead...");
+                entry = geth.GetBlockForNumber(1);
+                if (entry == null) throw new Exception($"Unable to initialize chainstate. Unable to get block at starting UTC {Time.FormatTimestamp(startingUtc)} AND unable to initialize to block number 1.");
+            }
+
             TotalSpan = new TimeRange(TotalSpan.From, entry.Utc);
             CurrentBlock = entry;
 
