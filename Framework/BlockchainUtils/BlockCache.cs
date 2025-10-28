@@ -10,6 +10,7 @@ namespace BlockchainUtils
         private const int MaxBuckets = 10;
         private readonly Dictionary<ulong, BlockBucket> buckets = new Dictionary<ulong, BlockBucket>();
         private readonly BlockLadder ladder;
+        private readonly ILog log;
         private readonly IBlockBucketStore store;
 
         public BlockCache(ILog log)
@@ -19,6 +20,7 @@ namespace BlockchainUtils
 
         public BlockCache(ILog log, IBlockBucketStore store)
         {
+            this.log = log;
             this.store = store;
 
             ladder = new BlockLadder();
@@ -72,6 +74,7 @@ namespace BlockchainUtils
         {
             lock (_lock)
             {
+                var added = 0;
                 var bucketNumbers = store.GetBucketNumbers().Order().ToArray();
                 foreach (var n in bucketNumbers)
                 {
@@ -79,8 +82,10 @@ namespace BlockchainUtils
                     foreach (var entry in bucket.Entries)
                     {
                         ladder.Add(new BlockTimeEntry(entry.Key, entry.Value));
+                        added++;
                     }
                 }
+                log.Debug($"Initialized block ladder with {added} entries");
             }
         }
 
@@ -166,10 +171,11 @@ namespace BlockchainUtils
     {
         private readonly string dataDir;
 
-        public DiskBlockBucketStore(string dataDir)
+        public DiskBlockBucketStore(ILog log, string dataDir)
         {
             this.dataDir = dataDir;
             Directory.CreateDirectory(dataDir);
+            log.Debug($"Using disk blockcache at '{dataDir}'");
         }
 
         public ulong[] GetBucketNumbers()

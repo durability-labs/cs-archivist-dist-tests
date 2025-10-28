@@ -9,46 +9,52 @@ namespace Logging
         private readonly string name;
         private readonly bool debug;
 
-        private Stopwatch(ILog log, string name, bool debug)
+        private Stopwatch(ILog log, string name, bool debug, int skipFrame)
         {
             this.log = log;
             this.name = name;
             this.debug = debug;
+
+            if (debug)
+            {
+                var entry = $"{name}...";
+                log.Debug(entry, skipFrame + 1);
+            }
         }
 
         public static TimeSpan Measure(ILog log, string name, Action action, bool debug = false)
         {
-            var sw = Begin(log, name, debug);
+            var sw = Begin(log, name, debug, skipFrame: 1);
             action();
             return sw.End();
         }
 
         public static StopwatchResult<T> Measure<T>(ILog log, string name, Func<T> action, bool debug = false)
         {
-            var sw = Begin(log, name, debug);
+            var sw = Begin(log, name, debug, skipFrame: 1);
             var result = action();
             var duration = sw.End();
             return new StopwatchResult<T>(result, duration);
         }
 
-        public static Stopwatch Begin(ILog log)
+        public static Stopwatch Begin(ILog log, int skipFrame = 0)
         {
-            return Begin(log, "");
+            return Begin(log, "", skipFrame + 1);
         }
 
-        public static Stopwatch Begin(ILog log, string name)
+        public static Stopwatch Begin(ILog log, string name, int skipFrame = 0)
         {
-            return Begin(log, name, false);
+            return Begin(log, name, false, skipFrame + 1);
         }
 
-        public static Stopwatch Begin(ILog log, bool debug)
+        public static Stopwatch Begin(ILog log, bool debug, int skipFrame = 0)
         {
-            return Begin(log, "", debug);
+            return Begin(log, "", debug, skipFrame + 1);
         }
 
-        public static Stopwatch Begin(ILog log, string name, bool debug)
+        public static Stopwatch Begin(ILog log, string name, bool debug, int skipFrame = 0)
         {
-            return new Stopwatch(log, name, debug);
+            return new Stopwatch(log, name, debug, skipFrame + 1);
         }
 
         public TimeSpan End(string msg = "", int skipFrames = 0)
@@ -58,7 +64,7 @@ namespace Logging
 
             if (debug)
             {
-                log.Debug(entry, 1 + skipFrames);
+                log.Debug(entry, skipFrames + 1);
             }
             else
             {

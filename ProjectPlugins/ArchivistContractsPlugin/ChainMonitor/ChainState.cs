@@ -68,6 +68,12 @@ namespace ArchivistContractsPlugin.ChainMonitor
 
         public int Update(DateTime toUtc)
         {
+            var name = $"{nameof(Update)}({Time.FormatTimestamp(toUtc)})";
+            return Stopwatch.Measure(log, name, () => UpdateInternal(toUtc), true).Value;
+        }
+
+        private int UpdateInternal(DateTime toUtc)
+        {
             var entry = geth.GetBlockForUtc(toUtc);
             if (entry == null) throw new Exception("Unable to find block for update utc: " + Time.FormatTimestamp(toUtc));
             var span = new BlockInterval(new TimeRange(CurrentBlock.Utc, entry.Utc), CurrentBlock.BlockNumber + 1, entry.BlockNumber);
