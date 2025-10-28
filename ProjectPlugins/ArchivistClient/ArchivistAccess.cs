@@ -103,6 +103,15 @@ namespace ArchivistClient
             });
         }
 
+        public void SetSystemTestingOption(string key, string value)
+        {
+            OnArchivist(async api =>
+            {
+                await api.SetSTOAsync(key, value);
+                return string.Empty;
+            });
+        }
+
         public void ConnectToPeer(string peerId, string[] peerMultiAddresses)
         {
             OnArchivist(api =>

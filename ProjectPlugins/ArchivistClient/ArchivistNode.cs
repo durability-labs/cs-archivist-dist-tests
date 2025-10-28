@@ -46,6 +46,8 @@ namespace ArchivistClient
         void Stop(bool waitTillStopped);
         IDownloadedLog DownloadLog(string additionalName = "");
         bool HasCrashed();
+
+        void SetDHTFailureProbability(int probability);
     }
 
     public class ArchivistNode : IArchivistNode
@@ -304,6 +306,16 @@ namespace ArchivistClient
         public bool HasCrashed()
         {
             return archivistAccess.HasCrashed();
+        }
+
+        public void SetDHTFailureProbability(int probability)
+        {
+            if (probability < 0) throw new ArgumentException(nameof(probability));
+
+            archivistAccess.SetSystemTestingOption(
+                "dht_send_fail_probability",
+                probability.ToString()
+            );
         }
 
         public override string ToString()

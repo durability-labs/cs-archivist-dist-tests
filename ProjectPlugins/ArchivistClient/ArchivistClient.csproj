@@ -7,10 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="openapi.yaml" />
-  </ItemGroup>
-
-  <ItemGroup>
     <OpenApiReference Include="openapi.yaml" CodeGenerator="NSwagCSharp" Namespace="ArchivistOpenApi" ClassName="ArchivistApiClient" />
   </ItemGroup>
 

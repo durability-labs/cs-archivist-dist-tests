@@ -2,7 +2,7 @@ namespace ArchivistPlugin
 {
     public class ArchivistDockerImage
     {
-        private const string DefaultDockerImage = "durabilitylabs/archivist-node:latest-dist-tests";
+        private const string DefaultDockerImage = "durabilitylabs/archivist-node:sha-2c27b6e-dist-tests";
 
         public static string Override { get; set; } = string.Empty;
 
