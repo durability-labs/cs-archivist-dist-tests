@@ -1,6 +1,5 @@
 using ArchivistClient;
 using ArchivistContractsPlugin.ChainMonitor;
-using ArchivistContractsPlugin.Marketplace;
 using ArchivistReleaseTests.Utils;
 using NUnit.Framework;
 using Utils;
