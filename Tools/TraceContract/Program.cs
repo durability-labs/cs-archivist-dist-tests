@@ -80,7 +80,7 @@ namespace TraceContract
         private IGethNode ConnectGethNode()
         {
             var account = EthAccountGenerator.GenerateNew();
-            var blockCache = new BlockCache(baseLog, new DiskBlockBucketStore(Path.Combine(config.DataDir, "blocks_cache")));
+            var blockCache = new BlockCache(baseLog, new DiskBlockBucketStore(baseLog, Path.Combine(config.DataDir, "blocks_cache")));
             return new CustomGethNode(baseLog, blockCache, network.Team.Utils.BotRpc, account.PrivateKey);
         }
 
