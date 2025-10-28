@@ -1,4 +1,5 @@
 using Core;
+using KubernetesWorkflow;
 using KubernetesWorkflow.Types;
 using Logging;
 using System.Security.Cryptography;
@@ -10,15 +11,13 @@ namespace ArchivistPlugin
     public class ApiChecker
     {
         // <INSERT-OPENAPI-YAML-HASH>
-        private const string OpenApiYamlHash = "A7-A3-22-A1-47-8B-75-E2-A6-22-C6-E3-67-AA-86-99-D2-A2-CC-27-9C-CE-46-DF-D6-4A-D8-DD-C4-6B-AE-97";
+        private const string OpenApiYamlHash = "9B-59-29-C7-59-A0-7F-F6-73-E3-89-11-4B-7F-42-93-58-0A-F3-26-3D-15-25-7A-08-A3-10-C7-C9-58-AE-38";
         private const string OpenApiFilePath = "/archivist/openapi.yaml";
         private const string DisableEnvironmentVariable = "ARCHIVISTPLUGIN_DISABLE_APICHECK";
 
-        private const bool Disable = false;
+        private const string ExpectedSystemTestingOptionsWarning = "This application was compiled with system testing options enabled.";
 
-        private const string Warning =
-            "Warning: ArchivistPlugin was unable to find the openapi.yaml file in the Archivist container. Are you running an old version of Archivist? " +
-            "Plugin will continue as normal, but API compatibility is not guaranteed!";
+        private const bool Disable = false;
 
         private const string Failure =
             "Archivist API compatibility check failed! " +
@@ -55,26 +54,46 @@ namespace ArchivistPlugin
 
             var workflow = pluginTools.CreateWorkflow();
             var container = containers.First().Containers.First();
-            var containerApi = workflow.ExecuteCommand(container, "cat", OpenApiFilePath);
 
-            if (string.IsNullOrEmpty(containerApi))
+
+            if (!IsContainerApiCompatible(workflow, container)) Fail();
+            if (!IsCompiledWithSystemTestingOptions(workflow, container)) Fail();
+
+            checkPassed = true;
+        }
+
+        private bool IsCompiledWithSystemTestingOptions(IStartupWorkflow workflow, RunningContainer container)
+        {
+            var log = workflow.DownloadContainerLog(container);
+            var lines = log.GetLinesContaining(ExpectedSystemTestingOptionsWarning);
+            if (lines.Any())
             {
-                log.Error(Warning);
-
-                checkPassed = true;
-                return;
+                Log("System testing options confirmed.");
+                return true;
             }
+
+            Log("Application was not compiled with system testing options.");
+            return false;
+        }
+
+        private bool IsContainerApiCompatible(IStartupWorkflow workflow, RunningContainer container)
+        {
+            var containerApi = workflow.ExecuteCommand(container, "cat", OpenApiFilePath);
+            if (string.IsNullOrEmpty(containerApi)) return false;
 
             var containerHash = Hash(containerApi);
-            if (containerHash == OpenApiYamlHash)
+            if (containerHash != OpenApiYamlHash)
             {
-                Log("API compatibility check passed.");
-                checkPassed = true;
-                return;
+                OverwriteOpenApiYaml(containerApi);
+                return false;
             }
 
-            OverwriteOpenApiYaml(containerApi);
+            Log("Container API compatibility check passed.");
+            return true;
+        }
 
+        private void Fail()
+        {
             log.Error(Failure);
             throw new Exception(Failure);
         }
