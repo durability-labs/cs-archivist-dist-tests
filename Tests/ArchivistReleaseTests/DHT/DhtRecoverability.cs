@@ -1,18 +1,22 @@
 ﻿using ArchivistClient;
 using ArchivistTests;
 using NUnit.Framework;
+using Utils;
 
 namespace ArchivistReleaseTests.DHT
 {
     [TestFixture]
     public class DhtRecoverability : AutoBootstrapDistTest
     {
+        private readonly TimeSpan DhtUpdateTimeout = TimeSpan.FromMinutes(15);
+        private readonly int numNodes = 20;
+
         [Test]
         [Combinatorial]
         public void AfterFullDisconnect(
             [Rerun] int run)
         {
-            var nodes = StartArchivist(20).ToArray();
+            var nodes = StartArchivist(numNodes).ToArray();
 
             AssertRoutingTablesOk(nodes);
 
@@ -28,10 +32,16 @@ namespace ArchivistReleaseTests.DHT
         private void AssertRoutingTablesOk(IArchivistNode[] nodes)
         {
             Log(nameof(AssertRoutingTablesOk));
-            foreach (var n in nodes) AssertRoutingTableOk(n, nodes);
+            WaitUntil(() => nodes.All(RoutingTableOk), nameof(AssertRoutingTablesOk));
         }
 
-        private void AssertRoutingTableOk(IArchivistNode n, IArchivistNode[] peers)
+        private void AssertRoutingTablesClear(IArchivistNode[] nodes)
+        {
+            Log(nameof(AssertRoutingTablesClear));
+            WaitUntil(() => nodes.All(RoutingTableClear), nameof(AssertRoutingTablesClear));
+        }
+
+        private bool RoutingTableOk(IArchivistNode n)
         {
             // We expect node n to know the bootstrap node, plus at least half of its peers.
             var info = n.GetDebugInfo();
@@ -42,17 +52,13 @@ namespace ArchivistReleaseTests.DHT
             Log($"{n.GetName()}=[{string.Join(" | ", info.Table.Nodes.Select(s => $"{s.NodeId}({s.Seen})").ToArray())}]");
 
             var bootnode = seenNodes.SingleOrDefault(e => e.PeerId == BootstrapNode.GetPeerId());
-            Assert.That(bootnode, Is.Not.Null);
-            Assert.That(seenNodes.Length, Is.GreaterThanOrEqualTo(peers.Length / 2));
+
+            return
+                bootnode != null &&
+                seenNodes.Length >= (numNodes / 2);
         }
 
-        private void AssertRoutingTablesClear(IArchivistNode[] nodes)
-        {
-            Log(nameof(AssertRoutingTablesClear));
-            foreach (var n in nodes) AssertRoutingTableClear(n);
-        }
-
-        private void AssertRoutingTableClear(IArchivistNode n)
+        private bool RoutingTableClear(IArchivistNode n)
         {
             // We expect node n to only know the bootstrap node
             // and that its seen value is false.
@@ -60,31 +66,30 @@ namespace ArchivistReleaseTests.DHT
             var nodes = info.Table.Nodes;
             Log($"{n.GetName()}=[{string.Join(" | ", nodes.Select(s => $"{s.NodeId}({s.Seen})").ToArray())}]");
 
-            Assert.That(nodes.Length, Is.EqualTo(1));
-            Assert.That(nodes[0].Seen, Is.False);
-            Assert.That(nodes[0].PeerId, Is.EqualTo(BootstrapNode.GetPeerId()));
+            return
+                nodes.Length == 1 &&
+                nodes[0].Seen == false &&
+                nodes[0].PeerId == BootstrapNode.GetPeerId();
         }
 
         private void SetFullDisconnect(IArchivistNode[] nodes)
         {
             Log(nameof(SetFullDisconnect));
             foreach (var n in nodes) n.SetDHTFailureProbability(1);
-
-            PoliteDelay();
         }
 
         private void RestoreConnectivitiy(IArchivistNode[] nodes)
         {
             Log(nameof(RestoreConnectivitiy));
             foreach (var n in nodes) n.SetDHTFailureProbability(0);
-
-            PoliteDelay();
         }
 
-        private void PoliteDelay()
+        private void WaitUntil(Func<bool> predicate, string msg)
         {
-            // It takes a while for the DHT to check its records and/or recover.
-            Thread.Sleep(TimeSpan.FromMinutes(6));
+            Time.WaitUntil(predicate,
+                timeout: DhtUpdateTimeout,
+                retryDelay: TimeSpan.FromSeconds(30),
+                msg: msg);
         }
     }
 }
