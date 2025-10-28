@@ -1,6 +1,5 @@
 ﻿using ArchivistClient;
 using ArchivistTests;
-using Newtonsoft.Json;
 using NUnit.Framework;
 
 namespace ArchivistReleaseTests.DHT
@@ -9,11 +8,11 @@ namespace ArchivistReleaseTests.DHT
     public class DhtRecoverability : AutoBootstrapDistTest
     {
         [Test]
-        public void AfterFullDisconnect()
+        [Combinatorial]
+        public void AfterFullDisconnect(
+            [Rerun] int run)
         {
             var nodes = StartArchivist(20).ToArray();
-
-            PoliteDelay();
 
             AssertRoutingTablesOk(nodes);
 
@@ -40,7 +39,7 @@ namespace ArchivistReleaseTests.DHT
                 .Where(e => e.Seen)
                 .ToArray();
 
-            Log(JsonConvert.SerializeObject(info.Table.Nodes));
+            Log($"{n.GetName()}=[{string.Join(" | ", info.Table.Nodes.Select(s => $"{s.NodeId}({s.Seen})").ToArray())}]");
 
             var bootnode = seenNodes.SingleOrDefault(e => e.PeerId == BootstrapNode.GetPeerId());
             Assert.That(bootnode, Is.Not.Null);
@@ -59,7 +58,7 @@ namespace ArchivistReleaseTests.DHT
             // and that its seen value is false.
             var info = n.GetDebugInfo();
             var nodes = info.Table.Nodes;
-            Log(JsonConvert.SerializeObject(nodes));
+            Log($"{n.GetName()}=[{string.Join(" | ", nodes.Select(s => $"{s.NodeId}({s.Seen})").ToArray())}]");
 
             Assert.That(nodes.Length, Is.EqualTo(1));
             Assert.That(nodes[0].Seen, Is.False);
@@ -85,7 +84,7 @@ namespace ArchivistReleaseTests.DHT
         private void PoliteDelay()
         {
             // It takes a while for the DHT to check its records and/or recover.
-            Thread.Sleep(TimeSpan.FromMinutes(12));
+            Thread.Sleep(TimeSpan.FromMinutes(6));
         }
     }
 }
