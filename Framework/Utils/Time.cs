@@ -81,12 +81,12 @@ namespace Utils
             return result;
         }
 
-        public static void WaitUntil(Func<bool> predicate, string msg)
+        public static TimeSpan WaitUntil(Func<bool> predicate, string msg)
         {
-            WaitUntil(predicate, TimeSpan.FromMinutes(1), TimeSpan.FromSeconds(1), msg);
+            return WaitUntil(predicate, TimeSpan.FromMinutes(1), TimeSpan.FromSeconds(1), msg);
         }
 
-        public static void WaitUntil(Func<bool> predicate, TimeSpan timeout, TimeSpan retryDelay, string msg)
+        public static TimeSpan WaitUntil(Func<bool> predicate, TimeSpan timeout, TimeSpan retryDelay, string msg)
         {
             var start = DateTime.UtcNow;
             var tries = 1;
@@ -103,6 +103,7 @@ namespace Utils
                 state = predicate();
                 tries++;
             }
+            return DateTime.UtcNow - start;
         }
 
         public static void Retry(Action action, string description)

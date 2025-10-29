@@ -86,10 +86,12 @@ namespace ArchivistReleaseTests.DHT
 
         private void WaitUntil(Func<bool> predicate, string msg)
         {
-            Time.WaitUntil(predicate,
+            var duration = Time.WaitUntil(predicate,
                 timeout: DhtUpdateTimeout,
                 retryDelay: TimeSpan.FromSeconds(30),
                 msg: msg);
+
+            Log($"{msg} {Time.FormatDuration(duration)}");
         }
     }
 }
