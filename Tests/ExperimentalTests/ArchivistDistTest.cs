@@ -91,9 +91,9 @@ namespace ArchivistTests
             return new PeerConnectionTestHelpers(GetTestLog());
         }
 
-        public PeerDownloadTestHelpers CreatePeerDownloadTestHelpers()
+        public PeerDownloadTestHelpers CreatePeerDownloadTestHelpers(TimeSpan downloadTimeout)
         {
-            return new PeerDownloadTestHelpers(GetTestLog(), GetFileManager());
+            return new PeerDownloadTestHelpers(GetTestLog(), GetFileManager(), downloadTimeout);
         }
 
         public void AssertBalance(IArchivistContracts contracts, IArchivistNode archivistNode, Constraint constraint, string msg)

@@ -41,7 +41,8 @@ namespace ExperimentalTests.DownloadConnectivityTests
 
         private void AssertAllNodesConnected(IEnumerable<IArchivistNode> nodes, int sizeMBs = 10)
         {
-            CreatePeerDownloadTestHelpers().AssertFullDownloadInterconnectivity(nodes, sizeMBs.MB());
+            CreatePeerDownloadTestHelpers(downloadTimeout: TimeSpan.FromSeconds(20))
+                .AssertFullDownloadInterconnectivity(nodes, sizeMBs.MB());
         }
     }
 }

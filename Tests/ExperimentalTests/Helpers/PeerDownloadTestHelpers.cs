@@ -10,13 +10,15 @@ namespace ArchivistTests.Helpers
     {
         private readonly FullConnectivityHelper helper;
         private readonly IFileManager fileManager;
+        private readonly TimeSpan downloadTimeout;
         private ByteSize testFileSize;
 
-        public PeerDownloadTestHelpers(ILog log, IFileManager fileManager)
+        public PeerDownloadTestHelpers(ILog log, IFileManager fileManager, TimeSpan downloadTimeout)
         {
             helper = new FullConnectivityHelper(log, this);
             testFileSize = 1.MB();
             this.fileManager = fileManager;
+            this.downloadTimeout = downloadTimeout;
         }
 
         public void AssertFullDownloadInterconnectivity(IEnumerable<IArchivistNode> nodes, ByteSize testFileSize)
@@ -62,7 +64,7 @@ namespace ArchivistTests.Helpers
 
         private TrackedFile? DownloadFile(IArchivistNode node, ContentId contentId, string label)
         {
-            return node.DownloadContent(contentId, label);
+            return node.DownloadContent(contentId, downloadTimeout, label);
         }
 
         private TrackedFile GenerateTestFile(IArchivistNode uploader, IArchivistNode downloader)

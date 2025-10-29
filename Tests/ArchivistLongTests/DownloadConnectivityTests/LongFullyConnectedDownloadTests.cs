@@ -17,7 +17,8 @@ namespace ArchivistLongTests.DownloadConnectivityTests
         {
             var nodes = StartArchivist(numberOfNodes);
 
-            CreatePeerDownloadTestHelpers().AssertFullDownloadInterconnectivity(nodes, sizeMBs.MB());
+            CreatePeerDownloadTestHelpers(downloadTimeout: TimeSpan.FromSeconds(60))
+                .AssertFullDownloadInterconnectivity(nodes, sizeMBs.MB());
         }
     }
 }
