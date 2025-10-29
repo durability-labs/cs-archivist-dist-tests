@@ -136,7 +136,8 @@ namespace ArchivistContractsPlugin
 
         private void WaitUntil(Func<bool> predicate, string msg)
         {
-            Time.WaitUntil(predicate, TimeSpan.FromMinutes(5), TimeSpan.FromSeconds(2), msg);
+            var duration = Time.WaitUntil(predicate, TimeSpan.FromMinutes(5), TimeSpan.FromSeconds(2), msg);
+            Log($"{msg} {Time.FormatDuration(duration)}");
         }
 
         private StartupConfig CreateStartupConfig(IGethNode gethNode)
