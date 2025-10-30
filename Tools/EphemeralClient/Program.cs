@@ -36,7 +36,7 @@ namespace EphemeralClient
             localNode = new LocalNode(log);
 
             Log("Loading network config...");
-            var networkConnector = new ArchivistNetworkConnector(log, "devnet", "latest");
+            var networkConnector = new ArchivistNetworkConnector(log);
             var network = networkConnector.GetConfig();
             Log($"Network: {network.Name}");
             gateway = new GatewayClient.GatewayClient(network);
