@@ -25,6 +25,7 @@ services:
       - COLLATERAL=1
       - FOLDERTOSTORE=/target
       - SLOWMODEDELAYMINUTES=20
+      - METRICSPORT=8008
     volumes:
       - ./volumes/autoclient-data:/data
       - /ethereum/autoclient/EthereumMainnetPreMergeEraFiles:/target
@@ -33,6 +34,8 @@ services:
       options:
         max-size: 100m
         max-file: 5
+    ports:
+      - 8008:8008
     # network_mode: host
 
   archivist-1:

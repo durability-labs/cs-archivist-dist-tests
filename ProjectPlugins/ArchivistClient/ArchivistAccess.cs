@@ -83,24 +83,21 @@ namespace ArchivistClient
 
         public DebugPeer GetDebugPeer(string peerId)
         {
-            // Cannot use openAPI: debug/peer endpoint is not specified there.
-            return CrashCheck(() =>
+            try
             {
-                var endpoint = GetEndpoint();
-                var str = endpoint.HttpGetString($"debug/peer/{peerId}");
-
-                if (str.ToLowerInvariant() == "unable to find peer!")
+                var response = OnArchivist(api => api.GetDebugPeerAsync(peerId));
+                return mapper.Map(response);
+            }
+            catch
+            {
+                return new DebugPeer
                 {
-                    return new DebugPeer
-                    {
-                        IsPeerFound = false
-                    };
-                }
+                    PeerId = peerId,
+                    IsPeerFound = false,
+                    Addresses = Array.Empty<string>()
+                };
+            }
 
-                var result = endpoint.Deserialize<DebugPeer>(str);
-                result.IsPeerFound = true;
-                return result;
-            });
         }
 
         public void SetSystemTestingOption(string key, string value)
@@ -285,11 +282,6 @@ namespace ArchivistClient
         private void CheckContainerCrashed()
         {
             if (processControl.HasCrashed()) throw new Exception($"Container {GetName()} has crashed.");
-        }
-
-        private void Throw(Failure failure)
-        {
-            throw failure.Exception;
         }
 
         private void Log(string msg)

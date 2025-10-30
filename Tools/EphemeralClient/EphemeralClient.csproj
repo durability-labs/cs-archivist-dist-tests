@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="docker-compose.yaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Framework\ArchivistNetworkConfig\ArchivistNetworkConfig.csproj" />
+    <ProjectReference Include="..\..\Framework\ArgsUniform\ArgsUniform.csproj" />
+    <ProjectReference Include="..\..\Framework\MetricsServer\MetricsServer.csproj" />
+    <ProjectReference Include="..\..\ProjectPlugins\ArchivistClient\ArchivistClient.csproj" />
+    <ProjectReference Include="..\..\ProjectPlugins\GatewayClient\GatewayClient.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="docker-compose.yaml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+
+</Project>

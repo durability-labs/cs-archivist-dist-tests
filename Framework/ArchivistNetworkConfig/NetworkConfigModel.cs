@@ -69,5 +69,7 @@
         public string CrawlerRpc { get; set; } = string.Empty;
         public string BotRpc { get; set; } = string.Empty;
         public string ElasticSearch { get; set; } = string.Empty;
+        public string Gateway { get; set; } = string.Empty;
+        public string TransactionLinkFormat { get; set; } = string.Empty;
     }
 }

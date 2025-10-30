@@ -47,9 +47,6 @@ namespace BiblioTech
         [Uniform("archivist-endpoint-auth", "cea", "ARCHIVISTENDPOINTAUTH", false, "Archivist endpoint basic auth. Colon separated username and password. (default: empty, no auth used.)")]
         public string ArchivistEndpointAuth { get; set; } = "";
 
-        [Uniform("transaction-link-format", "tlf", "TRANSACTIONLINKFORMAT", false, "Format of links to transactions on the blockchain. Use '<ID>' to inject the transaction ID into this string. (default 'https://explorer.testnet.archivist.storage/tx/<ID>')")]
-        public string TransactionLinkFormat { get; set; } = "https://explorer.testnet.archivist.storage/tx/<ID>";
-
         #region Role Rewards
 
         /// <summary>

@@ -13,7 +13,7 @@ namespace AutoClient.Modes.FolderStore
             this.app = app;
         }
 
-        public void OnSuccess()
+        public void OnPurchaseSuccess()
         {
             failureCount = 0;
             if (slowMode)
@@ -31,7 +31,7 @@ namespace AutoClient.Modes.FolderStore
             Check();
         }
 
-        public void OnFailure()
+        public void OnPurchaseFailure()
         {
             failureCount++;
             Log("Failing towards slow mode: " + failureCount);
@@ -57,6 +57,18 @@ namespace AutoClient.Modes.FolderStore
         private void Log(string msg)
         {
             app.Log.Log(msg);
+        }
+
+        public void OnProcessStart()
+        {
+        }
+
+        public void OnUploadSuccess()
+        {
+        }
+
+        public void OnUploadFailure()
+        {
         }
     }
 }

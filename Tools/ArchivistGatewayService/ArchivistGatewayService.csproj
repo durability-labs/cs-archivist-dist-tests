@@ -10,14 +10,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="openapi.yaml" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
-    <PackageReference Include="prometheus-net" Version="8.2.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\Framework\ArgsUniform\ArgsUniform.csproj" />
     <ProjectReference Include="..\..\Framework\Logging\Logging.csproj" />
+    <ProjectReference Include="..\..\Framework\MetricsServer\MetricsServer.csproj" />
   </ItemGroup>
 
 </Project>

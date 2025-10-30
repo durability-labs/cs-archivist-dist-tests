@@ -22,6 +22,7 @@ namespace BiblioTech
         public static ChainActivityHandler ChainActivityHandler { get; set; } = null!;
         public static ChainEventsSender EventsSender { get; set; } = null!;
         public static ILog Log { get; private set; } = null!;
+        public static ArchivistNetwork Network { get; private set; } = null!;
         public static GethLink? GethLink { get; private set; } = null;
 
         public static Task Main(string[] args)
@@ -34,6 +35,7 @@ namespace BiblioTech
                 new ConsoleLog()
             );
 
+            Network = FetchNetworkConfig();
             GethLink = GethLink.Create();
 
             Dispatcher = new CallDispatcher(Log);
@@ -129,11 +131,15 @@ namespace BiblioTech
             Directory.CreateDirectory(path);
         }
 
-        private void LoadReplacementsFromNetworkConfig(CustomReplacement replacement)
+        private static ArchivistNetwork FetchNetworkConfig()
         {
             var connector = new ArchivistNetworkConnector(Log);
-            var config = connector.GetConfig();
-            var r = config.Team.GetNodesAsLogReplacements();
+            return connector.GetConfig();
+        }
+
+        private void LoadReplacementsFromNetworkConfig(CustomReplacement replacement)
+        {
+            var r = Network.Team.GetNodesAsLogReplacements();
             foreach (var pair in r)
             {
                 replacement.Add(pair.Key, pair.Value);

@@ -17,7 +17,10 @@ namespace AutoClient
 
         [Uniform("datapath", "dp", "DATAPATH", false, "Root path where all data files will be saved.")]
         public string DataPath { get; set; } = "datapath";
-
+        
+        [Uniform("metrics-port", "mp", "METRICSPORT", false, "Local port for metrics endpoint. (default: '8008')")]
+        public int MetricsPort { get; set; } = 8008;
+        
         [Uniform("contract-duration", "cd", "CONTRACTDURATION", false, "contract duration in minutes. (default 6 days) If two numbers are provided comma-separated, they are used as min/max for random duration values.")]
         public string ContractDurationStr { get; set; } = "7200,9360"; // 7200 = 5 days, 8640 = 6 days
 

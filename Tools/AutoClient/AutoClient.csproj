@@ -10,6 +10,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Framework\ArgsUniform\ArgsUniform.csproj" />
     <ProjectReference Include="..\..\Framework\Logging\Logging.csproj" />
+    <ProjectReference Include="..\..\Framework\MetricsServer\MetricsServer.csproj" />
     <ProjectReference Include="..\..\ProjectPlugins\ArchivistPlugin\ArchivistPlugin.csproj" />
   </ItemGroup>
 

@@ -133,7 +133,11 @@ namespace AutoClient.Modes.FolderStore
         {
             var fixedLength = entry.Filename.PadRight(35);
             var prefix = $"[{fixedLength}] ";
-            return new FileSaver(new LogPrefixer(app.Log, prefix), loadBalancer, status.Stats, folderFile, entry, this, resultHandler);
+            var handleMux = new MuxingFileSaverResultHandler(
+                app.Metrics,
+                resultHandler
+            );
+            return new FileSaver(new LogPrefixer(app.Log, prefix), loadBalancer, status.Stats, folderFile, entry, this, handleMux);
         }
 
         public void SaveChanges()
@@ -143,38 +147,6 @@ namespace AutoClient.Modes.FolderStore
                 statusFile.Save(status);
             }
             changeCounter++;
-        }
-    }
-
-    public class FolderSaveResultHandler : IFileSaverResultHandler
-    {
-        private readonly App app;
-        private readonly FileStatus entry;
-
-        public FolderSaveResultHandler(App app, FileStatus entry)
-        {
-            this.app = app;
-            this.entry = entry;
-        }
-
-        public void OnFailure()
-        {
-            app.Log.Error($"Failed to store {FolderSaver.FolderSaverFilename} :|");
-        }
-
-        public void OnSuccess()
-        {
-            if (!string.IsNullOrEmpty(entry.EncodedCid))
-            {
-                var cidsFile = Path.Combine(app.Config.DataPath, "cids.log");
-                File.AppendAllLines(cidsFile, [entry.EncodedCid]);
-                app.Log.Log($"!!! {FolderSaver.FolderSaverFilename} saved to CID '{entry.EncodedCid}' !!!");
-            }
-            else
-            {
-
-                app.Log.Error($"Foldersaver entry didn't have encoded CID somehow :|");
-            }
         }
     }
 }

@@ -28,7 +28,7 @@ namespace BiblioTech
         {
             try
             {
-                return GethConnector.GethConnector.Initialize(Program.Log);
+                return GethConnector.GethConnector.Initialize(Program.Log, Program.Network);
             }
             catch (Exception ex)
             {

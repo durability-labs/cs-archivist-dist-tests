@@ -19,6 +19,16 @@ namespace ArchivistClient
             };
         }
 
+        public DebugPeer Map(ArchivistOpenApi.DebugPeerRecord debugPeerRecord)
+        {
+            return new DebugPeer
+            {
+                PeerId = debugPeerRecord.PeerId,
+                IsPeerFound = true,
+                Addresses = debugPeerRecord.Addresses.ToArray()
+            };
+        }
+
         public LocalDatasetList Map(ArchivistOpenApi.DataList dataList)
         {
             return new LocalDatasetList
