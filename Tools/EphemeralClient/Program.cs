@@ -14,7 +14,7 @@ namespace EphemeralClient
         }
 
         private readonly TimeSpan loopDelay = TimeSpan.FromMinutes(30);
-        private readonly ByteSize fileSize = 100.MB();
+        private readonly ByteSize fileSize = 10.MB();
 
         private readonly ILog log;
         private readonly LocalNode localNode;
