@@ -12,6 +12,11 @@ namespace ArgsUniform
         private const int envStart = 48;
         private const int descStart = 80;
 
+        public ArgsUniform(params string[] args)
+            : this(() => { }, args)
+        {
+        }
+
         public ArgsUniform(Action printAppInfo, params string[] args)
             : this(printAppInfo, new IEnv.Env(), args)
         {

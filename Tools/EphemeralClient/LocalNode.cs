@@ -2,16 +2,19 @@
 using ArchivistClient;
 using ArchivistNetworkConfig;
 using Logging;
+using MetricsServer;
 
 namespace EphemeralClient
 {
     public class LocalNode
     {
         private readonly ILog log;
+        private readonly MetricsEvent failedToStart;
 
-        public LocalNode(ILog log)
+        public LocalNode(ILog log, MetricsServer.MetricsServer metricsServer)
         {
             this.log = new LogPrefixer(log, "(LocalNode)");
+            failedToStart = metricsServer.CreateEvent("node_start_failed", "failed to start node");
         }
 
         public void Initialize(ArchivistNetwork network)
@@ -42,17 +45,26 @@ namespace EphemeralClient
 
         public IArchivistNode Start()
         {
-            log.Log("Starting...");
-            Process.Start("docker", "compose up -d");
+            try
+            {
+                log.Log("Starting...");
+                Process.Start("docker", "compose up -d");
 
-            Thread.Sleep(TimeSpan.FromSeconds(20.0));
+                Thread.Sleep(TimeSpan.FromSeconds(40.0));
 
-            var factory = new ArchivistNodeFactory(log, "datadir");
-            var instance = ArchivistInstance.CreateFromApiEndpoint(
-                "name",
-                new Utils.Address("name", "http://localhost", 8089)
-            );
-            return factory.CreateArchivistNode(instance);
+                var factory = new ArchivistNodeFactory(log, "datadir");
+                var instance = ArchivistInstance.CreateFromApiEndpoint(
+                    "name",
+                    new Utils.Address("name", "http://localhost", 8089)
+                );
+                return factory.CreateArchivistNode(instance);
+            }
+            catch (Exception ex)
+            {
+                log.Error($"Failed to start node: {ex}");
+                failedToStart.Now();
+                throw;
+            }
         }
 
         public void StopAndClean()
@@ -60,7 +72,7 @@ namespace EphemeralClient
             log.Log("Stopping...");
             Process.Start("docker", "compose down");
 
-            Thread.Sleep(TimeSpan.FromSeconds(10.0));
+            Thread.Sleep(TimeSpan.FromSeconds(20.0));
 
             log.Log("Cleaning up...");
             Directory.Delete("volumes", true);

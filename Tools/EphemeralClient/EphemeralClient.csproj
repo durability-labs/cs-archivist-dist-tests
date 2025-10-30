@@ -13,6 +13,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Framework\ArchivistNetworkConfig\ArchivistNetworkConfig.csproj" />
+    <ProjectReference Include="..\..\Framework\ArgsUniform\ArgsUniform.csproj" />
+    <ProjectReference Include="..\..\Framework\MetricsServer\MetricsServer.csproj" />
     <ProjectReference Include="..\..\ProjectPlugins\ArchivistClient\ArchivistClient.csproj" />
     <ProjectReference Include="..\..\ProjectPlugins\GatewayClient\GatewayClient.csproj" />
   </ItemGroup>
