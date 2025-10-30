@@ -11,8 +11,11 @@ namespace AutoClient.Modes.FolderStore
 
     public interface IFileSaverResultHandler
     {
-        void OnSuccess();
-        void OnFailure();
+        void OnProcessStart();
+        void OnUploadSuccess();
+        void OnUploadFailure();
+        void OnPurchaseSuccess();
+        void OnPurchaseFailure();
     }
 
     public class FileSaver
@@ -38,6 +41,7 @@ namespace AutoClient.Modes.FolderStore
 
         public void Process()
         {
+            resultHandler.OnProcessStart();
             if (string.IsNullOrEmpty(entry.ArchivistNodeId))
             {
                 DispatchToAny();
@@ -136,7 +140,7 @@ namespace AutoClient.Modes.FolderStore
                 Thread.Sleep(TimeSpan.FromMinutes(1.0));
             }
             Log("Could not upload: Insufficient local storage quota.");
-            resultHandler.OnFailure();
+            resultHandler.OnPurchaseFailure();
             return false;
         }
 
@@ -217,13 +221,14 @@ namespace AutoClient.Modes.FolderStore
                 entry.BasicCid = instance.UploadFile(folderFile).Id;
                 stats.SuccessfulUploads++;
                 Log($"Successfully uploaded. BasicCid: '{entry.BasicCid}'");
+                resultHandler.OnUploadSuccess();
             }
             catch (Exception exc)
             {
                 entry.BasicCid = string.Empty;
                 stats.FailedUploads++;
                 log.Error("Failed to upload: " + exc);
-                resultHandler.OnFailure();
+                resultHandler.OnUploadFailure();
             }
             saveHandler.SaveChanges();
         }
@@ -244,7 +249,7 @@ namespace AutoClient.Modes.FolderStore
                 saveHandler.SaveChanges();
 
                 Log($"Successfully started new purchase: '{entry.PurchaseId}' for {Time.FormatDuration(request.Purchase.Duration)}");
-                resultHandler.OnSuccess();
+                resultHandler.OnPurchaseSuccess();
             }
             catch (Exception exc)
             {
@@ -253,7 +258,7 @@ namespace AutoClient.Modes.FolderStore
                 stats.StorageRequestStats.FailedToStart++;
                 saveHandler.SaveChanges();
                 log.Error("Failed to start new purchase: " + exc);
-                resultHandler.OnFailure();
+                resultHandler.OnPurchaseFailure();
             }
         }
 
@@ -319,7 +324,7 @@ namespace AutoClient.Modes.FolderStore
             }
             catch (Exception exc)
             {
-                resultHandler.OnFailure();
+                resultHandler.OnPurchaseFailure();
                 Log($"Exception in {nameof(WaitForSubmittedToStarted)}: {exc}");
                 throw;
             }

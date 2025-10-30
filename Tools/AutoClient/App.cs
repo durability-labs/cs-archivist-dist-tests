@@ -15,11 +15,14 @@ namespace AutoClient
                     new ConsoleLog()
                 )
             );
+
+            Metrics = new AppMetrics(Log, config);
         }
 
         public Configuration Config { get; }
         public ILog Log { get; }
         public CancellationTokenSource Cts { get; } = new CancellationTokenSource();
+        public AppMetrics Metrics { get; }
     }
 
     public class AutoClientWebTimeSet : IWebCallTimeSet
