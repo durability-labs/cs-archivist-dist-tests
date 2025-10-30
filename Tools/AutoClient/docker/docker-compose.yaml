@@ -8,13 +8,12 @@ services:
           http://archivist-1:8080;
           http://archivist-2:8081;
           http://archivist-3:8082;
-          # http://archivist-4:8083;
-          # http://archivist-5:8084;
+          http://archivist-4:8083;
+          http://archivist-5:8084;
           # http://archivist-6:8085;
           # http://archivist-7:8086;
           # http://archivist-8:8087;
-          # http://archivist-9:8088;
-          # http://archivist-10:8089
+          # http://archivist-9:8088
       - DATAPATH=/data
       # 5 days, 6.5 days, expressed in minutes:
       - CONTRACTDURATION=7200,9360
@@ -89,39 +88,39 @@ services:
       - 8072:8072/tcp
       - 8092:8092/udp
 
-  # archivist-4:
-  #   extends:
-  #     file: archivist-node.yaml
-  #     service: archivist-base
-  #   environment:
-  #     - ARCHIVIST_API_PORT=8083
-  #     - ARCHIVIST_LISTEN_ADDRS=/ip4/0.0.0.0/tcp/8073
-#       - ARCHIVIST_DISC_PORT=8093
-  #     # Address: 0x45c3ad9d81bcf83df3621af33d00d768df500995
-  #     - ETH_PRIVATE_KEY=0x126c961a9d66d5ba7ad460c2d1b53f5dd070beec3ea956268ba1fac1f4cbfd13
-  #   volumes:
-  #     - ./volumes/arch4-data:/data
-  #   ports:
-  #     - 8083:8083/tcp
-  #     - 8073:8073/tcp
-  #     - 8093:8093/udp
+  archivist-4:
+    extends:
+      file: archivist-node.yaml
+      service: archivist-base
+    environment:
+      - ARCHIVIST_API_PORT=8083
+      - ARCHIVIST_LISTEN_ADDRS=/ip4/0.0.0.0/tcp/8073
+      - ARCHIVIST_DISC_PORT=8093
+      # Address: 0x45c3ad9d81bcf83df3621af33d00d768df500995
+      - ETH_PRIVATE_KEY=0x126c961a9d66d5ba7ad460c2d1b53f5dd070beec3ea956268ba1fac1f4cbfd13
+    volumes:
+      - ./volumes/arch4-data:/data
+    ports:
+      - 8083:8083/tcp
+      - 8073:8073/tcp
+      - 8093:8093/udp
 
-  # archivist-5:
-  #   extends:
-  #     file: archivist-node.yaml
-  #     service: archivist-base
-  #   environment:
-  #     - ARCHIVIST_API_PORT=8084
-  #     - ARCHIVIST_LISTEN_ADDRS=/ip4/0.0.0.0/tcp/8074
-  #     - ARCHIVIST_DISC_PORT=8094
-  #     # Address: 0xe62dde833688a9f1ebfe24299c80d84c94e6ba54
-  #     - ETH_PRIVATE_KEY=0xe851fdc9d58f54a03869b236a355f9b639ad6b4de47e1ea0261457bf1791ddc2
-  #   volumes:
-  #     - ./volumes/arch5-data:/data
-  #   ports:
-  #     - 8084:8084/tcp
-  #     - 8073:8073/tcp
-  #     - 8093:8093/udp
+  archivist-5:
+    extends:
+      file: archivist-node.yaml
+      service: archivist-base
+    environment:
+      - ARCHIVIST_API_PORT=8084
+      - ARCHIVIST_LISTEN_ADDRS=/ip4/0.0.0.0/tcp/8074
+      - ARCHIVIST_DISC_PORT=8094
+      # Address: 0xe62dde833688a9f1ebfe24299c80d84c94e6ba54
+      - ETH_PRIVATE_KEY=0xe851fdc9d58f54a03869b236a355f9b639ad6b4de47e1ea0261457bf1791ddc2
+    volumes:
+      - ./volumes/arch5-data:/data
+    ports:
+      - 8084:8084/tcp
+      - 8073:8073/tcp
+      - 8093:8093/udp
 
   # archivist-6:
   #   extends:
@@ -190,20 +189,3 @@ services:
   #     - 8088:8088/tcp
   #     - 8078:8078/tcp
   #     - 8098:8098/udp
-
-  # archivist-10:
-  #   extends:
-  #     file: archivist-node.yaml
-  #     service: archivist-base
-  #   environment:
-  #     - ARCHIVIST_API_PORT=8089
-  #     - ARCHIVIST_LISTEN_ADDRS=/ip4/0.0.0.0/tcp/8079
-  #     - ARCHIVIST_DISC_PORT=8099
-  #     # Address: 0xdf5c4abdbcd213cdecbb394934cbd2354bc479aa
-  #     - ETH_PRIVATE_KEY=0x6e51bdebda88002d8cc8c3f547c7da3bc718405fc28da04766a6aebe0ff72984
-  #   volumes:
-  #     - ./volumes/arch10-data:/data
-  #   ports:
-  #     - 8089:8089/tcp
-  #     - 8079:8079/tcp
-  #     - 8099:8099/udp

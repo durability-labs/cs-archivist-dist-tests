@@ -6,15 +6,15 @@ services:
       - archivist
       - persistence
     environment:
-      - NETWORK=testnet
+      - NETWORK=devnet
       - ARCHIVIST_DATA_DIR=/data
-      - ARCHIVIST_LOG_LEVEL=TRACE;warn:discv5,providers,manager,cache;warn:libp2p,multistream,switch,transport,tcptransport,semaphore,asyncstreamwrapper,lpstream,mplex,mplexchannel,noise,bufferstream,mplexcoder,secure,chronosstream,connection,connmanager,websock,ws-session
+      - ARCHIVIST_LOG_LEVEL=TRACE;warn:discv5,providers,manager,cache;warn:libp2p,multistream,switch,transport,tcptransport,semaphore,asyncstreamwrapper,lpstream,mplex,mplexchannel,noise,bufferstream,mplexcoder,secure,chronosstream,connection,connmanager,websock,ws-session,JSONRPC-CLIENT,JSONRPC-HTTP-CLIENT
       - ARCHIVIST_API_BINDADDR=0.0.0.0
       - ARCHIVIST_API_CORS_ORIGIN=*
       - ARCHIVIST_STORAGE_QUOTA=20gb
       - NAT_PUBLIC_IP_AUTO=https://ip.archivist.storage
-      - ARCHIVIST_ETH_PROVIDER=http://rpc-arbitrum
-
+      - ARCHIVIST_ETH_PROVIDER=https://rpc.devnet.archivist.storage
+      - MARKETPLACE_ADDRESS_FROM_URL=https://marketplace.archivist.storage/devnet/latest
       # Fast cleanup:
       # TTL 3 hours
       # 1000 blocks every minute
