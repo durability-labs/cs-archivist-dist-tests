@@ -109,7 +109,7 @@ namespace TraceContract
             ulong blocksPerLoop = 3600;
             var end = geth.GetBlockForUtc(DateTime.UtcNow)!;
             var start = geth.GetBlockForNumber(end.BlockNumber - blocksPerLoop)!;
-            var limit = geth.GetBlockForUtc(DateTime.UtcNow - TimeSpan.FromDays(30))!;
+            var limit = GetBlockLimit();
             var range = new BlockInterval(new TimeRange(start.Utc, end.Utc), start.BlockNumber, end.BlockNumber);
 
             while (range.From > limit.BlockNumber)
@@ -127,6 +127,19 @@ namespace TraceContract
             }
 
             throw new Exception("Unable to find storage request creation event on-chain after (limit) 30 days");
+        }
+
+        private BlockTimeEntry GetBlockLimit()
+        {
+            var utc = DateTime.UtcNow - TimeSpan.FromDays(30);
+            var limit = geth.GetBlockForUtc(utc);
+            if (limit == null)
+            {
+                var blockOne = geth.GetBlockForNumber(1);
+                if (blockOne == null) throw new Exception($"Unable to find block at {Time.FormatTimestamp(utc)} or block with number 1.");
+                return blockOne;
+            }
+            return limit;
         }
     }
 }
