@@ -32,7 +32,7 @@ namespace DistTestCore.Logs
 
         public void Debug(string message = "", int skipFrames = 0)
         {
-            backingLog.Debug(message, skipFrames);
+            backingLog.Debug(message, skipFrames + 1);
         }
 
         public void Error(string message)

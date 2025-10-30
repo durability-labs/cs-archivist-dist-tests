@@ -10,13 +10,13 @@ namespace ArchivistNetworkConfig
         /// Archivist network for which information is fetched.
         /// Optional. Default: "testnet"
         /// </summary>
-        private const string EnvVar_Network = "ARCHIVIST_NETWORK";
+        public static string EnvVar_Network = "ARCHIVIST_NETWORK";
 
         /// <summary>
         /// Archivist version for which information is fetched.
         /// Optional. Default: "latest"
         /// </summary>
-        private const string EnvVar_Version = "ARCHIVIST_VERSION";
+        public static string EnvVar_Version = "ARCHIVIST_VERSION";
 
         /// <summary>
         /// Optional override. If set, use this URL to fetch config JSON.
@@ -111,6 +111,7 @@ namespace ArchivistNetworkConfig
 
             return new ArchivistNetwork
             {
+                Name = network,
                 Version = fullModel.Archivist.Single(v => v.Version == selected),
                 SPR = fullModel.SPRs.First(s => s.SupportedVersions.Contains(selected)),
                 RPCs = fullModel.RPCs,

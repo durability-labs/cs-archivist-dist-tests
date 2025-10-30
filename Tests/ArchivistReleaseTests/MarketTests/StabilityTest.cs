@@ -1,6 +1,5 @@
 using ArchivistClient;
 using ArchivistContractsPlugin.ChainMonitor;
-using ArchivistContractsPlugin.Marketplace;
 using ArchivistReleaseTests.Utils;
 using NUnit.Framework;
 using Utils;
@@ -92,11 +91,7 @@ namespace ArchivistReleaseTests.MarketTests
 
             // There can't be any calls to FreeSlot.
             // All slots are correctly filled and proven for the entire duration.
-            foreach (var c in report.FunctionCalls)
-            {
-                Assert.That(c.Name, Is.Not.EqualTo(nameof(FreeSlot1Function)));
-                Assert.That(c.Name, Is.Not.EqualTo(nameof(FreeSlotFunction)));
-            }
+            AssertNoSlotsFreed(report);
         }
 
         private IStoragePurchaseContract CreateStorageRequest(IArchivistNode client, TimeSpan minutes)

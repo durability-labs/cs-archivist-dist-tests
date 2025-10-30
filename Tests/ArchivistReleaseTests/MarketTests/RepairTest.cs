@@ -46,28 +46,24 @@ namespace ArchivistReleaseTests.MarketTests
             proofsMissed = 0;
             var contract = CreateStorageRequest(client);
             contract.WaitForStorageContractStarted();
-            // All slots are filled.
+            var contractCid = contract.ContentId;
+            client.Stop(waitTillStopped: true);
 
-            AssertContentIsRetrievableByNewNode(contract.ContentId);
+            AssertContentIsRetrievableByNewNode(contractCid);
 
             var fills = GetOnChainSlotFills(hosts).ToList();
             for (var i = 0; i < purchaseParams.Tolerance; i++)
             {
                 fills.PickOneRandom().Host.Stop(waitTillStopped: true);
 
-                AssertContentIsRetrievableByNewNode(contract.ContentId);
+                AssertContentIsRetrievableByNewNode(contractCid);
             }
-
-            var status = contract.GetStatus();
-            if (status == null) throw new Exception("Unable to get purchase status");
-            Assert.That(status.IsStarted);
-            Assert.That(status.IsError, Is.False);
         }
 
         private void AssertContentIsRetrievableByNewNode(ContentId cid)
         {
-            var downloader = StartArchivist();
-            var file = downloader.DownloadContent(cid);
+            var checker = StartArchivist(s => s.WithName("checker"));
+            var file = checker.DownloadContent(cid);
             if (file == null) throw new Exception("Failed to download content");
             Assert.That(file.GetFilesize(), Is.EqualTo(purchaseParams.UploadFilesize));
         }

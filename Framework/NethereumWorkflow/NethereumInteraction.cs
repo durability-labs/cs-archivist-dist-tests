@@ -171,6 +171,7 @@ namespace NethereumWorkflow
 
         private IEventsCollector[] GetEvents(string address, ulong fromBlockNumber, ulong toBlockNumber, params IEventsCollector[] collectors)
         {
+            var context = $"{nameof(NethereumInteraction)}.{nameof(GetEvents)}";
             return DebugLogWrap(() =>
             {
                 var logs = new List<FilterLog>();
@@ -191,7 +192,10 @@ namespace NethereumWorkflow
                 var from = new BlockParameter(fromBlockNumber);
                 var to = new BlockParameter(toBlockNumber);
                 var ct = new CancellationTokenSource().Token;
-                Time.Wait(p.ExecuteAsync(toBlockNumber: to.BlockNumber, cancellationToken: ct, startAtBlockNumberIfNotProcessed: from.BlockNumber));
+                Stopwatch.Measure(log, $"{context}.ExecuteAsync", () =>
+                {
+                    Time.Wait(p.ExecuteAsync(toBlockNumber: to.BlockNumber, cancellationToken: ct, startAtBlockNumberIfNotProcessed: from.BlockNumber));
+                }, true);
 
                 foreach (var t in collectors)
                 {

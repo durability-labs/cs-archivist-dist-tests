@@ -84,17 +84,24 @@ namespace TestNetRewarder
         private async Task<int> ProcessEvents(TimeRange timeRange)
         {
             log.Log($"Processing time range: {timeRange}");
-            var numberOfChainEvents = chainState.Update(timeRange.To);
-
-            var events = eventsFormatter.GetEvents();
-            var errors = eventsFormatter.GetErrors();
-
-            var request = builder.Build(chainState, events, errors);
-            if (request.HasAny())
+            try
             {
-                await client.SendRewards(request);
+                var numberOfChainEvents = chainState.Update(timeRange.To);
+                var events = eventsFormatter.GetEvents();
+                var errors = eventsFormatter.GetErrors();
+
+                var request = builder.Build(chainState, events, errors);
+                if (request.HasAny())
+                {
+                    await client.SendRewards(request);
+                }
+                return numberOfChainEvents;
             }
-            return numberOfChainEvents;
+            catch (Exception ex)
+            {
+                log.Error($"Failed to update chainState for time range {timeRange}: {ex}");
+                return 0;
+            }
         }
     }
 

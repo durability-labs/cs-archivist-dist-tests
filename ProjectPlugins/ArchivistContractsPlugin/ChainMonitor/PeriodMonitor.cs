@@ -67,7 +67,7 @@ namespace ArchivistContractsPlugin.ChainMonitor
         private CurrentPeriod CreateCurrentPeriod(BlockTimeEntry block, ulong periodNumber, IChainStateRequest[] requests)
         {
             var cRequests = requests.Select(r => CurrentRequest.CreateCurrentRequest(contracts, r)).ToArray();
-            log.Debug($"Created CurrentPeriod for period {periodNumber} with starting block {block}");
+            log.Log($"New period {periodNumber} started with block {block}");
             return new CurrentPeriod(block, periodNumber, cRequests);
         }
 

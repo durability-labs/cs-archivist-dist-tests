@@ -1,6 +1,5 @@
 using ArchivistClient;
 using ArchivistTests;
-using ArchivistTests.Helpers;
 using NUnit.Framework;
 
 namespace ArchivistReleaseTests.NodeTests
@@ -18,7 +17,7 @@ namespace ArchivistReleaseTests.NodeTests
 
         private void AssertAllNodesSeeEachOther(IEnumerable<IArchivistNode> nodes)
         {
-            var helper = new PeerConnectionTestHelpers(GetTestLog());
+            var helper = CreatePeerConnectionTestHelpers();
             helper.AssertFullyConnected(nodes);
         }
     }

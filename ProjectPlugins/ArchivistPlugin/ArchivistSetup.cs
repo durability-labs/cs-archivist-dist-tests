@@ -105,7 +105,7 @@ namespace ArchivistPlugin
 
         public IArchivistSetup WithBlockTTL(TimeSpan duration)
         {
-            BlockTTL = Convert.ToInt32(duration.TotalSeconds);
+            BlockTTL = duration;
             return this;
         }
 
@@ -164,6 +164,7 @@ namespace ArchivistPlugin
         {
             if (PublicTestNet != null) yield return $"<!>Public TestNet with listenPort: {PublicTestNet.PublicListenPort}<!>";
             yield return $"LogLevel={LogLevelWithTopics()}";
+            yield return $"Maintenance=(TTL={Time.FormatDuration(BlockTTL)}@{BlockMaintenanceNumber}/{Time.FormatDuration(BlockMaintenanceInterval)})";
             if (BootstrapSpr != null) yield return $"BootstrapNode={BootstrapSpr}";
             if (StorageQuota != null) yield return $"StorageQuota={StorageQuota}";
             if (SimulateProofFailures != null) yield return $"SimulateProofFailures={SimulateProofFailures}";

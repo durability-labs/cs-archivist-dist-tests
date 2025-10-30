@@ -2,6 +2,7 @@
 {
     public class ArchivistNetwork
     {
+        public string Name { get; set; } = string.Empty;
         public ArchivistVersionEntry Version { get; set; } = new ArchivistVersionEntry();
         public ArchivistSprEntry SPR { get; set; } = new ArchivistSprEntry();
         public string[] RPCs { get; set; } = Array.Empty<string>();

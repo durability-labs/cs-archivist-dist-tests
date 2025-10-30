@@ -34,7 +34,7 @@ namespace TestNetRewarder
                 )
             );
 
-            var diskStore = new DiskBlockBucketStore(Path.Join(Config.DataPath, "blockcache"));
+            var diskStore = new DiskBlockBucketStore(Log, Path.Join(Config.DataPath, "blockcache"));
             var blockCache = new BlockCache(Log, diskStore);
             var requestsCache = new DiskRequestsCache(Path.Join(Config.DataPath, "requestscache"));
             var connector = GethConnector.GethConnector.Initialize(Log, blockCache, requestsCache);
