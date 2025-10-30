@@ -1,60 +1,45 @@
 ﻿using Logging;
-using Prometheus;
-using Utils;
+using MetricsServer;
 
 namespace ArchivistGatewayService
 {
     public class AppMetrics
     {
         private const string MetricPrefix = "archivist_gateway_";
-        private readonly TimeSpan SampleDuration = TimeSpan.FromHours(6.0);
         private readonly TimeSpan LoopDelay = TimeSpan.FromHours(0.5);
         private readonly ILog log;
         private readonly NodeSelector nodes;
-        private readonly MetricServer server;
-        private readonly object _lock = new object();
-        private readonly List<DateTime> manifestRequestUtcs = new List<DateTime>();
-        private readonly List<DateTime> dataRequestUtcs = new List<DateTime>();
-        private readonly List<DateTime> checksRequestUtcs = new List<DateTime>();
-        private Gauge manifestGauge = null!;
-        private Gauge dataGauge = null!;
-        private Gauge checkGauge = null!;
+        private readonly MetricsServer.MetricsServer server;
+        private MetricsEvent manifestEvent = null!;
+        private MetricsEvent dataEvent = null!;
+        private MetricsEvent checkEvent = null!;
 
         public AppMetrics(ILog log, Configuration config, NodeSelector nodes)
         {
             this.log = log;
             this.nodes = nodes;
-            log.Log($"Creating metrics server at port {config.MetricsPort}...");
-            server = new MetricServer(config.MetricsPort);
+            server = new MetricsServer.MetricsServer(log, config.MetricsPort, MetricPrefix);
         }
         
         public void Initialize()
         {
             server.Start();
 
-            manifestGauge = Metrics.CreateGauge($"{MetricPrefix}manifests", $"Number of requests to manifest endpoint in last {Time.FormatDuration(SampleDuration)}");
-            dataGauge = Metrics.CreateGauge($"{MetricPrefix}data", $"Number of requests to data endpoint in last {Time.FormatDuration(SampleDuration)}");
-            checkGauge = Metrics.CreateGauge($"{MetricPrefix}checks", $"Number of connection checks in last {Time.FormatDuration(SampleDuration)}");
+            manifestEvent = server.CreateEvent("manifests", "Number of requests to manifest endpoint");
+            dataEvent = server.CreateEvent("data", "Number of requests to data endpoint");
+            checkEvent = server.CreateEvent("checks", "Number of connection checks");
 
             Task.Run(Worker);
         }
 
         public void OnManifestRequest()
         {
-            lock (_lock)
-            {
-                manifestRequestUtcs.Add(DateTime.UtcNow);
-                manifestGauge.Set(manifestRequestUtcs.Count);
-            }
+            manifestEvent.Now();
         }
 
         public void OnDataRequest()
         {
-            lock (_lock)
-            {
-                dataRequestUtcs.Add(DateTime.UtcNow);
-                dataGauge.Set(dataRequestUtcs.Count);
-            }
+            dataEvent.Now();
         }
 
         private void Worker()
@@ -75,39 +60,14 @@ namespace ArchivistGatewayService
 
         private void WorkerStep()
         {
-            lock (_lock)
-            {
-                TimeoutEntries(manifestRequestUtcs);
-                TimeoutEntries(dataRequestUtcs);
-                TimeoutEntries(checksRequestUtcs);
-
-                manifestGauge.Set(manifestRequestUtcs.Count);
-                dataGauge.Set(dataRequestUtcs.Count);
-                checkGauge.Set(checksRequestUtcs.Count);
-            }
-
             try
             {
                 nodes.CheckOneNode().Wait();
-                OnCheck();
+                checkEvent.Now();
             }
             catch
             {
                 // Quietly ignore. We'll see it in the metrics.
-            }
-        }
-
-        private void TimeoutEntries(List<DateTime> utcs)
-        {
-            utcs.RemoveAll(utc => utc > (DateTime.UtcNow - SampleDuration));
-        }
-
-        private void OnCheck()
-        {
-            lock (_lock)
-            {
-                checksRequestUtcs.Add(DateTime.UtcNow);
-                checkGauge.Set(checksRequestUtcs.Count);
             }
         }
     }
