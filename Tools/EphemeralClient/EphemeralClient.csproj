@@ -19,7 +19,7 @@
 
   <ItemGroup>
     <Resource Include="docker-compose.yaml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
   </ItemGroup>
 
