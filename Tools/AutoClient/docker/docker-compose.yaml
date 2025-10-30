@@ -119,8 +119,8 @@ services:
       - ./volumes/arch5-data:/data
     ports:
       - 8084:8084/tcp
-      - 8073:8073/tcp
-      - 8093:8093/udp
+      - 8074:8074/tcp
+      - 8094:8094/udp
 
   # archivist-6:
   #   extends:
