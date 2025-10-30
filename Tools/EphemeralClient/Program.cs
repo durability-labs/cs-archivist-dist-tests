@@ -31,18 +31,25 @@ namespace EphemeralClient
                 )
             );
 
+            Log("Ephemeral client");
+
             localNode = new LocalNode(log);
 
-            var networkConnector = new ArchivistNetworkConnector(log);
+            Log("Loading network config...");
+            var networkConnector = new ArchivistNetworkConnector(log, "devnet", "latest");
             var network = networkConnector.GetConfig();
+            Log($"Network: {network.Name}");
             gateway = new GatewayClient.GatewayClient(network);
+
+            Log("Preparing local node...");
+            localNode.Initialize(network);
 
             fileManager = new FileManager(log, "temp_uploadfiles");
         }
 
         private void Run()
         {
-            Console.WriteLine("Ephemeral client");
+            Log("Run: start");
 
             Sleep(10);
 
@@ -59,10 +66,11 @@ namespace EphemeralClient
             try
             {
                 RunWithNode();
+                Log("Check: Success");
             }
             catch (Exception ex)
             {
-                log.Error($"Exception during check: {ex}");
+                log.Error($"Check: Exception: {ex}");
             }
         }
 
@@ -124,6 +132,11 @@ namespace EphemeralClient
         private static void Sleep(int sec)
         {
             Sleep(TimeSpan.FromSeconds(sec));
+        }
+
+        private void Log(string msg)
+        {
+            log.Log(msg);
         }
     }
 }

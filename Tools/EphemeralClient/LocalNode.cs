@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using ArchivistClient;
+using ArchivistNetworkConfig;
 using Logging;
 
 namespace EphemeralClient
@@ -11,6 +12,32 @@ namespace EphemeralClient
         public LocalNode(ILog log)
         {
             this.log = new LogPrefixer(log, "(LocalNode)");
+        }
+
+        public void Initialize(ArchivistNetwork network)
+        {
+            var filename = "docker-compose.yaml";
+            if (!File.Exists(filename))
+            {
+                log.Error($"File '{filename}' does not exist.");
+                throw new FileNotFoundException(filename);
+            }
+
+            var targetLine = "      - NETWORK=";
+            var lines = File.ReadAllLines(filename);
+            for (var i = 0; i < lines.Length; i++)
+            {
+                if (lines[i].StartsWith(targetLine))
+                {
+                    // In-place update and done.
+                    lines[i] = targetLine + network.Name;
+                    File.WriteAllLines(filename, lines);
+                    return;
+                }
+            }
+
+            log.Error($"Did not find target line '{targetLine}' in file '{filename}'");
+            throw new InvalidDataException();
         }
 
         public IArchivistNode Start()

@@ -5,7 +5,7 @@
     command:
       - archivist
     environment:
-      - NETWORK=testnet
+      - NETWORK=
       - ARCHIVIST_API_PORT=8089
       - ARCHIVIST_LISTEN_ADDRS=/ip4/0.0.0.0/tcp/8079
       - ARCHIVIST_DISC_PORT=8099
