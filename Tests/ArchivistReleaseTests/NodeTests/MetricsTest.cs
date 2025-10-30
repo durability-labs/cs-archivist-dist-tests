@@ -20,13 +20,13 @@ namespace ArchivistReleaseTests.NodeTests
             metrics[0].AssertThat("libp2p_peers", Is.EqualTo(1));
             metrics[1].AssertThat("libp2p_peers", Is.EqualTo(1));
 
-            metrics[0].AssertThat("archivist_block_exchange_want_block_lists_sent", Is.GreaterThan(15));
-            metrics[1].AssertThat("archivist_block_exchange_want_block_lists_received", Is.GreaterThan(15));
+            metrics[0].AssertThat("archivist_block_exchange_want_block_lists_sent_total", Is.GreaterThan(15));
+            metrics[1].AssertThat("archivist_block_exchange_want_block_lists_received_total", Is.GreaterThan(15));
 
-            metrics[0].AssertThat("dht_message_requests_incoming", Is.GreaterThan(1));
-            metrics[0].AssertThat("dht_message_requests_outgoing", Is.GreaterThan(1));
-            metrics[1].AssertThat("dht_message_requests_incoming", Is.GreaterThan(1));
-            metrics[1].AssertThat("dht_message_requests_outgoing", Is.GreaterThan(1));
+            metrics[0].AssertThat("dht_message_requests_incoming_total", Is.GreaterThan(1));
+            metrics[0].AssertThat("dht_message_requests_outgoing_total", Is.GreaterThan(1));
+            metrics[1].AssertThat("dht_message_requests_incoming_total", Is.GreaterThan(1));
+            metrics[1].AssertThat("dht_message_requests_outgoing_total", Is.GreaterThan(1));
         }
     }
 }
