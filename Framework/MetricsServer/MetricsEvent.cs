@@ -65,7 +65,21 @@ namespace MetricsServer
                     worker = null;
                     return null;
                 }
-                return DateTime.UtcNow - utcs.First();
+                var now = DateTime.UtcNow;
+                foreach (var utc in utcs)
+                {
+                    if (utc > now)
+                    {
+                        return utc - now;
+                    }
+                }
+
+                // all utcs were in the past
+                // cleanup everything
+                utcs.Clear();
+                UpdateGauge();
+                worker = null;
+                return null;
             }
         }
 
