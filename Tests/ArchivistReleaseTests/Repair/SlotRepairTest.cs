@@ -7,10 +7,10 @@ using Nethereum.Hex.HexConvertors.Extensions;
 using NUnit.Framework;
 using Utils;
 
-namespace ArchivistReleaseTests.MarketTests
+namespace ArchivistReleaseTests.Repair
 {
     [TestFixture]
-    public class RepairTest : MarketplaceAutoBootstrapDistTest
+    public class SlotRepairTest : MarketplaceAutoBootstrapDistTest
     {
         #region Setup
 
@@ -20,7 +20,7 @@ namespace ArchivistReleaseTests.MarketTests
             uploadFilesize: 32.MB()
         );
 
-        public RepairTest()
+        public SlotRepairTest()
         {
             Assert.That(purchaseParams.Nodes, Is.LessThan(NumberOfHosts));
         }

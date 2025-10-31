@@ -3,10 +3,25 @@ using ArchivistReleaseTests.Utils;
 using NUnit.Framework;
 using Utils;
 
-namespace ArchivistReleaseTests.MarketTests
+namespace ArchivistReleaseTests.Repair
 {
-    public class RepairRetrievalTest : MarketplaceAutoBootstrapDistTest
+    [TestFixture(0, 1)]
+    [TestFixture(0, 2)]
+    [TestFixture(0, 3)]
+    [TestFixture(1, 2)]
+    [TestFixture(1, 3)]
+    [TestFixture(2, 3)]
+    public class RetrievalTest : MarketplaceAutoBootstrapDistTest
     {
+        private readonly ulong stopSlotIndex1;
+        private readonly ulong stopSlotIndex2;
+
+        public RetrievalTest(int stopSlotIndex1, int stopSlotIndex2)
+        {
+            this.stopSlotIndex1 = Convert.ToUInt64(stopSlotIndex1);
+            this.stopSlotIndex2 = Convert.ToUInt64(stopSlotIndex2);
+        }
+
         #region Setup
 
         private readonly PurchaseParams purchaseParams = new PurchaseParams(
@@ -15,7 +30,8 @@ namespace ArchivistReleaseTests.MarketTests
             uploadFilesize: 32.MB()
         );
 
-        public RepairRetrievalTest()
+
+        public RetrievalTest()
         {
             Assert.That(purchaseParams.Nodes, Is.LessThan(NumberOfHosts));
         }
@@ -30,14 +46,9 @@ namespace ArchivistReleaseTests.MarketTests
 
         [Test]
         [Combinatorial]
-        public void RetrievabilityTest(
-            [Values(0, 1, 2, 3)] int stopSlotIndex1,
-            [Values(0, 1, 2, 3)] int stopSlotIndex2
-        )
+        public void RetrievabilityTest([Rerun] int rerun)
         {
-            if (stopSlotIndex1 == stopSlotIndex2) return;
-            var index1 = Convert.ToUInt64(stopSlotIndex1);
-            var index2 = Convert.ToUInt64(stopSlotIndex2);
+            if (stopSlotIndex1 == stopSlotIndex2) throw new Exception();
 
             var hosts = StartHosts().ToList();
             var client = StartClients().Single();
@@ -52,8 +63,8 @@ namespace ArchivistReleaseTests.MarketTests
             client.Stop(waitTillStopped: true);
 
             var fills = GetOnChainSlotFills(hosts).ToList();
-            var fill1 = fills.Single(f => f.SlotFilledEvent.SlotIndex == index1);
-            var fill2 = fills.Single(f => f.SlotFilledEvent.SlotIndex == index2);
+            var fill1 = fills.Single(f => f.SlotFilledEvent.SlotIndex == stopSlotIndex1);
+            var fill2 = fills.Single(f => f.SlotFilledEvent.SlotIndex == stopSlotIndex2);
 
             Log("Stopping 2 hosts that filled a slot.");
             fill1.Host.Stop(waitTillStopped: true);
