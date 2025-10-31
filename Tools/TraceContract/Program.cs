@@ -65,6 +65,7 @@ namespace TraceContract
             var geth = ConnectGethNode();
             var contracts = ConnectArchivistContracts(ci, geth);
 
+            output.LogRequestId(input.RequestId);
             var chainTracer = new ChainTracer(appLog, baseLog, geth, contracts, input, output);
             var requestTimeRange = chainTracer.TraceChainTimeline();
 

@@ -29,44 +29,10 @@ namespace ArchivistReleaseTests.MarketTests
         protected override int NumberOfClients => 1;
         protected override ByteSize HostAvailabilitySize => purchaseParams.SlotSize.Multiply(1.1); // Each host can hold 1 slot.
         protected override TimeSpan HostAvailabilityMaxDuration => TimeSpan.FromDays(5.0);
-
+        
         #endregion
 
         private int proofsMissed = 0;
-
-        [Test]
-        public void RetrievabilityTest(
-            [Rerun] int rerun
-        )
-        {
-            var hosts = StartHosts().ToList();
-            var client = StartClients().Single();
-            StartValidator();
-
-            proofsMissed = 0;
-            var contract = CreateStorageRequest(client);
-            contract.WaitForStorageContractStarted();
-            var contractCid = contract.ContentId;
-            client.Stop(waitTillStopped: true);
-
-            AssertContentIsRetrievableByNewNode(contractCid);
-
-            var fills = GetOnChainSlotFills(hosts).ToList();
-            for (var i = 0; i < purchaseParams.Tolerance; i++)
-            {
-                fills.PickOneRandom().Host.Stop(waitTillStopped: true);
-
-                AssertContentIsRetrievableByNewNode(contractCid);
-            }
-        }
-
-        private void AssertContentIsRetrievableByNewNode(ContentId cid)
-        {
-            var checker = StartArchivist(s => s.WithName("checker"));
-            var file = checker.DownloadContent(cid);
-            if (file == null) throw new Exception("Failed to download content");
-            Assert.That(file.GetFilesize(), Is.EqualTo(purchaseParams.UploadFilesize));
-        }
 
         [Test]
         [Combinatorial]

@@ -44,6 +44,18 @@ namespace TraceContract
             }
         }
 
+        public void LogRequestId(byte[] requestId)
+        {
+            log.Log($"RequestId: '{requestId.ToHex()}'");
+        }
+
+        public void LogRequestCreationEvent(StorageRequestedEventDTO requestEvent)
+        {
+            Add(requestEvent.Block, $"Storage Requested Event: '{requestEvent.RequestId.ToHex()}' = {Environment.NewLine}" +
+                $"expiry: {requestEvent.Expiry}{Environment.NewLine}" +
+                $"{JsonConvert.SerializeObject(requestEvent.Ask, Formatting.Indented)}{Environment.NewLine}");
+        }
+
         public void LogRequestCreated(RequestEvent requestEvent)
         {
             var msg = $"Storage request created: '{requestEvent.Request.RequestId.ToHex()}' = {Environment.NewLine}{JsonConvert.SerializeObject(requestEvent.Request.Request, Formatting.Indented)}{Environment.NewLine}";

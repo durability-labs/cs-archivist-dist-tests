@@ -37,6 +37,7 @@ namespace TraceContract
             var creationEvent = Measure(FindRequestCreationEvent, nameof(FindRequestCreationEvent));
 
             log.Log($"Request started at {Time.FormatTimestamp(creationEvent.Block.Utc)}");
+            output.LogRequestCreationEvent(creationEvent);
             var contractEnd = Measure(() => RunToContractEnd(creationEvent), nameof(RunToContractEnd));
 
             log.Log($"Request timeline: {creationEvent.Block} -> {contractEnd}");
@@ -80,11 +81,14 @@ namespace TraceContract
 
             while (!tracker.IsFinished)
             {
-                utc += TimeSpan.FromHours(1.0);
+                utc += TimeSpan.FromMinutes(10.0);
                 if (utc > DateTime.UtcNow)
                 {
                     log.Log("Caught up to present moment without finding contract end.");
-                    return geth.GetBlockForUtc(DateTime.UtcNow)!;
+                    utc = DateTime.UtcNow;
+                    log.Log($"Querying up to {Time.FormatTimestamp(utc)}");
+                    chainState.Update(utc);
+                    return geth.GetBlockForUtc(utc)!;
                 }
 
                 log.Log($"Querying up to {Time.FormatTimestamp(utc)}");
