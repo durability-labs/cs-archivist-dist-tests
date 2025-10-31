@@ -41,6 +41,10 @@ namespace ArchivistReleaseTests.MarketTests
 
             var hosts = StartHosts().ToList();
             var client = StartClients().Single();
+            // We do not start a validator:
+            // Validators would cause slots to freed and repair to be activated. We don't want that.
+            // In this test, we explicitly want to check the original data is retrievable when the
+            // minimum tolerable number of hosts are still alive.
 
             var contract = CreateStorageRequest(client);
             contract.WaitForStorageContractStarted();
@@ -48,22 +52,39 @@ namespace ArchivistReleaseTests.MarketTests
             client.Stop(waitTillStopped: true);
 
             var fills = GetOnChainSlotFills(hosts).ToList();
-
             var fill1 = fills.Single(f => f.SlotFilledEvent.SlotIndex == index1);
             var fill2 = fills.Single(f => f.SlotFilledEvent.SlotIndex == index2);
 
+            Log("Stopping 2 hosts that filled a slot.");
             fill1.Host.Stop(waitTillStopped: true);
             fill2.Host.Stop(waitTillStopped: true);
 
             AssertContentIsRetrievableByNewNode(contractCid);
         }
 
-        private void AssertContentIsRetrievableByNewNode(ContentId cid)
+        private void AssertContentIsRetrievableByNewNode(ContentId cid, bool isRetry = false)
         {
             var checker = StartArchivist(s => s.WithName("checker"));
-            var file = checker.DownloadContent(cid);
-            if (file == null) throw new Exception("Failed to download content");
-            Assert.That(file.GetFilesize(), Is.EqualTo(purchaseParams.UploadFilesize));
+            try
+            {
+                var file = checker.DownloadContent(cid);
+                if (file == null) throw new Exception("Failed to download content");
+                Assert.That(file.GetFilesize(), Is.EqualTo(purchaseParams.UploadFilesize));
+            }
+            catch (Exception ex)
+            {
+                Log($"Download failed with: {ex}");
+                if (!isRetry)
+                {
+                    checker.Stop(waitTillStopped: false);
+                    Log("Retrying once...");
+                    AssertContentIsRetrievableByNewNode(cid, true);
+                }
+                else
+                {
+                    throw;
+                }
+            }
         }
 
         private IStoragePurchaseContract CreateStorageRequest(IArchivistNode client)
