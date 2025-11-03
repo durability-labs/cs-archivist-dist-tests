@@ -83,7 +83,8 @@ namespace FrameworkTests.Utils
 
         public override string ToString()
         {
-            return $"[{Start},{Length}]";
+            if (Length == 1) return $"[{Start}]";
+            return $"[{Start}-{Start + (Length - 1)}]";
         }
 
         public override bool Equals(object? obj)
@@ -224,7 +225,7 @@ namespace FrameworkTests.Utils
 
         public override string ToString()
         {
-            return string.Join("&", runs.Select(r => r.ToString()).ToArray());
+            return string.Join("&", runs.Select(r => r.Value.ToString()).ToArray());
         }
 
         private IEnumerable<int> Encode()

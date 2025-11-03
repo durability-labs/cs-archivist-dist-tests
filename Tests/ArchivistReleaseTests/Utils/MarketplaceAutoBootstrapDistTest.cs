@@ -71,9 +71,9 @@ namespace ArchivistReleaseTests.Utils
             {
                 // Blocks are downloaded using the default TTL when slots are being filled.
                 // If the block expiries are not updated to match the storage contract
-                // within 5 period durations, we assume it failed and the data should
+                // within 15 period durations, we assume it failed and the data should
                 // be cleaned up.
-                return GetPeriodDuration() * 5;
+                return GetPeriodDuration() * 15;
             }
         }
         protected virtual void OnPeriod(PeriodReport report)
