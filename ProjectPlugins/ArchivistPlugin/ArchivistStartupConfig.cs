@@ -20,6 +20,7 @@ namespace ArchivistPlugin
         public TimeSpan? BlockMaintenanceInterval { get; set; }
         public int? BlockMaintenanceNumber { get; set; }
         public ArchivistTestNetConfig? PublicTestNet { get; set; }
+        public string Image { get; set; } = string.Empty;
 
         public string LogLevelWithTopics()
         {

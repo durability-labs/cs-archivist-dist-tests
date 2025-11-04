@@ -31,9 +31,6 @@ namespace ContinuousTests
         public void RunNode(IArchivistNode bootstrapNode, Action<IArchivistSetup> setup, Action<IArchivistNode> operation)
         {
             var entryPoint = CreateEntryPoint();
-            // We have to be sure that the transient node we start is using the same image as whatever's already in the deployed network.
-            // Therefore, we use the image of the bootstrap node.
-            ArchivistDockerImage.Override = bootstrapNode.GetImageName();
 
             try
             {

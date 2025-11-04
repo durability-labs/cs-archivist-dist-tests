@@ -14,7 +14,11 @@ namespace ArchivistTests
         public void SetupBootstrapNode()
         {
             isBooting = true;
-            BootstrapNode = StartArchivist(s => s.WithName("BOOTSTRAP"));
+            BootstrapNode = StartArchivist(s =>
+            {
+                s.WithName("BOOTSTRAP");
+                OnBootstrapNodeSetup(s);
+            });
             isBooting = false;
         }
 
@@ -22,6 +26,10 @@ namespace ArchivistTests
         public void TearDownBootstrapNode()
         {
             BootstrapNode.Stop(waitTillStopped: false);
+        }
+
+        protected virtual void OnBootstrapNodeSetup(IArchivistSetup setup)
+        {
         }
 
         protected override void OnArchivistSetup(IArchivistSetup setup)

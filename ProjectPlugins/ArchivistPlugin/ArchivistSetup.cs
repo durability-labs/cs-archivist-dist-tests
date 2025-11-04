@@ -9,6 +9,7 @@ namespace ArchivistPlugin
     public interface IArchivistSetup
     {
         IArchivistSetup WithName(string name);
+        IArchivistSetup WithImage(string img);
         IArchivistSetup At(ILocation location);
         IArchivistSetup WithBootstrapNode(IArchivistNode node);
         IArchivistSetup WithLogLevel(ArchivistLogLevel level);
@@ -61,8 +62,9 @@ namespace ArchivistPlugin
     {
         public int NumberOfNodes { get; }
 
-        public ArchivistSetup(int numberOfNodes)
+        public ArchivistSetup(ArchivistDockerImage dockerImage, int numberOfNodes)
         {
+            Image = dockerImage.GetArchivistDockerImage();
             NumberOfNodes = numberOfNodes;
         }
 
@@ -169,6 +171,12 @@ namespace ArchivistPlugin
             if (StorageQuota != null) yield return $"StorageQuota={StorageQuota}";
             if (SimulateProofFailures != null) yield return $"SimulateProofFailures={SimulateProofFailures}";
             if (MarketplaceConfig != null) yield return $"MarketplaceSetup={MarketplaceConfig.MarketplaceSetup}";
+        }
+
+        public IArchivistSetup WithImage(string img)
+        {
+            Image = img;
+            return this;
         }
     }
 

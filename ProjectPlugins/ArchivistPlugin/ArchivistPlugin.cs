@@ -21,7 +21,7 @@ namespace ArchivistPlugin
         {
             this.tools = tools;
 
-            recipe = new ArchivistContainerRecipe(archivistDockerImage);
+            recipe = new ArchivistContainerRecipe();
             archivistStarter = CreateArchivistStarter();
             archivistWrapper = new ArchivistWrapper(tools, processControlMap, hooksFactory);
         }
@@ -99,7 +99,7 @@ namespace ArchivistPlugin
 
         private ArchivistSetup GetSetup(int numberOfNodes, Action<IArchivistSetup> setup)
         {
-            var archivistSetup = new ArchivistSetup(numberOfNodes);
+            var archivistSetup = new ArchivistSetup(archivistDockerImage, numberOfNodes);
             archivistSetup.LogLevel = defaultLogLevel;
             setup(archivistSetup);
             return archivistSetup;

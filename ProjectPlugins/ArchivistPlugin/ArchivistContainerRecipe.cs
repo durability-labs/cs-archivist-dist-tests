@@ -15,15 +15,12 @@ namespace ArchivistPlugin
         // Used by tests for time-constraint assertions.
         public static readonly TimeSpan MaxUploadTimePerMegabyte = TimeSpan.FromSeconds(2.0);
         public static readonly TimeSpan MaxDownloadTimePerMegabyte = TimeSpan.FromSeconds(2.0);
-        private readonly ArchivistDockerImage archivistDockerImage;
+        //private readonly ArchivistDockerImage archivistDockerImage;
+
+        private string image = string.Empty;
 
         public override string AppName => "archivist";
-        public override string Image => archivistDockerImage.GetArchivistDockerImage();
-
-        public ArchivistContainerRecipe(ArchivistDockerImage archivistDockerImage)
-        {
-            this.archivistDockerImage = archivistDockerImage;
-        }
+        public override string Image => image;
 
         protected override void Initialize(StartupConfig startupConfig)
         {
@@ -34,6 +31,9 @@ namespace ArchivistPlugin
             SetSystemCriticalPriority();
 
             var config = startupConfig.Get<ArchivistStartupConfig>();
+
+            image = config.Image;
+            if (string.IsNullOrEmpty(image)) throw new Exception("A!");
 
             var apiPort = CreateApiPort(config, ApiPortTag);
             AddEnvVar("ARCHIVIST_API_PORT", apiPort);

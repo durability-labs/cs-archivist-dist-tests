@@ -1,7 +1,6 @@
 using BlockchainUtils;
 using ArchivistClient;
 using ArchivistContractsPlugin;
-using ArchivistNetDeployer;
 using ArchivistPlugin;
 using ArchivistPlugin.OverwatchSupport;
 using ArchivistTests.Helpers;
@@ -48,10 +47,6 @@ namespace ArchivistTests
 
         protected override void Initialize(FixtureLog fixtureLog)
         {
-            var localBuilder = new LocalArchivistBuilder(fixtureLog);
-            localBuilder.Intialize();
-            localBuilder.Build();
-
             Ci.AddArchivistHooksProvider(new ArchivistLogTrackerProvider(nodes.Add));
         }
 

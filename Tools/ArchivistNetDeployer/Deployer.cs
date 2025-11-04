@@ -17,13 +17,11 @@ namespace ArchivistNetDeployer
         private readonly Configuration config;
         private readonly PeerConnectivityChecker peerConnectivityChecker;
         private readonly EntryPoint entryPoint;
-        private readonly LocalArchivistBuilder localArchivistBuilder;
 
         public Deployer(Configuration config)
         {
             this.config = config;
             peerConnectivityChecker = new PeerConnectivityChecker();
-            localArchivistBuilder = new LocalArchivistBuilder(new ConsoleLog(), config.ArchivistLocalRepoPath);
 
             ProjectPlugin.Load<ArchivistPlugin.ArchivistPlugin>();
             ProjectPlugin.Load<ArchivistContractsPlugin.ArchivistContractsPlugin>();
@@ -36,8 +34,6 @@ namespace ArchivistNetDeployer
         public void AnnouncePlugins()
         {
             var ep = CreateEntryPoint(new ConsoleLog());
-
-            localArchivistBuilder.Intialize();
 
             Log("Using plugins:" + Environment.NewLine);
             var metadata = ep.GetPluginMetadata();
@@ -54,8 +50,6 @@ namespace ArchivistNetDeployer
 
         public ArchivistDeployment Deploy()
         {
-            localArchivistBuilder.Build();
-
             Log("Initializing...");
             var startUtc = DateTime.UtcNow;
             var ci = entryPoint.CreateInterface();
