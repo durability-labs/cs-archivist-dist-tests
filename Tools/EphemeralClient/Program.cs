@@ -20,7 +20,6 @@ namespace EphemeralClient
         }
 
         private readonly TimeSpan loopDelay = TimeSpan.FromMinutes(30);
-        private readonly ByteSize fileSize = 10.MB();
 
         private readonly ILog log;
         private readonly MetricsServer.MetricsServer metricsServer;
@@ -31,6 +30,7 @@ namespace EphemeralClient
         private readonly MetricsGauge downloadSpeed;
         private readonly IFileManager fileManager;
         private readonly string downloadFolder = "temp_downloadfiles";
+        private readonly Configuration config;
 
         public Program(Configuration config)
         {
@@ -62,6 +62,7 @@ namespace EphemeralClient
             localNode.Initialize(network);
 
             fileManager = new FileManager(log, "temp_uploadfiles");
+            this.config = config;
         }
 
         private void Run()
@@ -114,7 +115,7 @@ namespace EphemeralClient
 
         private void RunCheckSteps(IArchivistNode node)
         {
-            var file = fileManager.GenerateFile(fileSize);
+            var file = fileManager.GenerateFile(config.FilesizeMb.MB());
 
             var cid = new ContentId();
             var uploadTime = Stopwatch.Measure(log, nameof(node.UploadFile), () =>
@@ -147,10 +148,10 @@ namespace EphemeralClient
                     }
                 });
 
-                var downloadSeconds = Convert.ToInt64(Math.Round(downloadTime.TotalSeconds));
-                var downloadBytes = fileSize.SizeInBytes;
+                var downloadSeconds = downloadTime.TotalSeconds;
+                double downloadBytes = config.FilesizeMb.MB().SizeInBytes;
                 var bytesPerSecond = downloadBytes / downloadSeconds;
-                downloadSpeed.Set(Convert.ToInt32(bytesPerSecond));
+                downloadSpeed.Set(Convert.ToInt32(Math.Round(bytesPerSecond)));
 
                 return TrackedFile.FromPath(log, filename);
             }
