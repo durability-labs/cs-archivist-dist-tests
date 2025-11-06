@@ -78,6 +78,13 @@ namespace ArchivistGatewayService
                 {
                     return value;
                 }
+                // Clean up mappings if there are too many.
+                if (knownMappings.Count > 1000)
+                {
+                    knownMappings.Clear();
+                    Log("Cleared all mappings.");
+                }
+
                 // Cycle through the endpoints and assign them.
                 var endpoint = nodeEndpoints[0];
                 nodeEndpoints.RemoveAt(0);
