@@ -30,7 +30,6 @@ namespace ArchivistReleaseTests.MarketTests
             [Values(5)] int numGenerations)
         {
             var (hosts, clients, validator) = JumpStart();
-            var client = clients.Single();
 
             for (var i = 0; i < numGenerations; i++)
             {
