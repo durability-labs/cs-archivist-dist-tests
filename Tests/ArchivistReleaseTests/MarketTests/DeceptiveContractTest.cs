@@ -1,6 +1,7 @@
 ﻿using ArchivistClient;
 using ArchivistContractsPlugin.Marketplace;
 using ArchivistReleaseTests.Utils;
+using GethPlugin;
 using Nethereum.Hex.HexConvertors.Extensions;
 using NUnit.Framework;
 using Utils;
@@ -29,7 +30,9 @@ namespace ArchivistReleaseTests.MarketTests
         protected override bool MonitorProofPeriods => false;
 
         [Test]
-        public void RequestSizeTooSmall()
+        [Combinatorial]
+        public void RequestSizeTooSmall(
+            [Values(1, 5)] int numberOfDeceptiveRequests)
         {
             var (hosts, clients) = JumpStartHostsAndClients();
             var client = clients.Single();
@@ -48,11 +51,11 @@ namespace ArchivistReleaseTests.MarketTests
             Assert.That(request.Ask.SlotSize, Is.EqualTo(actualPurchaseParams.SlotSize.SizeInBytes));
 
             Log($"On-chain request has slot size {request.Ask.SlotSize} ({new ByteSize(Convert.ToInt64(request.Ask.SlotSize))})");
-            Log($"Creating deceptive request for the same data with slot size {deceptivePurchaseParams.SlotSize.SizeInBytes} " +
+            Log($"Creating {numberOfDeceptiveRequests} deceptive request(s) for the same data with slot size {deceptivePurchaseParams.SlotSize.SizeInBytes} " +
                 $"({deceptivePurchaseParams.SlotSize})");
 
             request.Ask.SlotSize = Convert.ToUInt64(deceptivePurchaseParams.SlotSize.SizeInBytes);
-            Time.Retry(() => PostRawRequest(request, client.EthAccount), nameof(PostRawRequest));
+            PostRawRequests(numberOfDeceptiveRequests, request, client.EthAccount);
 
             Log("Hosts will attempt to fill the slots of the deceptive contract. " +
                 "When they download the manifest, they should know something's wrong and disregard the request. " +
@@ -72,7 +75,7 @@ namespace ArchivistReleaseTests.MarketTests
             legitRequest.WaitForStorageContractStarted();
         }
 
-        private void PostRawRequest(Request request, EthAccount clientAccount)
+        private void PostRawRequests(int number, Request request, EthAccount clientAccount)
         {
             var geth = GetGeth().WithDifferentAccount(clientAccount);
             var contracts = GetContracts().WithDifferentGeth(geth);
@@ -80,6 +83,23 @@ namespace ArchivistReleaseTests.MarketTests
 
             contracts.ApproveTestTokens(marketplaceAddress, (StartingBalanceTST / 2).Tst());
 
+            var remaining = number;
+            var timeout = DateTime.UtcNow + TimeSpan.FromMinutes(10);
+            while (remaining > 0)
+            {
+                if (DateTime.UtcNow > timeout) Assert.Fail("Failed to post requests within 10 minutes");
+
+                Time.Retry(() =>
+                {
+                    CreateRequest(geth, marketplaceAddress, request);
+                    request.Expiry++; // We must modify the request. Identical requests are ignored by the contract.
+                    remaining--;
+                }, nameof(CreateRequest));
+            }
+        }
+
+        private void CreateRequest(IGethNode geth, ContractAddress marketplaceAddress, Request request)
+        {
             var func = new RequestStorageFunction
             {
                 Request = request
