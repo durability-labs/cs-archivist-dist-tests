@@ -12,6 +12,7 @@ namespace NethereumWorkflow
 {
     public class NethereumInteraction
     {
+        private static readonly object web3Lock = new object();
         private readonly IWeb3Blocks blocks;
         private readonly ILog log;
         private readonly Web3 web3;
@@ -35,7 +36,7 @@ namespace NethereumWorkflow
         public string SendEth(string toAddress, decimal ethAmount)
         {
             if (ethAmount == 0) return string.Empty;
-            return DebugLogWrap(() =>
+            return LockWrap(() =>
             {
                 var receipt = Time.Wait(web3.Eth.GetEtherTransferService().TransferEtherAndWaitForReceiptAsync(toAddress, ethAmount));
                 if (!receipt.Succeeded()) throw new Exception("Unable to send Eth");
@@ -45,7 +46,7 @@ namespace NethereumWorkflow
 
         public BigInteger GetEthBalance()
         {
-            return DebugLogWrap(() =>
+            return LockWrap(() =>
             {
                 return GetEthBalance(web3.TransactionManager.Account.Address);
             }, nameof(GetEthBalance));
@@ -53,7 +54,7 @@ namespace NethereumWorkflow
 
         public BigInteger GetEthBalance(string address)
         {
-            return DebugLogWrap(() =>
+            return LockWrap(() =>
             {
                 var balance = Time.Wait(web3.Eth.GetBalance.SendRequestAsync(address));
                 return balance.Value;
@@ -62,7 +63,7 @@ namespace NethereumWorkflow
 
         public TResult Call<TFunction, TResult>(ContractAddress contractAddress, TFunction function) where TFunction : FunctionMessage, new()
         {
-            return DebugLogWrap(() =>
+            return LockWrap(() =>
             {
                 var handler = web3.Eth.GetContractQueryHandler<TFunction>();
                 return Time.Wait(handler.QueryAsync<TResult>(contractAddress.Address, function));
@@ -71,7 +72,7 @@ namespace NethereumWorkflow
 
         public TResult Call<TFunction, TResult>(ContractAddress contractAddress, TFunction function, ulong blockNumber) where TFunction : FunctionMessage, new()
         {
-            return DebugLogWrap(() =>
+            return LockWrap(() =>
             {
                 var handler = web3.Eth.GetContractQueryHandler<TFunction>();
                 return Time.Wait(handler.QueryAsync<TResult>(contractAddress.Address, function, new BlockParameter(blockNumber)));
@@ -80,7 +81,7 @@ namespace NethereumWorkflow
 
         public void Call<TFunction>(ContractAddress contractAddress, TFunction function) where TFunction : FunctionMessage, new()
         {
-            DebugLogWrap<string>(() =>
+            LockWrap<string>(() =>
             {
                 var handler = web3.Eth.GetContractQueryHandler<TFunction>();
                 Time.Wait(handler.QueryRawAsync(contractAddress.Address, function));
@@ -90,7 +91,7 @@ namespace NethereumWorkflow
 
         public void Call<TFunction>(ContractAddress contractAddress, TFunction function, ulong blockNumber) where TFunction : FunctionMessage, new()
         {
-            DebugLogWrap<string>(() =>
+            LockWrap<string>(() =>
             {
                 var handler = web3.Eth.GetContractQueryHandler<TFunction>();
                 var result = Time.Wait(handler.QueryRawAsync(contractAddress.Address, function, new BlockParameter(blockNumber)));
@@ -100,7 +101,7 @@ namespace NethereumWorkflow
 
         public string SendTransaction<TFunction>(ContractAddress contractAddress, TFunction function) where TFunction : FunctionMessage, new()
         {
-            return DebugLogWrap(() =>
+            return LockWrap(() =>
             {
                 var handler = web3.Eth.GetContractTransactionHandler<TFunction>();
                 var receipt = Time.Wait(handler.SendRequestAndWaitForReceiptAsync(contractAddress.Address, function));
@@ -111,7 +112,7 @@ namespace NethereumWorkflow
 
         public Transaction GetTransaction(string transactionHash)
         {
-            return DebugLogWrap(() =>
+            return LockWrap(() =>
             {
                 return Time.Wait(web3.Eth.Transactions.GetTransactionByHash.SendRequestAsync(transactionHash));
             }, nameof(GetTransaction));
@@ -119,7 +120,7 @@ namespace NethereumWorkflow
 
         public decimal? GetSyncedBlockNumber()
         {
-            return DebugLogWrap<decimal?>(() =>
+            return LockWrap<decimal?>(() =>
             {
                 var sync = Time.Wait(web3.Eth.Syncing.SendRequestAsync());
                 var number = Time.Wait(web3.Eth.Blocks.GetBlockNumber.SendRequestAsync());
@@ -131,7 +132,7 @@ namespace NethereumWorkflow
 
         public bool IsContractAvailable(string abi, ContractAddress contractAddress)
         {
-            return DebugLogWrap(() =>
+            return LockWrap(() =>
             {
                 try
                 {
@@ -162,7 +163,7 @@ namespace NethereumWorkflow
 
         public BlockTimeEntry? GetBlockForUtc(DateTime utc)
         {
-            return DebugLogWrap(() =>
+            return LockWrap(() =>
             {
                 var blockTimeFinder = new BlockTimeFinder(blocks, log, blockCache.Ladder);
                 return blockTimeFinder.GetHighestBlockNumberBefore(utc);
@@ -172,7 +173,7 @@ namespace NethereumWorkflow
         private IEventsCollector[] GetEvents(ContractAddress address, ulong fromBlockNumber, ulong toBlockNumber, params IEventsCollector[] collectors)
         {
             var context = $"{nameof(NethereumInteraction)}.{nameof(GetEvents)}";
-            return DebugLogWrap(() =>
+            return LockWrap(() =>
             {
                 var logs = new List<FilterLog>();
                 var p = web3.Processing.Logs.CreateProcessorForContract(
@@ -208,7 +209,7 @@ namespace NethereumWorkflow
 
         private IFunctionCallCollector[] GetCalls(ContractAddress address, ulong fromBlockNumber, ulong toBlockNumber, params IFunctionCallCollector[] collectors)
         {
-            return DebugLogWrap(() =>
+            return LockWrap(() =>
             {
                 var progressLogger = new ProgressLogger(new LogPrefixer(log, "(FunctionCallProcessor)"), fromBlockNumber, toBlockNumber);
                 var p = web3.Processing.Blocks.CreateBlockProcessor(a =>
@@ -255,9 +256,12 @@ namespace NethereumWorkflow
             return false;
         }
 
-        private T DebugLogWrap<T>(Func<T> task, string name = "")
+        private T LockWrap<T>(Func<T> task, string name = "")
         {
-            return Stopwatch.Measure(log, name, task, debug: true).Value;
+            lock (web3Lock)
+            {
+                return Stopwatch.Measure(log, name, task, debug: true).Value;
+            }
         }
 
         private class ProgressLogger
