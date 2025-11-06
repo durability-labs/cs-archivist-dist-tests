@@ -43,7 +43,6 @@ namespace ArchivistReleaseTests.DataTests
                 .WithBlockMaintenanceInterval(TimeSpan.FromSeconds(10.0))
                 .WithBlockTTL(TimeSpan.FromSeconds(30.0)));
 
-
             var file = GenerateTestFile(2.MB());
             var bCid = clients[0].UploadFile(file);
 

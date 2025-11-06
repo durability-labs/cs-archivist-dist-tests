@@ -30,7 +30,7 @@ namespace ArchivistReleaseTests.Utils
             // encoded dataset is divided over the nodes.
             // then each slot is rounded up to the nearest power-of-two blocks.
             var numBlocks = EncodedDatasetSize.DivUp(blockSize);
-            var numSlotBlocks = 1 + ((numBlocks - 1) / Nodes); // round-up div.
+            var numSlotBlocks = DivUp(numBlocks, Nodes);
 
             // Next power of two:
             var numSlotBlocksPow2 = IsOrNextPowerOf2(numSlotBlocks);
@@ -45,18 +45,34 @@ namespace ArchivistReleaseTests.Utils
             var ecM = Tolerance;
 
             // for each K blocks, we generate M parity blocks
-            var numParityBlocks = (numBlocks / ecK) * ecM;
+            var numParityBlocks = DivUp(numBlocks, ecK) * ecM;
             var totalBlocks = numBlocks + numParityBlocks;
 
             return new ByteSize(blockSize.SizeInBytes * totalBlocks);
         }
 
+        private int DivUp(int num, int over)
+        {
+            var result = 0;
+            var remain = num;
+            while (remain > over)
+            {
+                remain -= over;
+                result++;
+            }
+            if (remain > 0) result++;
+            return result;
+        }
+
         private int IsOrNextPowerOf2(int n)
         {
             if (IsPowerOfTwo(n)) return n;
-            n = n - 1;
-            var lg = Convert.ToInt32(Math.Round(Math.Log2(Convert.ToDouble(n))));
-            return 1 << (lg + 1);
+            var result = 2;
+            while (result < n)
+            {
+                result = result * 2;
+            }
+            return result;
         }
 
         private static bool IsPowerOfTwo(ByteSize size)

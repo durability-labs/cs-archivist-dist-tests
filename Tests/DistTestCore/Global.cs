@@ -39,7 +39,7 @@ namespace DistTestCore
                 Logging.Stopwatch.Measure(log, "Global setup", () =>
                 {
                     globalEntryPoint.Announce();
-                    globalEntryPoint.Tools.CreateWorkflow().DeleteNamespacesStartingWith(TestNamespacePrefix, wait: true);
+                    globalEntryPoint.Tools.CreateWorkflow().DeleteNamespacesStartingWith(TestNamespacePrefix, wait: false);
                 });
             }
             catch (Exception ex)

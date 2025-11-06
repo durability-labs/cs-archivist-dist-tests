@@ -28,9 +28,8 @@ namespace ArchivistReleaseTests.MarketTests
             var maxProofsPerPeriod = Convert.ToInt32(Math.Floor(periodDuration / assumeProofTime)) - 1;
             Log($"Max number of proofs one host can reasonably calculate and submit during one period: {maxProofsPerPeriod}");
 
-            StartHosts();
-            StartValidator();
-            var client = StartClients().Single();
+            var (hosts, clients, validator) = JumpStart();
+            var client = clients.Single();
 
             var request = client.Marketplace.RequestStorage(
                 new StoragePurchaseRequest(client.UploadFile(GenerateTestFile(maxProofsPerPeriod.MB())))

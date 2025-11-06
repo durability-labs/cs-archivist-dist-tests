@@ -5,6 +5,7 @@ namespace KubernetesWorkflow.Recipe
 {
     public abstract class ContainerRecipeFactory
     {
+        private static readonly object createLock = new object();
         private readonly List<Port> exposedPorts = new List<Port>();
         private readonly List<Port> internalPorts = new List<Port>();
         private readonly List<EnvVar> envVars = new List<EnvVar>();
@@ -20,35 +21,38 @@ namespace KubernetesWorkflow.Recipe
 
         public ContainerRecipe CreateRecipe(int index, int containerNumber, RecipeComponentFactory factory, StartupConfig config)
         {
-            this.factory = factory;
-            ContainerNumber = containerNumber;
-            Index = index;
+            lock (createLock)
+            {
+                this.factory = factory;
+                ContainerNumber = containerNumber;
+                Index = index;
 
-            Initialize(config);
+                Initialize(config);
 
-            var recipe = new ContainerRecipe(DateTime.UtcNow, containerNumber, config.NameOverride, Image, resources, schedulingAffinity, commandOverride, setCriticalPriority,
-                exposedPorts.ToArray(),
-                internalPorts.ToArray(),
-                envVars.ToArray(),
-                podLabels.Clone(),
-                podAnnotations.Clone(),
-                volumeMounts.ToArray(),
-                ContainerAdditionals.CreateFromUserData(additionals));
+                var recipe = new ContainerRecipe(DateTime.UtcNow, containerNumber, config.NameOverride, Image, resources, schedulingAffinity, commandOverride, setCriticalPriority,
+                    exposedPorts.ToArray(),
+                    internalPorts.ToArray(),
+                    envVars.ToArray(),
+                    podLabels.Clone(),
+                    podAnnotations.Clone(),
+                    volumeMounts.ToArray(),
+                    ContainerAdditionals.CreateFromUserData(additionals));
 
-            exposedPorts.Clear();
-            internalPorts.Clear();
-            envVars.Clear();
-            podLabels.Clear();
-            podAnnotations.Clear();
-            volumeMounts.Clear();
-            additionals.Clear();
-            this.factory = null!;
-            resources = new ContainerResources();
-            schedulingAffinity = new SchedulingAffinity();
-            commandOverride = new CommandOverride();
-            setCriticalPriority = false;
+                exposedPorts.Clear();
+                internalPorts.Clear();
+                envVars.Clear();
+                podLabels.Clear();
+                podAnnotations.Clear();
+                volumeMounts.Clear();
+                additionals.Clear();
+                this.factory = null!;
+                resources = new ContainerResources();
+                schedulingAffinity = new SchedulingAffinity();
+                commandOverride = new CommandOverride();
+                setCriticalPriority = false;
 
-            return recipe;
+                return recipe;
+            }
         }
 
         public abstract string AppName { get; }

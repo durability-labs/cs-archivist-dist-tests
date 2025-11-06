@@ -18,6 +18,7 @@ namespace ArchivistContractsPlugin
         bool IsDeployed();
         string MintTestTokens(IHasEthAddress owner, TestToken testTokens);
         string MintTestTokens(EthAddress ethAddress, TestToken testTokens);
+        void ApproveTestTokens(EthAddress ethAddress, TestToken testTokens);
         TestToken GetTestTokenBalance(IHasEthAddress owner);
         TestToken GetTestTokenBalance(EthAddress ethAddress);
         string TransferTestTokens(EthAddress to, TestToken amount);
@@ -53,7 +54,7 @@ namespace ArchivistContractsPlugin
         private readonly ILog log;
         private readonly IGethNode gethNode;
         private readonly IRequestsCache requestsCache;
-        private string tokenAddress = string.Empty;
+        private ContractAddress? tokenAddress = null;
 
         public ArchivistContractsAccess(ILog log, IGethNode gethNode, ArchivistContractsDeployment deployment, IRequestsCache requestsCache)
         {
@@ -79,9 +80,9 @@ namespace ArchivistContractsPlugin
             }
         }
 
-        private string GetTokenAddress()
+        private ContractAddress GetTokenAddress()
         {
-            if (string.IsNullOrEmpty(tokenAddress))
+            if (tokenAddress == null)
             {
                 tokenAddress = StartInteraction().GetTokenAddress(Deployment.MarketplaceAddress);
             }
@@ -96,6 +97,11 @@ namespace ArchivistContractsPlugin
         public string MintTestTokens(EthAddress ethAddress, TestToken testTokens)
         {
             return StartInteraction().MintTestTokens(ethAddress, testTokens.TstWei, GetTokenAddress());
+        }
+
+        public void ApproveTestTokens(EthAddress ethAddress, TestToken testTokens)
+        {
+            StartInteraction().ApproveTestTokens(GetTokenAddress(), ethAddress, testTokens);
         }
 
         public TestToken GetTestTokenBalance(IHasEthAddress owner)

@@ -10,6 +10,7 @@ namespace Utils
     {
         public EthAddress(string address)
         {
+            if (string.IsNullOrEmpty(address)) throw new Exception("Invalid EthAddress");
             Address = address.ToLowerInvariant();
         }
 
@@ -46,6 +47,13 @@ namespace Utils
         public static bool operator !=(EthAddress? a, EthAddress? b)
         {
             return !(a == b);
+        }
+    }
+
+    public class ContractAddress : EthAddress
+    {
+        public ContractAddress(string address) : base(address)
+        {
         }
     }
 

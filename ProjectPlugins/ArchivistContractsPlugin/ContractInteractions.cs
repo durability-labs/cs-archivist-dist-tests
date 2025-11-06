@@ -18,18 +18,19 @@ namespace ArchivistContractsPlugin
             this.gethNode = gethNode;
         }
 
-        public string GetTokenAddress(string marketplaceAddress)
+        public ContractAddress GetTokenAddress(ContractAddress marketplaceAddress)
         {
-            log.Debug(marketplaceAddress);
+            log.Debug(marketplaceAddress.Address);
             var function = new TokenFunctionBase();
-            return gethNode.Call<TokenFunctionBase, string>(marketplaceAddress, function);
+            var result = gethNode.Call<TokenFunctionBase, string>(marketplaceAddress, function);
+            return new ContractAddress(result);
         }
 
-        public string GetTokenName(string tokenAddress)
+        public string GetTokenName(ContractAddress tokenAddress)
         {
             try
             {
-                log.Debug(tokenAddress);
+                log.Debug(tokenAddress.Address);
                 var function = new NameFunction();
 
                 return gethNode.Call<NameFunction, string>(tokenAddress, function);
@@ -41,13 +42,13 @@ namespace ArchivistContractsPlugin
             }
         }
 
-        public string MintTestTokens(EthAddress address, BigInteger amount, string tokenAddress)
+        public string MintTestTokens(EthAddress address, BigInteger amount, ContractAddress tokenAddress)
         {
             log.Debug($"{amount} -> {address} (token: {tokenAddress})");
             return MintTokens(address.Address, amount, tokenAddress);
         }
 
-        public decimal GetBalance(string tokenAddress, string account)
+        public decimal GetBalance(ContractAddress tokenAddress, string account)
         {
             log.Debug($"({tokenAddress}) {account}");
             var function = new BalanceOfFunction
@@ -58,7 +59,7 @@ namespace ArchivistContractsPlugin
             return gethNode.Call<BalanceOfFunction, BigInteger>(tokenAddress, function).ToDecimal();
         }
 
-        public string TransferTestTokens(string tokenAddress, string toAccount, BigInteger amount)
+        public string TransferTestTokens(ContractAddress tokenAddress, string toAccount, BigInteger amount)
         {
             log.Debug($"({tokenAddress}) {toAccount} {amount}");
             var function = new TransferFunction
@@ -70,7 +71,7 @@ namespace ArchivistContractsPlugin
             return gethNode.SendTransaction(tokenAddress, function);
         }
 
-        public bool IsSynced(string marketplaceAddress, string marketplaceAbi)
+        public bool IsSynced(ContractAddress marketplaceAddress, string marketplaceAbi)
         {
             log.Debug();
             try
@@ -83,7 +84,7 @@ namespace ArchivistContractsPlugin
             }
         }
 
-        private string MintTokens(string account, BigInteger amount, string tokenAddress)
+        private string MintTokens(string account, BigInteger amount, ContractAddress tokenAddress)
         {
             log.Debug($"({tokenAddress}) {amount} --> {account}");
             if (string.IsNullOrEmpty(account)) throw new ArgumentException("Invalid arguments for MintTestTokens");
@@ -98,13 +99,26 @@ namespace ArchivistContractsPlugin
             return gethNode.SendTransaction(tokenAddress, function);
         }
 
+        public void ApproveTestTokens(ContractAddress tokenAddress, EthAddress account, TestToken amount)
+        {
+            log.Debug($"({tokenAddress}) {account} approves {amount}");
+
+            var function = new ApproveFunction
+            {
+                Spender = account.Address,
+                Value = amount.TstWei
+            };
+
+            gethNode.SendTransaction(tokenAddress, function);
+        }
+
         private bool IsBlockNumberOK()
         {
             var n = gethNode.GetSyncedBlockNumber();
             return n != null && n > 256;
         }
 
-        private bool IsContractAvailable(string marketplaceAddress, string marketplaceAbi)
+        private bool IsContractAvailable(ContractAddress marketplaceAddress, string marketplaceAbi)
         {
             return gethNode.IsContractAvailable(marketplaceAbi, marketplaceAddress);
         }

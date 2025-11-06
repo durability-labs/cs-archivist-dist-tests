@@ -1,4 +1,3 @@
-using System.Numerics;
 using BlockchainUtils;
 using Logging;
 using Nethereum.BlockchainProcessing.Processor;
@@ -6,6 +5,7 @@ using Nethereum.Contracts;
 using Nethereum.Hex.HexTypes;
 using Nethereum.RPC.Eth.DTOs;
 using Nethereum.Web3;
+using System.Numerics;
 using Utils;
 
 namespace NethereumWorkflow
@@ -60,50 +60,50 @@ namespace NethereumWorkflow
             }, nameof(GetEthBalance));
         }
 
-        public TResult Call<TFunction, TResult>(string contractAddress, TFunction function) where TFunction : FunctionMessage, new()
+        public TResult Call<TFunction, TResult>(ContractAddress contractAddress, TFunction function) where TFunction : FunctionMessage, new()
         {
             return DebugLogWrap(() =>
             {
                 var handler = web3.Eth.GetContractQueryHandler<TFunction>();
-                return Time.Wait(handler.QueryAsync<TResult>(contractAddress, function));
+                return Time.Wait(handler.QueryAsync<TResult>(contractAddress.Address, function));
             }, nameof(Call) + "." + typeof(TFunction).ToString());
         }
 
-        public TResult Call<TFunction, TResult>(string contractAddress, TFunction function, ulong blockNumber) where TFunction : FunctionMessage, new()
+        public TResult Call<TFunction, TResult>(ContractAddress contractAddress, TFunction function, ulong blockNumber) where TFunction : FunctionMessage, new()
         {
             return DebugLogWrap(() =>
             {
                 var handler = web3.Eth.GetContractQueryHandler<TFunction>();
-                return Time.Wait(handler.QueryAsync<TResult>(contractAddress, function, new BlockParameter(blockNumber)));
+                return Time.Wait(handler.QueryAsync<TResult>(contractAddress.Address, function, new BlockParameter(blockNumber)));
             }, nameof(Call) + "." + typeof(TFunction).ToString());
         }
 
-        public void Call<TFunction>(string contractAddress, TFunction function) where TFunction : FunctionMessage, new()
+        public void Call<TFunction>(ContractAddress contractAddress, TFunction function) where TFunction : FunctionMessage, new()
         {
             DebugLogWrap<string>(() =>
             {
                 var handler = web3.Eth.GetContractQueryHandler<TFunction>();
-                Time.Wait(handler.QueryRawAsync(contractAddress, function));
+                Time.Wait(handler.QueryRawAsync(contractAddress.Address, function));
                 return string.Empty;
             }, nameof(Call) + "." + typeof(TFunction).ToString());
         }
 
-        public void Call<TFunction>(string contractAddress, TFunction function, ulong blockNumber) where TFunction : FunctionMessage, new()
+        public void Call<TFunction>(ContractAddress contractAddress, TFunction function, ulong blockNumber) where TFunction : FunctionMessage, new()
         {
             DebugLogWrap<string>(() =>
             {
                 var handler = web3.Eth.GetContractQueryHandler<TFunction>();
-                var result = Time.Wait(handler.QueryRawAsync(contractAddress, function, new BlockParameter(blockNumber)));
+                var result = Time.Wait(handler.QueryRawAsync(contractAddress.Address, function, new BlockParameter(blockNumber)));
                 return string.Empty;
             }, nameof(Call) + "." + typeof(TFunction).ToString());
         }
 
-        public string SendTransaction<TFunction>(string contractAddress, TFunction function) where TFunction : FunctionMessage, new()
+        public string SendTransaction<TFunction>(ContractAddress contractAddress, TFunction function) where TFunction : FunctionMessage, new()
         {
             return DebugLogWrap(() =>
             {
                 var handler = web3.Eth.GetContractTransactionHandler<TFunction>();
-                var receipt = Time.Wait(handler.SendRequestAndWaitForReceiptAsync(contractAddress, function));
+                var receipt = Time.Wait(handler.SendRequestAndWaitForReceiptAsync(contractAddress.Address, function));
                 if (!receipt.Succeeded()) throw new Exception("Unable to perform contract transaction.");
                 return receipt.TransactionHash;
             }, nameof(SendTransaction) + "." + typeof(TFunction).ToString());
@@ -129,13 +129,13 @@ namespace NethereumWorkflow
             }, nameof(GetTransaction));
         }
 
-        public bool IsContractAvailable(string abi, string contractAddress)
+        public bool IsContractAvailable(string abi, ContractAddress contractAddress)
         {
             return DebugLogWrap(() =>
             {
                 try
                 {
-                    var contract = web3.Eth.GetContract(abi, contractAddress);
+                    var contract = web3.Eth.GetContract(abi, contractAddress.Address);
                     return contract != null;
                 }
                 catch
@@ -145,12 +145,12 @@ namespace NethereumWorkflow
             }, nameof(IsContractAvailable));
         }
 
-        public IEventsCollector[] GetEvents(string address, BlockInterval blockRange, params IEventsCollector[] collectors)
+        public IEventsCollector[] GetEvents(ContractAddress address, BlockInterval blockRange, params IEventsCollector[] collectors)
         {
             return GetEvents(address, blockRange.From, blockRange.To, collectors);
         }
 
-        public IFunctionCallCollector[] GetFunctionCalls(string address, BlockInterval blockRange, params IFunctionCallCollector[] collectors)
+        public IFunctionCallCollector[] GetFunctionCalls(ContractAddress address, BlockInterval blockRange, params IFunctionCallCollector[] collectors)
         {
             return GetCalls(address, blockRange.From, blockRange.To, collectors);
         }
@@ -169,14 +169,14 @@ namespace NethereumWorkflow
             }, nameof(GetBlockForUtc));
         }
 
-        private IEventsCollector[] GetEvents(string address, ulong fromBlockNumber, ulong toBlockNumber, params IEventsCollector[] collectors)
+        private IEventsCollector[] GetEvents(ContractAddress address, ulong fromBlockNumber, ulong toBlockNumber, params IEventsCollector[] collectors)
         {
             var context = $"{nameof(NethereumInteraction)}.{nameof(GetEvents)}";
             return DebugLogWrap(() =>
             {
                 var logs = new List<FilterLog>();
                 var p = web3.Processing.Logs.CreateProcessorForContract(
-                    address,
+                    address.Address,
                     action: logs.Add,
                     minimumBlockConfirmations: 1,
                     criteria: l =>
@@ -206,7 +206,7 @@ namespace NethereumWorkflow
             }, $"{nameof(GetEvents)}<{string.Join(",", collectors.Select(c => c.Name).ToArray())}>[{fromBlockNumber} -> {toBlockNumber}]");
         }
 
-        private IFunctionCallCollector[] GetCalls(string address, ulong fromBlockNumber, ulong toBlockNumber, params IFunctionCallCollector[] collectors)
+        private IFunctionCallCollector[] GetCalls(ContractAddress address, ulong fromBlockNumber, ulong toBlockNumber, params IFunctionCallCollector[] collectors)
         {
             return DebugLogWrap(() =>
             {
@@ -217,7 +217,7 @@ namespace NethereumWorkflow
                     {
                         progressLogger.Progress(t.Block.Number.ToUlong());
                         return
-                            t.Transaction.IsTo(address) &&
+                            t.Transaction.IsTo(address.Address) &&
                             IsFunctionCallForAnyCollector(t.Transaction, collectors);
                         }
                     );

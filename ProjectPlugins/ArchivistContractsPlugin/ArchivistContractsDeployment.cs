@@ -1,10 +1,11 @@
 using ArchivistContractsPlugin.Marketplace;
+using Utils;
 
 namespace ArchivistContractsPlugin
 {
     public class ArchivistContractsDeployment
     {
-        public ArchivistContractsDeployment(MarketplaceConfig config, string marketplaceAddress, string abi)
+        public ArchivistContractsDeployment(MarketplaceConfig config, ContractAddress marketplaceAddress, string abi)
         {
             Config = config;
             MarketplaceAddress = marketplaceAddress;
@@ -12,7 +13,7 @@ namespace ArchivistContractsPlugin
         }
 
         public MarketplaceConfig Config { get; }
-        public string MarketplaceAddress { get; }
+        public ContractAddress MarketplaceAddress { get; }
         public string Abi { get; }
     }
 }

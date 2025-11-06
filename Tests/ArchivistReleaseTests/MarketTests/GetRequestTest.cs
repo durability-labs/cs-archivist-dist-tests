@@ -22,9 +22,8 @@ namespace ArchivistReleaseTests.MarketTests
         [Test]
         public void GetRequestFromChain()
         {
-            var hosts = StartHosts();
-            var client = StartClients().Single();
-            StartValidator();
+            var (hosts, clients, validator) = JumpStart();
+            var client = clients.Single();
 
             var request = client.Marketplace.RequestStorage(
                 new StoragePurchaseRequest(client.UploadFile(GenerateTestFile(10.MB())))

@@ -89,7 +89,7 @@ namespace TraceContract
         {
             var deployment = new ArchivistContractsDeployment(
                 config: new MarketplaceConfig(),
-                marketplaceAddress: network.Marketplace.ContractAddress,
+                marketplaceAddress: new ContractAddress(network.Marketplace.ContractAddress),
                 abi: network.Marketplace.ABI
             );
             return ci.WrapArchivistContractsDeployment(geth, deployment, new DiskRequestsCache(Path.Combine(config.DataDir, "requests_cache")));

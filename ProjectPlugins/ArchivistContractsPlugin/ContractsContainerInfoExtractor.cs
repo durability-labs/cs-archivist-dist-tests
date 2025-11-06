@@ -1,4 +1,3 @@
-using ArchivistContractsPlugin.Marketplace;
 using KubernetesWorkflow;
 using KubernetesWorkflow.Types;
 using Logging;
@@ -21,14 +20,14 @@ namespace ArchivistContractsPlugin
             this.container = container;
         }
 
-        public string ExtractMarketplaceAddress()
+        public ContractAddress ExtractMarketplaceAddress()
         {
             log.Debug();
             var marketplaceAddress = Retry(FetchMarketplaceAddress);
             if (string.IsNullOrEmpty(marketplaceAddress)) throw new InvalidOperationException("Unable to fetch marketplace account from archivist-contracts node. Test infra failure.");
 
             log.Log("MarketplaceAddress: " + marketplaceAddress);
-            return marketplaceAddress;
+            return new ContractAddress(marketplaceAddress);
         }
 
         public (string, string) ExtractMarketplaceAbiAndByteCode()

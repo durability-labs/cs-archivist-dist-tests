@@ -105,7 +105,7 @@ namespace ArchivistPlugin
                 var marketplaceAddress = mconfig.ArchivistContracts.Deployment.MarketplaceAddress;
 
                 AddEnvVar("ARCHIVIST_ETH_PROVIDER", $"{wsAddress.Host.Replace("http://", "ws://")}:{wsAddress.Port}");
-                AddEnvVar("ARCHIVIST_MARKETPLACE_ADDRESS", marketplaceAddress);
+                AddEnvVar("ARCHIVIST_MARKETPLACE_ADDRESS", marketplaceAddress.Address);
 
                 var marketplaceSetup = config.MarketplaceConfig.MarketplaceSetup;
 

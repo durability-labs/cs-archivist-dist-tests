@@ -42,8 +42,9 @@ namespace ArchivistReleaseTests.MarketTests
         {
             var mins = TimeSpan.FromMinutes(60.0);
 
-            StartHosts();
-            var client = StartClients().Single();
+            var (hosts, clients) = JumpStartHostsAndClients();
+            var client = clients.Single();
+
             var purchase = CreateStorageRequest(client, mins);
             purchase.WaitForStorageContractStarted();
 

@@ -24,9 +24,9 @@ namespace ArchivistReleaseTests.MarketTests
             [Rerun] int rerun
         )
         {
-            var hosts = StartHosts();
-            var client = StartClients().Single();
-            StartValidator();
+            var (hosts, clients, validator) = JumpStart();
+            var client = clients.Single();
+
             AssertHostAvailabilitiesAreEmpty(hosts);
 
             var request = CreateStorageRequest(client);

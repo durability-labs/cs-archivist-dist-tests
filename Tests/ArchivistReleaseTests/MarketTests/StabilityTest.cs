@@ -44,9 +44,9 @@ namespace ArchivistReleaseTests.MarketTests
             numPeriods = 0;
             proofWasMissed = false;
 
-            StartHosts();
-            StartValidator();
-            var client = StartClients().Single();
+            var (hosts, clients, validator) = JumpStart();
+            var client = clients.Single();
+
             var purchase = CreateStorageRequest(client, mins);
             purchase.WaitForStorageContractStarted();
 

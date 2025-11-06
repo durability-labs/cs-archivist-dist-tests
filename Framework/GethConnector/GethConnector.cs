@@ -35,11 +35,11 @@ namespace GethConnector
             var privateKey = EnvVar.GetOrThrow(GethPrivKeyVar);
 
             var gethNode = new CustomGethNode(log, blockCache, networkConfig.Team.Utils.BotRpc, privateKey);
-            var config = GetArchivistMarketplaceConfig(gethNode, networkConfig.Marketplace.ContractAddress);
+            var config = GetArchivistMarketplaceConfig(gethNode, new ContractAddress(networkConfig.Marketplace.ContractAddress));
 
             var contractsDeployment = new ArchivistContractsDeployment(
                 config: config,
-                marketplaceAddress: networkConfig.Marketplace.ContractAddress,
+                marketplaceAddress: new ContractAddress(networkConfig.Marketplace.ContractAddress),
                 abi: networkConfig.Marketplace.ABI
             );
 
@@ -62,7 +62,7 @@ namespace GethConnector
             }
         }
 
-        private static MarketplaceConfig GetArchivistMarketplaceConfig(IGethNode gethNode, string marketplaceAddress)
+        private static MarketplaceConfig GetArchivistMarketplaceConfig(IGethNode gethNode, ContractAddress marketplaceAddress)
         {
             var func = new ConfigurationFunctionBase();
             var response = gethNode.Call<ConfigurationFunctionBase, ConfigurationOutputDTO>(marketplaceAddress, func);

@@ -80,6 +80,34 @@ namespace ArchivistReleaseTests.Utils
         {
         }
 
+        public (IArchivistNodeGroup, IArchivistNodeGroup) JumpStartHostsAndClients()
+        {
+            IArchivistNodeGroup hosts = null!;
+            IArchivistNodeGroup clients = null!;
+            var tasks = new Task[]
+            {
+                Task.Run(() => hosts = StartHosts()),
+                Task.Run(() => clients = StartClients())
+            };
+            Task.WaitAll(tasks);
+            return (hosts, clients);
+        }
+
+        public (IArchivistNodeGroup, IArchivistNodeGroup, IArchivistNode) JumpStart()
+        {
+            IArchivistNodeGroup hosts = null!;
+            IArchivistNodeGroup clients = null!;
+            IArchivistNode validator = null!;
+            var tasks = new Task[]
+            {
+                Task.Run(() => hosts = StartHosts()),
+                Task.Run(() => clients = StartClients()),
+                Task.Run(() => validator = StartValidator())
+            };
+            Task.WaitAll(tasks);
+            return (hosts, clients, validator);
+        }
+
         public IArchivistNodeGroup StartHosts()
         {
             return StartHosts(s => { });

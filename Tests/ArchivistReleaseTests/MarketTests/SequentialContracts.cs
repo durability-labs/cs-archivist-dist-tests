@@ -29,9 +29,8 @@ namespace ArchivistReleaseTests.MarketTests
         public void Sequential(
             [Values(5)] int numGenerations)
         {
-            var hosts = StartHosts();
-            var clients = StartClients();
-            StartValidator();
+            var (hosts, clients, validator) = JumpStart();
+            var client = clients.Single();
 
             for (var i = 0; i < numGenerations; i++)
             {

@@ -19,17 +19,17 @@ namespace GethPlugin
         Ether GetEthBalance(EthAddress address);
         string SendEth(IHasEthAddress account, Ether eth);
         string SendEth(EthAddress account, Ether eth);
-        TResult Call<TFunction, TResult>(string contractAddress, TFunction function) where TFunction : FunctionMessage, new();
-        TResult Call<TFunction, TResult>(string contractAddress, TFunction function, ulong blockNumber) where TFunction : FunctionMessage, new();
-        void Call<TFunction>(string contractAddress, TFunction function) where TFunction : FunctionMessage, new();
-        void Call<TFunction>(string contractAddress, TFunction function, ulong blockNumber) where TFunction : FunctionMessage, new();
-        string SendTransaction<TFunction>(string contractAddress, TFunction function) where TFunction : FunctionMessage, new();
+        TResult Call<TFunction, TResult>(ContractAddress contractAddress, TFunction function) where TFunction : FunctionMessage, new();
+        TResult Call<TFunction, TResult>(ContractAddress contractAddress, TFunction function, ulong blockNumber) where TFunction : FunctionMessage, new();
+        void Call<TFunction>(ContractAddress contractAddress, TFunction function) where TFunction : FunctionMessage, new();
+        void Call<TFunction>(ContractAddress contractAddress, TFunction function, ulong blockNumber) where TFunction : FunctionMessage, new();
+        string SendTransaction<TFunction>(ContractAddress contractAddress, TFunction function) where TFunction : FunctionMessage, new();
         Transaction GetTransaction(string transactionHash);
         decimal? GetSyncedBlockNumber();
-        bool IsContractAvailable(string abi, string contractAddress);
+        bool IsContractAvailable(string abi, ContractAddress contractAddress);
         GethBootstrapNode GetBootstrapRecord();
-        IEventsCollector[] GetEvents(string address, BlockInterval blockRange, params IEventsCollector[] collectors);
-        IFunctionCallCollector[] GetFunctionCalls(string address, BlockInterval blockRange, params IFunctionCallCollector[] collectors);
+        IEventsCollector[] GetEvents(ContractAddress address, BlockInterval blockRange, params IEventsCollector[] collectors);
+        IFunctionCallCollector[] GetFunctionCalls(ContractAddress address, BlockInterval blockRange, params IFunctionCallCollector[] collectors);
         BlockTimeEntry? GetBlockForNumber(ulong number);
         BlockTimeEntry? GetBlockForUtc(DateTime utc);
         IGethNode WithDifferentAccount(EthAccount account);
@@ -154,27 +154,27 @@ namespace GethPlugin
             return StartInteraction().SendEth(account.Address, eth);
         }
 
-        public TResult Call<TFunction, TResult>(string contractAddress, TFunction function) where TFunction : FunctionMessage, new()
+        public TResult Call<TFunction, TResult>(ContractAddress contractAddress, TFunction function) where TFunction : FunctionMessage, new()
         {
             return StartInteraction().Call<TFunction, TResult>(contractAddress, function);
         }
 
-        public TResult Call<TFunction, TResult>(string contractAddress, TFunction function, ulong blockNumber) where TFunction : FunctionMessage, new()
+        public TResult Call<TFunction, TResult>(ContractAddress contractAddress, TFunction function, ulong blockNumber) where TFunction : FunctionMessage, new()
         {
             return StartInteraction().Call<TFunction, TResult>(contractAddress, function, blockNumber);
         }
 
-        public void Call<TFunction>(string contractAddress, TFunction function) where TFunction : FunctionMessage, new()
+        public void Call<TFunction>(ContractAddress contractAddress, TFunction function) where TFunction : FunctionMessage, new()
         {
             StartInteraction().Call(contractAddress, function);
         }
 
-        public void Call<TFunction>(string contractAddress, TFunction function, ulong blockNumber) where TFunction : FunctionMessage, new()
+        public void Call<TFunction>(ContractAddress contractAddress, TFunction function, ulong blockNumber) where TFunction : FunctionMessage, new()
         {
             StartInteraction().Call(contractAddress, function, blockNumber);
         }
 
-        public string SendTransaction<TFunction>(string contractAddress, TFunction function) where TFunction : FunctionMessage, new()
+        public string SendTransaction<TFunction>(ContractAddress contractAddress, TFunction function) where TFunction : FunctionMessage, new()
         {
             return StartInteraction().SendTransaction(contractAddress, function);
         }
@@ -189,17 +189,17 @@ namespace GethPlugin
             return StartInteraction().GetSyncedBlockNumber();
         }
 
-        public bool IsContractAvailable(string abi, string contractAddress)
+        public bool IsContractAvailable(string abi, ContractAddress contractAddress)
         {
             return StartInteraction().IsContractAvailable(abi, contractAddress);
         }
 
-        public IEventsCollector[] GetEvents(string address, BlockInterval blockRange, params IEventsCollector[] collectors)
+        public IEventsCollector[] GetEvents(ContractAddress address, BlockInterval blockRange, params IEventsCollector[] collectors)
         {
             return StartInteraction().GetEvents(address, blockRange, collectors);
         }
 
-        public IFunctionCallCollector[] GetFunctionCalls(string address, BlockInterval blockRange, params IFunctionCallCollector[] collectors)
+        public IFunctionCallCollector[] GetFunctionCalls(ContractAddress address, BlockInterval blockRange, params IFunctionCallCollector[] collectors)
         {
             return StartInteraction().GetFunctionCalls(address, blockRange, collectors);
         }

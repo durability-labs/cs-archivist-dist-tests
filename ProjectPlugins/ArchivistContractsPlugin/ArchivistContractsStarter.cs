@@ -74,7 +74,6 @@ namespace ArchivistContractsPlugin
 
             var extractor = new ContractsContainerInfoExtractor(tools.GetLog(), workflow, container);
             var marketplaceAddress = extractor.ExtractMarketplaceAddress();
-            if (string.IsNullOrEmpty(marketplaceAddress)) throw new Exception("Marketplace address not received.");
             var (abi, bytecode) = extractor.ExtractMarketplaceAbiAndByteCode();
             if (string.IsNullOrEmpty(abi)) throw new Exception("ABI not received.");
             if (string.IsNullOrEmpty(bytecode)) throw new Exception("bytecode not received.");
@@ -82,7 +81,6 @@ namespace ArchivistContractsPlugin
 
             var interaction = new ContractInteractions(tools.GetLog(), gethNode);
             var tokenAddress = interaction.GetTokenAddress(marketplaceAddress);
-            if (string.IsNullOrEmpty(tokenAddress)) throw new Exception("Token address not received.");
             Log("TokenAddress: " + tokenAddress);
 
             Log("Extract completed. Checking sync...");
@@ -110,7 +108,7 @@ namespace ArchivistContractsPlugin
             Log($"Config value '{name}' correctly deployed as '{value}'");
         }
 
-        private MarketplaceConfig GetMarketplaceConfiguration(string marketplaceAddress, IGethNode gethNode)
+        private MarketplaceConfig GetMarketplaceConfiguration(ContractAddress marketplaceAddress, IGethNode gethNode)
         {
             var func = new ConfigurationFunctionBase();
             var response = gethNode.Call<ConfigurationFunctionBase, ConfigurationOutputDTO>(marketplaceAddress, func);

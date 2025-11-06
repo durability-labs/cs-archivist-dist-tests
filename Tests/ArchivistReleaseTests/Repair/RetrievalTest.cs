@@ -50,8 +50,9 @@ namespace ArchivistReleaseTests.Repair
         {
             if (stopSlotIndex1 == stopSlotIndex2) throw new Exception();
 
-            var hosts = StartHosts().ToList();
-            var client = StartClients().Single();
+            var (hosts, clients) = JumpStartHostsAndClients();
+            var client = clients.Single();
+
             // We do not start a validator:
             // Validators would cause slots to freed and repair to be activated. We don't want that.
             // In this test, we explicitly want to check the original data is retrievable when the

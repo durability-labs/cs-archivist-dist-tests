@@ -42,9 +42,8 @@ namespace ArchivistReleaseTests.Repair
         {
             Assert.That(numFailures, Is.GreaterThan(NumberOfHosts));
 
-            var hosts = StartHosts().ToList();
-            var client = StartClients().Single();
-            StartValidator();
+            var (hosts, clients, validator) = JumpStart();
+            var client = clients.Single();
 
             proofsMissed = 0;
             var contract = CreateStorageRequest(client);
