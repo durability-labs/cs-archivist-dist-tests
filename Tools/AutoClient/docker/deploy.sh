@@ -33,6 +33,7 @@ sed -i "s|image:.*|image: ${archivist_image}|" "${archivist_compose}"
 
 # Stop and Start
 docker compose down
+sleep 3
 docker compose up -d
 
 # Status
