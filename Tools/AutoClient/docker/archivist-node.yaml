@@ -14,7 +14,7 @@ services:
       - ARCHIVIST_STORAGE_QUOTA=20gb
       - NAT_PUBLIC_IP_AUTO=https://ip.archivist.storage
       - ARCHIVIST_ETH_PROVIDER=https://rpc.devnet.archivist.storage
-      - MARKETPLACE_ADDRESS_FROM_URL=https://marketplace.archivist.storage/devnet/latest
+      - MARKETPLACE_ADDRESS_FROM_URL=https://config.archivist.storage/devnet/marketplace
       # Fast cleanup:
       # TTL 3 hours
       # 1000 blocks every minute
