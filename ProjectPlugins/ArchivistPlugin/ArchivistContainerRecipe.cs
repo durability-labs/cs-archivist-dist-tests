@@ -47,17 +47,8 @@ namespace ArchivistPlugin
             AddEnvVar("ARCHIVIST_DISC_PORT", discPort);
             AddEnvVar("ARCHIVIST_LOG_LEVEL", config.LogLevelWithTopics());
 
-            if (config.PublicTestNet != null)
-            {
-                // This makes the node announce itself to its public IP address.
-                AddEnvVar("NAT_IP_AUTO", "false");
-                AddEnvVar("NAT_PUBLIC_IP_AUTO", PublicIpService.Address);
-            }
-            else
-            {
-                // This makes the node announce itself to its local (pod) IP address.
-                AddEnvVar("NAT_IP_AUTO", "true");
-            }
+            // This makes the node announce itself to its local (pod) IP address.
+            AddEnvVar("NAT_IP_AUTO", "true");
 
             var listenPort = CreateListenPort(config);
             AddEnvVar("ARCHIVIST_LISTEN_ADDRS", $"/ip4/0.0.0.0/tcp/{listenPort.Number}");
@@ -142,22 +133,17 @@ namespace ArchivistPlugin
 
         private Port CreateApiPort(ArchivistStartupConfig config, string tag)
         {
-            if (config.PublicTestNet == null) return AddExposedPort(tag);
             return AddInternalPort(tag);
         }
 
         private Port CreateListenPort(ArchivistStartupConfig config)
         {
-            if (config.PublicTestNet == null) return AddInternalPort(ListenPortTag);
-
-            return AddExposedPort(config.PublicTestNet.PublicListenPort, ListenPortTag);
+            return AddInternalPort(ListenPortTag);
         }
 
         private Port CreateDiscoveryPort(ArchivistStartupConfig config)
         {
-            if (config.PublicTestNet == null) return AddInternalPort(DiscoveryPortTag, PortProtocol.UDP);
-
-            return AddExposedPort(config.PublicTestNet.PublicDiscoveryPort, DiscoveryPortTag, PortProtocol.UDP);
+            return AddInternalPort(DiscoveryPortTag, PortProtocol.UDP);
         }
 
         private ByteSize GetVolumeCapacity(ArchivistStartupConfig config)

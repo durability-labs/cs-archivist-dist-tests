@@ -24,7 +24,6 @@ namespace ArchivistPlugin
         /// Provides an invalid proof every N proofs
         /// </summary>
         IArchivistSetup WithSimulateProofFailures(uint failEveryNProofs);
-        IArchivistSetup AsPublicTestNet(ArchivistTestNetConfig testNetConfig);
     }
 
     public interface IMarketplaceSetup
@@ -144,12 +143,6 @@ namespace ArchivistPlugin
             return this;
         }
 
-        public IArchivistSetup AsPublicTestNet(ArchivistTestNetConfig testNetConfig)
-        {
-            PublicTestNet = testNetConfig;
-            return this;
-        }
-
         public string Describe()
         {
             var args = string.Join(',', DescribeArgs());
@@ -164,7 +157,6 @@ namespace ArchivistPlugin
 
         private IEnumerable<string> DescribeArgs()
         {
-            if (PublicTestNet != null) yield return $"<!>Public TestNet with listenPort: {PublicTestNet.PublicListenPort}<!>";
             yield return $"LogLevel={LogLevelWithTopics()}";
             yield return $"Maintenance=(TTL={Time.FormatDuration(BlockTTL)}@{BlockMaintenanceNumber}/{Time.FormatDuration(BlockMaintenanceInterval)})";
             if (BootstrapSpr != null) yield return $"BootstrapNode={BootstrapSpr}";
