@@ -69,7 +69,7 @@ namespace ArchivistReleaseTests.MarketTests
 
             var status = client.GetPurchaseStatus(purchase.PurchaseId);
             if (status == null) throw new Exception("Purchase status not found");
-            Assert.That(status.IsStarted || status.IsFinished);
+            Assert.That(status.IsStarted);
         }
 
         protected override void OnPeriod(PeriodReport report)
@@ -100,7 +100,7 @@ namespace ArchivistReleaseTests.MarketTests
             var config = GetContracts().Deployment.Config;
             return client.Marketplace.RequestStorage(new StoragePurchaseRequest(cid)
             {
-                Duration = minutes * 1.1,
+                Duration = minutes * 2.0,
                 Expiry = TimeSpan.FromMinutes(8.0),
                 MinRequiredNumberOfNodes = (uint)purchaseParams.Nodes,
                 NodeFailureTolerance = (uint)purchaseParams.Tolerance,
