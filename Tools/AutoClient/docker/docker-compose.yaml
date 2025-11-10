@@ -38,6 +38,7 @@ services:
     # network_mode: host
 
   archivist-1:
+    container_name: archivist-1
     extends:
       file: archivist-node.yaml
       service: archivist-base
@@ -55,6 +56,7 @@ services:
       - 8090:8090/udp
 
   archivist-2:
+    container_name: archivist-2
     extends:
       file: archivist-node.yaml
       service: archivist-base
@@ -72,6 +74,7 @@ services:
       - 8091:8091/udp
 
   archivist-3:
+    container_name: archivist-3
     extends:
       file: archivist-node.yaml
       service: archivist-base
@@ -89,6 +92,7 @@ services:
       - 8092:8092/udp
 
   archivist-4:
+    container_name: archivist-4
     extends:
       file: archivist-node.yaml
       service: archivist-base
@@ -106,6 +110,7 @@ services:
       - 8093:8093/udp
 
   archivist-5:
+    container_name: archivist-5
     extends:
       file: archivist-node.yaml
       service: archivist-base
@@ -123,6 +128,7 @@ services:
       - 8094:8094/udp
 
   # archivist-6:
+  #   container_name: archivist-6
   #   extends:
   #     file: archivist-node.yaml
   #     service: archivist-base
@@ -140,6 +146,7 @@ services:
   #     - 8095:8095/udp
 
   # archivist-7:
+  #   container_name: archivist-7
   #   extends:
   #     file: archivist-node.yaml
   #     service: archivist-base
@@ -157,6 +164,7 @@ services:
   #     - 8096:8096/udp
 
   # archivist-8:
+  #   container_name: archivist-8
   #   extends:
   #     file: archivist-node.yaml
   #     service: archivist-base
@@ -174,6 +182,7 @@ services:
   #     - 8097:8097/udp
 
   # archivist-9:
+  #   container_name: archivist-9
   #   extends:
   #     file: archivist-node.yaml
   #     service: archivist-base
