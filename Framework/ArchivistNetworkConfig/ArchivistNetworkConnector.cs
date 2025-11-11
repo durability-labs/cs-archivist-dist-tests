@@ -42,6 +42,14 @@ namespace ArchivistNetworkConfig
         {
         }
 
+        public ArchivistNetworkConnector(ILog log, string version)
+            : this(
+                log,
+                EnvVar.GetOrDefault("ARCHIVIST_NETWORK", "testnet"),
+                version)
+        {
+        }
+
         public ArchivistNetworkConnector(ILog log, string network, string version)
         {
             this.log = new LogPrefixer(log, $"({nameof(ArchivistNetworkConnector)})");
