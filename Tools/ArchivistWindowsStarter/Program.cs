@@ -49,7 +49,9 @@ namespace ArchivistWindowsStarter
 
             var args = new List<string>{
                 "--data-dir=datadir",
+                "--api-cors-origin=*",
                 $"--nat=extip:{publicIp}",
+                "--log-file=archivist.log",
                 "--disc-port=8090",
                 "--listen-addrs=/ip4/0.0.0.0/tcp/8070"
             };
@@ -77,7 +79,10 @@ namespace ArchivistWindowsStarter
                 FileName = "https://app.archivist.storage"
             });
 
-            Thread.Sleep(TimeSpan.MaxValue);
+            while (true)
+            {
+                Thread.Sleep(TimeSpan.FromDays(30));
+            }
         }
 
         private string GetPublicIP()
