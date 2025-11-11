@@ -85,6 +85,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GatewayClient", "ProjectPlu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MetricsServer", "Framework\MetricsServer\MetricsServer.csproj", "{DE890483-F51B-48B6-B58F-06AB7220FC80}"
 EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "ArchivistWindowsInstaller", "Tools\ArchivistWindowsInstaller\ArchivistWindowsInstaller.vdproj", "{D8805B06-4783-F501-94DE-FD99ADFC6DAC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -231,6 +233,8 @@ Global
 		{DE890483-F51B-48B6-B58F-06AB7220FC80}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DE890483-F51B-48B6-B58F-06AB7220FC80}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DE890483-F51B-48B6-B58F-06AB7220FC80}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D8805B06-4783-F501-94DE-FD99ADFC6DAC}.Debug|Any CPU.ActiveCfg = Debug
+		{D8805B06-4783-F501-94DE-FD99ADFC6DAC}.Release|Any CPU.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -271,6 +275,7 @@ Global
 		{97033BB6-3EDF-4171-B0A2-F167130B4DF8} = {7591C5B3-D86E-4AE4-8ED2-B272D17FE7E3}
 		{D585F791-2614-470B-BB68-E424FAC98BE9} = {8F1F1C2A-E313-4E0C-BE40-58FB0BA91124}
 		{DE890483-F51B-48B6-B58F-06AB7220FC80} = {81AE04BC-CBFA-4E6F-B039-8208E9AFAAE7}
+		{D8805B06-4783-F501-94DE-FD99ADFC6DAC} = {7591C5B3-D86E-4AE4-8ED2-B272D17FE7E3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {237BF0AA-9EC4-4659-AD9A-65DEB974250C}

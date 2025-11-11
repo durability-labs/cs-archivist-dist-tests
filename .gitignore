@@ -6,3 +6,6 @@ Tools/AutoClient/datapath
 .editorconfig
 Tools/ArchivistGatewayService/datapath
 Tools/EphemeralClient/volumes
+Tools/ArchivistWindowsInstaller/Debug
+Tools/ArchivistWindowsInstaller/*.dll
+Tools/ArchivistWindowsInstaller/*.exe
