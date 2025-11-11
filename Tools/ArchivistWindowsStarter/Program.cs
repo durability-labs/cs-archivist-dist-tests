@@ -72,6 +72,18 @@ namespace ArchivistWindowsStarter
 
             nodeProcess = Process.Start(info);
 
+            Thread.Sleep(TimeSpan.FromSeconds(3));
+            if (nodeProcess != null && nodeProcess.HasExited)
+            {
+                Log("Failed to start node...");
+                Log("Error information:");
+                var stdout = nodeProcess.StandardOutput.ReadToEnd();
+                var stderr = nodeProcess.StandardError.ReadToEnd();
+                Log(stdout);
+                Log(stderr);
+                return;
+            }
+
             Log("Starting WebUI...");
             Process.Start(new ProcessStartInfo
             {
@@ -81,7 +93,7 @@ namespace ArchivistWindowsStarter
 
             while (true)
             {
-                Thread.Sleep(TimeSpan.FromDays(30));
+                Thread.Sleep(TimeSpan.FromHours(24));
             }
         }
 
