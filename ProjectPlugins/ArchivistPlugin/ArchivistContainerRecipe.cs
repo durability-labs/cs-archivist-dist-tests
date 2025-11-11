@@ -35,7 +35,7 @@ namespace ArchivistPlugin
             image = config.Image;
             if (string.IsNullOrEmpty(image)) throw new Exception("A!");
 
-            var apiPort = CreateApiPort(config, ApiPortTag);
+            var apiPort = CreateApiPort();
             AddEnvVar("ARCHIVIST_API_PORT", apiPort);
             AddEnvVar("ARCHIVIST_API_BINDADDR", "0.0.0.0");
 
@@ -43,14 +43,14 @@ namespace ArchivistPlugin
             AddEnvVar("ARCHIVIST_DATA_DIR", dataDir);
             AddVolume($"archivist/{dataDir}", GetVolumeCapacity(config));
 
-            var discPort = CreateDiscoveryPort(config);
+            var discPort = CreateDiscoveryPort();
             AddEnvVar("ARCHIVIST_DISC_PORT", discPort);
             AddEnvVar("ARCHIVIST_LOG_LEVEL", config.LogLevelWithTopics());
 
             // This makes the node announce itself to its local (pod) IP address.
             AddEnvVar("NAT_IP_AUTO", "true");
 
-            var listenPort = CreateListenPort(config);
+            var listenPort = CreateListenPort();
             AddEnvVar("ARCHIVIST_LISTEN_ADDRS", $"/ip4/0.0.0.0/tcp/{listenPort.Number}");
 
             if (!string.IsNullOrEmpty(config.BootstrapSpr))
@@ -75,7 +75,7 @@ namespace ArchivistPlugin
             }
             if (config.MetricsEnabled)
             {
-                var metricsPort = CreateApiPort(config, MetricsPortTag);
+                var metricsPort = AddExposedPort(MetricsPortTag);
                 AddEnvVar("ARCHIVIST_METRICS", "true");
                 AddEnvVar("ARCHIVIST_METRICS_ADDRESS", "0.0.0.0");
                 AddEnvVar("ARCHIVIST_METRICS_PORT", metricsPort);
@@ -131,17 +131,17 @@ namespace ArchivistPlugin
             }
         }
 
-        private Port CreateApiPort(ArchivistStartupConfig config, string tag)
+        private Port CreateApiPort()
         {
-            return AddInternalPort(tag);
+            return AddExposedPort(ApiPortTag);
         }
 
-        private Port CreateListenPort(ArchivistStartupConfig config)
+        private Port CreateListenPort()
         {
             return AddInternalPort(ListenPortTag);
         }
 
-        private Port CreateDiscoveryPort(ArchivistStartupConfig config)
+        private Port CreateDiscoveryPort()
         {
             return AddInternalPort(DiscoveryPortTag, PortProtocol.UDP);
         }
