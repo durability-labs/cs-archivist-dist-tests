@@ -47,11 +47,19 @@ namespace ArchivistWindowsStarter
             var publicIp = GetPublicIP();
             Log($"Public IP: {publicIp}");
 
+            var datadir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "archivist", "datadir");
+            Log($"Data dir: {datadir}");
+
+            var logfile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "archivist", "archivist.log");
+            Log($"Log file: {logfile}");
+
             var args = new List<string>{
-                "--data-dir=datadir",
+                $"--data-dir={datadir}",
                 "--api-cors-origin=*",
                 $"--nat=extip:{publicIp}",
-                "--log-file=archivist.log",
+                $"--log-file={logfile}",
                 "--disc-port=8090",
                 "--listen-addrs=/ip4/0.0.0.0/tcp/8070"
             };
@@ -81,6 +89,7 @@ namespace ArchivistWindowsStarter
                 var stderr = nodeProcess.StandardError.ReadToEnd();
                 Log(stdout);
                 Log(stderr);
+                Console.ReadLine();
                 return;
             }
 
@@ -90,6 +99,10 @@ namespace ArchivistWindowsStarter
                 UseShellExecute = true,
                 FileName = "https://app.archivist.storage"
             });
+
+            Log("Ready");
+            Log(" ");
+            Log("[ Close this window to stop your Archivist node ]");
 
             while (true)
             {
