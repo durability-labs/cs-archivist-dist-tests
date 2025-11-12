@@ -1,4 +1,5 @@
 using Logging;
+using System.Globalization;
 
 namespace TranscriptAnalysis
 {
@@ -92,7 +93,7 @@ namespace TranscriptAnalysis
     public class CsvCell
     {
         public CsvCell(ICsvColumn column, float value)
-            : this(column, value.ToString())
+            : this(column, value.ToString(CultureInfo.InvariantCulture))
         {
         }
 
