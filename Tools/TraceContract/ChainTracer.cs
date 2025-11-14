@@ -77,7 +77,7 @@ namespace TraceContract
         {
             var utc = request.Block.Utc.AddMinutes(-1.0);
             var tracker = new ChainRequestTracker(output, input.PurchaseId);
-            var chainState = new ChainState(baseLog, geth, contracts, tracker, utc, false, new DoNothingPeriodMonitorEventHandler());
+            var chainState = new ChainState(baseLog, geth, contracts, tracker, utc, false, new DoNothingPeriodMonitorEventHandler(false));
 
             while (!tracker.IsFinished)
             {

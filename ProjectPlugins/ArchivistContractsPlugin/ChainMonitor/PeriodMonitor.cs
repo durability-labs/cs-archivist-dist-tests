@@ -10,6 +10,7 @@ namespace ArchivistContractsPlugin.ChainMonitor
     public interface IPeriodMonitorEventHandler
     {
         void OnPeriodReport(PeriodReport report);
+        bool GetLogPeriodReports();
     }
 
     public class PeriodMonitor
@@ -122,7 +123,10 @@ namespace ArchivistContractsPlugin.ChainMonitor
                 requestReports.ToArray(),
                 callReports.ToArray());
 
-            report.Log(log);
+            if (eventHandler.GetLogPeriodReports())
+            {
+                report.Log(log);
+            }
             reports.Add(report);
 
             eventHandler.OnPeriodReport(report);
@@ -157,6 +161,18 @@ namespace ArchivistContractsPlugin.ChainMonitor
 
     public class DoNothingPeriodMonitorEventHandler : IPeriodMonitorEventHandler
     {
+        private readonly bool logPeriodReports;
+
+        public DoNothingPeriodMonitorEventHandler(bool logPeriodReports)
+        {
+            this.logPeriodReports = logPeriodReports;
+        }
+
+        public bool GetLogPeriodReports()
+        {
+            return logPeriodReports;
+        }
+
         public void OnPeriodReport(PeriodReport report)
         {
         }

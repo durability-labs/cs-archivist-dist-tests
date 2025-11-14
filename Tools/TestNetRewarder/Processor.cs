@@ -63,6 +63,11 @@ namespace TestNetRewarder
             }
         }
 
+        public bool GetLogPeriodReports()
+        {
+            return false;
+        }
+
         public void OnPeriodReport(PeriodReport report)
         {
             var missedSlots = new List<MissedSlot>();
