@@ -30,7 +30,7 @@ namespace ArchivistPlugin
     {
         IMarketplaceSetup WithInitial(Ether eth, TestToken tokens);
         IMarketplaceSetup WithAccount(EthAccount account);
-        IMarketplaceSetup AsStorageNode();
+        IMarketplaceSetup AsStorageNode(bool useCircuitFilesVolumeMount = false);
         IMarketplaceSetup AsValidator();
     }
 
@@ -175,14 +175,16 @@ namespace ArchivistPlugin
     public class MarketplaceSetup : IMarketplaceSetup
     {
         public bool IsStorageNode { get; private set; }
+        public bool UseCircuitFilesVolume { get; private set; }
         public bool IsValidator { get; private set; }
         public Ether InitialEth { get; private set; } = 0.Eth();
         public TestToken InitialTestTokens { get; private set; } = 0.Tst();
         public EthAccountSetup EthAccountSetup { get; } = new EthAccountSetup();
 
-        public IMarketplaceSetup AsStorageNode()
+        public IMarketplaceSetup AsStorageNode(bool useCircuitFilesVolumeMount = false)
         {
             IsStorageNode = true;
+            UseCircuitFilesVolume = useCircuitFilesVolumeMount;
             return this;
         }
 

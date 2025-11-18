@@ -1,0 +1,3 @@
+[submodule "vendor/archivist-contracts"]
+	path = vendor/archivist-contracts
+	url = https://github.com/durability-labs/archivist-contracts.git

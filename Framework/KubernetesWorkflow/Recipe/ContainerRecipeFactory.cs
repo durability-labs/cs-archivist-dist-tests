@@ -113,10 +113,10 @@ namespace KubernetesWorkflow.Recipe
             podAnnotations.Add(name, value);
         }
 
-        protected void AddVolume(string name, string mountPath, string? subPath = null, string? secret = null, string? hostPath = null)
+        protected void AddVolume(string mountPath, ByteSize volumeSize, string? subPath = null, string? secret = null, string? hostPath = null)
         {
-            var size = 10.MB().SizeInBytes.ToString();
-            volumeMounts.Add(new VolumeMount(name, mountPath, subPath, size, secret, hostPath));
+            var name = $"autovolume-{Guid.NewGuid().ToString().ToLowerInvariant()}";
+            volumeMounts.Add(new VolumeMount(name, mountPath, subPath, volumeSize.SizeInBytes.ToString(), secret, hostPath));
         }
 
         protected void AddVolume(string mountPath, ByteSize volumeSize)

@@ -127,7 +127,7 @@ namespace ArchivistReleaseTests.Utils
                 .WithBlockMaintenanceInterval(HostBlockTTL / 2)
                 .EnableMarketplace(GetGeth(), GetContracts(), m => m
                     .WithInitial(StartingBalanceEth.Eth(), StartingBalanceTST.Tst())
-                    .AsStorageNode()
+                    .AsStorageNode(useCircuitFilesVolumeMount: true)
                 );
                 additional(s);
             });

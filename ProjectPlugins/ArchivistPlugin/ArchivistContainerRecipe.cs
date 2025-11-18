@@ -1,6 +1,7 @@
 using GethPlugin;
 using KubernetesWorkflow;
 using KubernetesWorkflow.Recipe;
+using Logging;
 using Utils;
 
 namespace ArchivistPlugin
@@ -15,12 +16,19 @@ namespace ArchivistPlugin
         // Used by tests for time-constraint assertions.
         public static readonly TimeSpan MaxUploadTimePerMegabyte = TimeSpan.FromSeconds(2.0);
         public static readonly TimeSpan MaxDownloadTimePerMegabyte = TimeSpan.FromSeconds(2.0);
+        private readonly ILog log;
+
         //private readonly ArchivistDockerImage archivistDockerImage;
 
         private string image = string.Empty;
 
         public override string AppName => "archivist";
         public override string Image => image;
+
+        public ArchivistContainerRecipe(ILog log)
+        {
+            this.log = log;
+        }
 
         protected override void Initialize(StartupConfig startupConfig)
         {
@@ -124,6 +132,23 @@ namespace ArchivistPlugin
             if (ms.IsStorageNode)
             {
                 OverrideCommand("bash", "/docker-entrypoint.sh", "archivist", "persistence", "prover");
+
+                if (ms.UseCircuitFilesVolume)
+                {
+                    log.Log("Using mounted volumes to provide prover circuit files. Compatibility not guaranteed.");
+
+                    AddEnvVar("SKIP_DOWNLOAD_CIRCUIT", "1");
+
+                    var circuitDir = $"circuitdir{ContainerNumber}";
+                    AddEnvVar("ARCHIVIST_CIRCUIT_DIR", circuitDir);
+
+                    var pluginPath = PluginPathUtils.ProjectPluginsDir;
+                    // TODO: this should be the testnet path, but it's not got all the required files.
+                    // Also the issue of possible incompatibility exists.
+                    var hostCircuitsPath = Path.Join(pluginPath.Replace("ProjectPlugins\\", ""), "vendor", "archivist-contracts", "verifier", "networks", "hardhat");
+                    hostCircuitsPath = hostCircuitsPath.Replace("\\", "/").Replace("C:/", "//c/").Replace("D:/", "//d/");
+                    AddVolume($"archivist/{circuitDir}", 100.MB(), hostPath: hostCircuitsPath);
+                }
             }
             else
             {

@@ -21,7 +21,7 @@ namespace ArchivistPlugin
         {
             this.tools = tools;
 
-            recipe = new ArchivistContainerRecipe();
+            recipe = new ArchivistContainerRecipe(tools.GetLog());
             archivistStarter = CreateArchivistStarter();
             archivistWrapper = new ArchivistWrapper(tools, processControlMap, hooksFactory);
         }
