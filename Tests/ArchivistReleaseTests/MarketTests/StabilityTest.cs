@@ -1,5 +1,6 @@
 using ArchivistClient;
 using ArchivistContractsPlugin.ChainMonitor;
+using ArchivistContractsPlugin.Marketplace;
 using ArchivistReleaseTests.Utils;
 using NUnit.Framework;
 using Utils;
@@ -30,6 +31,7 @@ namespace ArchivistReleaseTests.MarketTests
         #endregion
 
         private int numPeriods = 0;
+        private int numProofs = 0;
         private bool proofWasMissed = false;
 
         [Test]
@@ -42,6 +44,7 @@ namespace ArchivistReleaseTests.MarketTests
             Assert.That(HostAvailabilityMaxDuration, Is.GreaterThan(mins * 1.1));
 
             numPeriods = 0;
+            numProofs = 0;
             proofWasMissed = false;
 
             var (hosts, clients, validator) = JumpStart();
@@ -65,6 +68,7 @@ namespace ArchivistReleaseTests.MarketTests
 
             var minNumPeriod = (mins / periodDuration) - 1.0;
             Log($"{numPeriods} periods elapsed. Expected at least {minNumPeriod} periods.");
+            Log($"{numProofs} proofs submitted.");
             Assert.That(numPeriods, Is.GreaterThanOrEqualTo(minNumPeriod));
 
             var status = client.GetPurchaseStatus(purchase.PurchaseId);
@@ -86,6 +90,14 @@ namespace ArchivistReleaseTests.MarketTests
                         proofWasMissed = true;
                         return;
                     }
+                }
+            }
+
+            foreach (var func in report.FunctionCalls)
+            {
+                if (func.Name == nameof(SubmitProofFunction))
+                {
+                    numProofs++;
                 }
             }
 

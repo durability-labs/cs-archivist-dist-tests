@@ -8,6 +8,7 @@ namespace ArchivistContractsPlugin.ChainMonitor
 {
     public interface IChainStateRequest
     {
+        string Id { get; }
         byte[] RequestId { get; }
         public BlockTimeEntry Block { get; }
         Request Request { get; }
@@ -27,6 +28,7 @@ namespace ArchivistContractsPlugin.ChainMonitor
             if (requestId == null || requestId.Length != 32) throw new ArgumentException(nameof(requestId));
 
             this.log = log;
+            Id = requestId.ToHex().ToLowerInvariant();
             RequestId = requestId;
             Block = block;
             Request = request;
@@ -41,6 +43,7 @@ namespace ArchivistContractsPlugin.ChainMonitor
             Hosts = new RequestHosts();
         }
 
+        public string Id { get; }
         public byte[] RequestId { get; }
         public BlockTimeEntry Block { get; }
         public Request Request { get; }
