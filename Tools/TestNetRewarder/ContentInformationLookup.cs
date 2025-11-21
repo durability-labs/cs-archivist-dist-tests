@@ -32,6 +32,7 @@ namespace TestNetRewarder
             [
                 $"   Filename: '{manifest.Filename}'",
                 $"   ContentType: {manifest.Mimetype}",
+                $"   DatasetSize: {manifest.DatasetSize}"
             ];
         }
     }
