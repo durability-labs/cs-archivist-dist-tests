@@ -15,12 +15,11 @@ namespace TestNetRewarder
         private readonly List<ChainEventMessage> events = new List<ChainEventMessage>();
         private readonly List<string> errors = new List<string>();
         private readonly EmojiMaps emojiMaps = new EmojiMaps();
-        private readonly Configuration config;
         private readonly string periodDuration;
 
-        public EventsFormatter(Configuration config, MarketplaceConfig marketplaceConfig)
+        public EventsFormatter(ContentInformationLookup lookup, MarketplaceConfig marketplaceConfig)
         {
-            this.config = config;
+            this.lookup = lookup;
             periodDuration = Time.FormatDuration(marketplaceConfig.PeriodDuration);
         }
 
@@ -51,9 +50,14 @@ namespace TestNetRewarder
         public void OnNewRequest(RequestEvent requestEvent)
         {
             var request = requestEvent.Request;
-            AddRequestBlock(requestEvent, emojiMaps.NewRequest, "New Request",
+            var cid = BytesToHexString(request.Request.Content.Cid);
+            var content = new List<string>()
+            {
                 $"Client: {request.Client}",
-                $"Content: {BytesToHexString(request.Request.Content.Cid)}",
+                $"Content: {cid}",
+            };
+            content.AddRange(lookup.LookUp(cid));
+            content.AddRange([
                 $"Duration: {BigIntToDuration(request.Request.Ask.Duration)}",
                 $"Expiry: {BigIntToDuration(request.Request.Expiry)}",
                 $"CollateralPerByte: {BitIntToTestTokens(request.Request.Ask.CollateralPerByte)}",
@@ -62,7 +66,9 @@ namespace TestNetRewarder
                 $"Slot Tolerance: {request.Request.Ask.MaxSlotLoss}",
                 $"Slot Size: {BigIntToByteSize(request.Request.Ask.SlotSize)}",
                 $"Proof Probability: 1 / {request.Request.Ask.ProofProbability} every {periodDuration}"
-            );
+            ]);
+
+            AddRequestBlock(requestEvent, emojiMaps.NewRequest, "New Request", content.ToArray());
         }
 
         public void OnRequestCancelled(RequestEvent requestEvent)
@@ -118,6 +124,7 @@ namespace TestNetRewarder
         }
 
         private readonly List<PeriodReportWithMisses> reports = new List<PeriodReportWithMisses>();
+        private readonly ContentInformationLookup lookup;
 
         public void OnPeriodReport(PeriodReportWithMisses report)
         {

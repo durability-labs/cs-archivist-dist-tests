@@ -1,4 +1,5 @@
 using ArchivistContractsPlugin;
+using ArchivistNetworkConfig;
 using ArgsUniform;
 using BlockchainUtils;
 using DiscordRewards;
@@ -34,15 +35,19 @@ namespace TestNetRewarder
                 )
             );
 
+            var networkConnector = new ArchivistNetworkConnector(Log);
+            var network = networkConnector.GetConfig();
+
             var diskStore = new DiskBlockBucketStore(Log, Path.Join(Config.DataPath, "blockcache"));
             var blockCache = new BlockCache(Log, diskStore);
             var requestsCache = new DiskRequestsCache(Path.Join(Config.DataPath, "requestscache"));
-            var connector = GethConnector.GethConnector.Initialize(Log, blockCache, requestsCache);
+            var connector = GethConnector.GethConnector.Initialize(Log, network, blockCache, requestsCache);
             if (connector == null) throw new Exception("Invalid Eth RPC information");
 
+            var lookup = new ContentInformationLookup(network);
             BotClient = new BotClient(Config.DiscordHost, Config.DiscordPort, Log);
             node = connector.GethNode;
-            processor = new Processor(Config, BotClient, connector.GethNode, connector.ArchivistContracts, Log);
+            processor = new Processor(Config, BotClient, lookup, connector.GethNode, connector.ArchivistContracts, Log);
 
             EnsurePath(Config.DataPath);
             EnsurePath(Config.LogPath);
