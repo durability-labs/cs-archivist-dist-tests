@@ -25,6 +25,7 @@ namespace TraceContract
         }
 
         private readonly ILog log;
+        private readonly List<SlotTrackerChainStateChangeHandler> slotTrackers = new List<SlotTrackerChainStateChangeHandler>();
         private readonly List<Entry> entries = new();
         private readonly string folder;
 
@@ -42,6 +43,11 @@ namespace TraceContract
             {
                 this.log.AddStringReplace(pair.Key, pair.Value);
             }
+        }
+
+        public void AddSlotTracker(SlotTrackerChainStateChangeHandler slotTracker)
+        {
+            slotTrackers.Add(slotTracker);
         }
 
         public void LogRequestId(byte[] requestId)
@@ -101,6 +107,11 @@ namespace TraceContract
         {
             var sorted = entries.OrderBy(e => e.Blk.Utc).ToArray();
             foreach (var e in sorted) Write(e);
+
+            foreach (var slotTracker in slotTrackers)
+            {
+                WriteSlotTracker(slotTracker);
+            }
         }
 
         public LogFile CreateNodeLogTargetFile(string node)
@@ -113,6 +124,16 @@ namespace TraceContract
             console.Log("Files in output folder:");
             var files = Directory.GetFiles(folder);
             foreach (var file in files) console.Log(file);
+        }
+
+        private void WriteSlotTracker(SlotTrackerChainStateChangeHandler slotTracker)
+        {
+            var slotReports = slotTracker.GetSlotReports();
+            foreach (var report in slotReports)
+            {
+                log.Log("");
+                report.WriteToLog(log);
+            }
         }
 
         private void Write(Entry e)

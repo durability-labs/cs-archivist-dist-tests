@@ -7,7 +7,7 @@
   </PropertyGroup>
 
 	<ItemGroup>
-		<OpenApiReference Include="../../Tools/ArchivistGatewayService/openapi.yaml" CodeGenerator="NSwagCSharp" Namespace="GatewayApi" ClassName="GatewayApiClient" />
+		<OpenApiReference Include="openapi.yaml" CodeGenerator="NSwagCSharp" Namespace="GatewayApi" ClassName="GatewayApiClient" />
 	</ItemGroup>
 
 	<ItemGroup>

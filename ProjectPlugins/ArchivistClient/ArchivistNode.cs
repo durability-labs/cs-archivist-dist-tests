@@ -15,7 +15,7 @@ namespace ArchivistClient
         string GetSpr();
         DebugPeer GetDebugPeer(string peerId);
         ContentId UploadFile(TrackedFile file);
-        ContentId UploadFile(TrackedFile file, string contentType, string contentDisposition);
+        ContentId UploadFile(TrackedFile file, string contentType, string filename);
         TrackedFile? DownloadContent(ContentId contentId, string fileLabel = "");
         TrackedFile? DownloadContent(ContentId contentId, TimeSpan timeout, string fileLabel = "");
         LocalDataset DownloadStreamless(ContentId cid);
@@ -164,10 +164,10 @@ namespace ArchivistClient
 
         public ContentId UploadFile(TrackedFile file)
         {
-            return UploadFile(file, "application/octet-stream", $"attachment; filename=\"{Path.GetFileName(file.Filename)}\"");
+            return UploadFile(file, "application/octet-stream", Path.GetFileName(file.Filename));
         }
 
-        public ContentId UploadFile(TrackedFile file, string contentType, string contentDisposition)
+        public ContentId UploadFile(TrackedFile file, string contentType, string filename)
         {
             using var fileStream = File.OpenRead(file.Filename);
             var uniqueId = Guid.NewGuid().ToString();
@@ -175,6 +175,7 @@ namespace ArchivistClient
 
             hooks.OnFileUploading(uniqueId, size);
 
+            var contentDisposition = $"attachment; filename=\"{filename}\"";
             var input = new UploadInput(contentType, contentDisposition, fileStream);
             var logMessage = $"Uploading file {file.Describe()} with contentType: '{input.ContentType}' and disposition: '{input.ContentDisposition}'...";
             var measurement = Stopwatch.Measure(log, logMessage, () =>

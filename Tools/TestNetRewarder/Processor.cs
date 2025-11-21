@@ -17,7 +17,7 @@ namespace TestNetRewarder
         private readonly ILog log;
         private DateTime lastPeriodUpdateUtc;
 
-        public Processor(Configuration config, BotClient client, IGethNode geth, IArchivistContracts contracts, ILog log)
+        public Processor(Configuration config, BotClient client, ContentInformationLookup lookup, IGethNode geth, IArchivistContracts contracts, ILog log)
         {
             this.config = config;
             this.client = client;
@@ -25,7 +25,7 @@ namespace TestNetRewarder
             lastPeriodUpdateUtc = DateTime.UtcNow;
 
             builder = new RequestBuilder();
-            eventsFormatter = new EventsFormatter(config, contracts.Deployment.Config);
+            eventsFormatter = new EventsFormatter(lookup, contracts.Deployment.Config);
 
             chainState = new ChainState(log, geth, contracts, eventsFormatter, config.HistoryStartUtc,
                 doProofPeriodMonitoring: config.ShowProofsMissed > 0, this);
@@ -61,6 +61,11 @@ namespace TestNetRewarder
                 eventsFormatter.OnError(msg);
                 throw;
             }
+        }
+
+        public bool GetLogPeriodReports()
+        {
+            return false;
         }
 
         public void OnPeriodReport(PeriodReport report)

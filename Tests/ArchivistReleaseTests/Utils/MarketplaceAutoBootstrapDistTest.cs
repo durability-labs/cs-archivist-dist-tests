@@ -65,6 +65,8 @@ namespace ArchivistReleaseTests.Utils
         protected virtual TimeSpan HostAvailabilityMaxDuration => TimeSpan.FromHours(3.0);
         protected virtual bool MonitorChainState { get; } = true;
         protected virtual bool MonitorProofPeriods { get; } = true;
+        protected virtual bool LogPeriodReports { get; } = false;
+
         protected TimeSpan HostBlockTTL
         {
             get
@@ -76,6 +78,7 @@ namespace ArchivistReleaseTests.Utils
                 return GetPeriodDuration() * 15;
             }
         }
+
         protected virtual void OnPeriod(PeriodReport report)
         {
         }
@@ -259,6 +262,11 @@ namespace ArchivistReleaseTests.Utils
                     .AsValidator()
                 )
             );
+        }
+
+        public bool GetLogPeriodReports()
+        {
+            return LogPeriodReports;
         }
 
         public void OnPeriodReport(PeriodReport report)

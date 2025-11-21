@@ -14,6 +14,7 @@ namespace ArchivistReleaseTests.Utils
         private readonly IPeriodMonitorEventHandler periodMonitorEventHandler;
         private readonly DateTime startUtc;
         private readonly TimeSpan updateInterval;
+        private readonly SlotTrackerChainStateChangeHandler slotTracker;
         private CancellationTokenSource cts = new CancellationTokenSource();
         private Task worker = Task.CompletedTask;
         private bool monitorProofPeriods;
@@ -27,6 +28,7 @@ namespace ArchivistReleaseTests.Utils
             this.startUtc = startUtc;
             this.updateInterval = updateInterval;
             this.monitorProofPeriods = monitorProofPeriods;
+            this.slotTracker = new SlotTrackerChainStateChangeHandler(contracts);
         }
 
         public void Start(Action onFailure)
@@ -39,6 +41,7 @@ namespace ArchivistReleaseTests.Utils
         {
             cts.Cancel();
             worker.Wait();
+            LogSlotTrackerReports();
             if (worker.Exception != null) throw worker.Exception;
         }
 
@@ -48,7 +51,7 @@ namespace ArchivistReleaseTests.Utils
         {
             try
             {
-                var state = new ChainState(log, gethNode, contracts, new DoNothingThrowingChainEventHandler(), startUtc, monitorProofPeriods, periodMonitorEventHandler);
+                var state = new ChainState(log, gethNode, contracts, slotTracker, startUtc, monitorProofPeriods, periodMonitorEventHandler);
                 Thread.Sleep(updateInterval);
 
                 log.Log($"Chain monitoring started. Update interval: {Time.FormatDuration(updateInterval)}");
@@ -64,6 +67,16 @@ namespace ArchivistReleaseTests.Utils
                 log.Error("Exception in chain monitor: " + ex);
                 onFailure();
                 throw;
+            }
+        }
+
+        private void LogSlotTrackerReports()
+        {
+            var reports = slotTracker.GetSlotReports();
+            foreach (var r in reports)
+            {
+                log.Log("");
+                r.WriteToLog(log);
             }
         }
     }

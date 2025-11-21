@@ -69,6 +69,8 @@ namespace ArchivistClient
         public ByteSize DatasetSize { get; set; } = ByteSize.Zero;
         public ByteSize BlockSize { get; set; } = ByteSize.Zero;
         public bool Protected { get; set; }
+        public string Filename { get; set; } = string.Empty;
+        public string Mimetype { get; set; } = string.Empty;
     }
 
     public class SalesRequestStorageRequest

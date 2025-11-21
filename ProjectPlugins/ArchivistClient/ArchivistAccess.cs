@@ -1,3 +1,4 @@
+using ArchivistClient;
 using ArchivistOpenApi;
 using Logging;
 using Newtonsoft.Json;
@@ -120,7 +121,15 @@ namespace ArchivistClient
 
         public string UploadFile(UploadInput uploadInput)
         {
-            return OnArchivist(api => api.UploadAsync(uploadInput.ContentType, uploadInput.ContentDisposition, uploadInput.FileStream));
+            return OnArchivist(api =>
+            {
+                // What we have here is, the inability of the generated code to let us control the
+                // content headers of the request. We have to use partial-class customizations to modify
+                // the default behavior. My god have mercy on us all.
+                api.SetNextUploadInput(uploadInput);
+
+                return api.UploadAsync(uploadInput.ContentType, uploadInput.ContentDisposition, uploadInput.FileStream);
+            });
         }
 
         public Stream DownloadFile(string contentId)
@@ -302,5 +311,32 @@ namespace ArchivistClient
         public string ContentType { get; }
         public string ContentDisposition { get; }
         public FileStream FileStream { get; }
+    }
+}
+
+namespace ArchivistOpenApi
+{
+    public partial class ArchivistApiClient
+    {
+        private UploadInput? uploadInput;
+
+        public void SetNextUploadInput(UploadInput input)
+        {
+            uploadInput = input;
+        }
+
+        partial void PrepareRequest(HttpClient client, HttpRequestMessage request, System.Text.StringBuilder urlBuilder)
+        {
+            if (request == null) return;
+            if (request.Content == null) return;
+            if (uploadInput == null) return;
+
+            request.Content.Headers.Remove("Content-Type");
+            request.Content.Headers.Add("Content-Type", uploadInput.ContentType);
+            request.Content.Headers.Add("Content-Disposition", uploadInput.ContentDisposition);
+
+            // The httpclient lock in WebUtils.Http protects us from a race condition here.
+            uploadInput = null;
+        }
     }
 }
