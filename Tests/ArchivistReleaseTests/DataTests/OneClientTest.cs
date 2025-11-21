@@ -22,9 +22,15 @@ namespace ArchivistReleaseTests.DataTests
         {
             var testFile = GenerateTestFile(1.MB());
 
-            var contentId = primary.UploadFile(testFile);
+            var contentType = "video/mp4";
+            var filename = "testFilename";
+            var contentId = primary.UploadFile(testFile, contentType, filename);
 
             AssertNodesContainFile(contentId, primary);
+
+            var manifest = primary.DownloadManifestOnly(contentId).Manifest;
+            Assert.That(manifest.Filename, Is.EqualTo(filename));
+            Assert.That(manifest.Mimetype, Is.EqualTo(contentType));
 
             var downloadedFile = primary.DownloadContent(contentId);
 

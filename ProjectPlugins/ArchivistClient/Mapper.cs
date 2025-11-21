@@ -241,7 +241,9 @@ namespace ArchivistClient
                 BlockSize = new ByteSize(Convert.ToInt64(manifest.BlockSize)),
                 DatasetSize = new ByteSize(Convert.ToInt64(manifest.DatasetSize)),
                 RootHash = manifest.TreeCid,
-                Protected = manifest.Protected
+                Protected = manifest.Protected,
+                Filename = manifest.Filename,
+                Mimetype = manifest.Mimetype
             };
         }
 
