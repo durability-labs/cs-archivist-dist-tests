@@ -46,6 +46,9 @@ namespace TestNetRewarder
             var downloadLink = $"{network.Team.Utils.Gateway}/{cid}";
             return
             [
+                $"   Filename: '{manifest.Filename}'",
+                $"   ContentType: {manifest.Mimetype}",
+                $"   DatasetSize: {manifest.DatasetSize}",
                 $"   [Download via Gateway]({downloadLink})"
             ];
         }
@@ -56,7 +59,7 @@ namespace TestNetRewarder
 
             try
             {
-                return LookupContent(cid);
+                return operation(cid);
             }
             catch
             {
