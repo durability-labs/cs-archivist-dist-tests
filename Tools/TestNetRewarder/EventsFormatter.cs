@@ -68,22 +68,22 @@ namespace TestNetRewarder
                 $"Proof Probability: 1 / {request.Request.Ask.ProofProbability} every {periodDuration}"
             ]);
 
-            AddRequestBlock(requestEvent, emojiMaps.NewRequest, "New Request", content.ToArray());
+            AddRequestBlock(requestEvent, emojiMaps.NewRequest, "New Request", string.Empty, content.ToArray());
         }
 
         public void OnRequestCancelled(RequestEvent requestEvent)
         {
-            AddRequestBlock(requestEvent, emojiMaps.Cancelled, "Cancelled");
+            AddRequestBlock(requestEvent, emojiMaps.Cancelled, "Cancelled", string.Empty);
         }
 
         public void OnRequestFailed(RequestEvent requestEvent)
         {
-            AddRequestBlock(requestEvent, emojiMaps.Failed, "Failed");
+            AddRequestBlock(requestEvent, emojiMaps.Failed, "Failed", string.Empty);
         }
 
         public void OnRequestFinished(RequestEvent requestEvent)
         {
-            AddRequestBlock(requestEvent, emojiMaps.Finished, "Finished");
+            AddRequestBlock(requestEvent, emojiMaps.Finished, "Finished", string.Empty);
         }
 
         public void OnRequestFulfilled(RequestEvent requestEvent)
@@ -92,7 +92,8 @@ namespace TestNetRewarder
             var cid = BytesToHexString(request.Request.Content.Cid);
 
             AddRequestBlock(requestEvent, emojiMaps.Started, "Started",
-                lookup.GenerateDownloadLink(cid)
+                footer: lookup.GenerateDownloadLink(cid),
+                content: lookup.LookUp(cid)
             );
         }
 
@@ -203,7 +204,7 @@ namespace TestNetRewarder
                 lines.Add($"No proofs were missed {emojiMaps.NoProofsMissed}");
             }
 
-            AddBlock(0, $"{emojiMaps.ProofReport} **Proof system report**", lines.ToArray());
+            AddBlock(0, $"{emojiMaps.ProofReport} **Proof system report**", string.Empty, lines.ToArray());
         }
 
         private string GetSlotFilledIcon(bool isRepair)
@@ -218,21 +219,21 @@ namespace TestNetRewarder
             return $"Slot Filled";
         }
 
-        private void AddRequestBlock(RequestEvent requestEvent, string icon, string eventName, params string[] content)
+        private void AddRequestBlock(RequestEvent requestEvent, string icon, string eventName, string footer, params string[] content)
         {
             var blockNumber = $"[{requestEvent.Block.BlockNumber} {FormatDateTime(requestEvent.Block.Utc)}]";
             var title = $"{blockNumber} {icon} **{eventName}** {FormatRequestId(requestEvent)}";
-            AddBlock(requestEvent.Block.BlockNumber, title, content);
+            AddBlock(requestEvent.Block.BlockNumber, title, footer, content);
         }
 
-        private void AddBlock(ulong blockNumber, string title, params string[] content)
+        private void AddBlock(ulong blockNumber, string title, string footer, params string[] content)
         {
-            events.Add(FormatBlock(blockNumber, title, content));
+            events.Add(FormatBlock(blockNumber, title, footer, content));
         }
 
-        private ChainEventMessage FormatBlock(ulong blockNumber, string title, params string[] content)
+        private ChainEventMessage FormatBlock(ulong blockNumber, string title, string footer, params string[] content)
         {
-            var msg = FormatBlockMessage(title, content);
+            var msg = FormatBlockMessage(title, footer, content);
             return new ChainEventMessage
             {
                 BlockNumber = blockNumber,
@@ -240,25 +241,25 @@ namespace TestNetRewarder
             };
         }
 
-        private string FormatBlockMessage(string title, string[] content)
+        private string FormatBlockMessage(string title, string footer, string[] content)
         {
             if (content == null || content.Length == 0)
             {
                 return $"{title}{nl}{nl}";
             }
 
-            return string.Join(nl,
-                new string[]
-                {
-                    title,
-                    "```"
-                }
-                .Concat(content)
-                .Concat(new string[]
-                {
-                    "```"
-                })
-            ) + nl + nl;
+            var result = new List<string>()
+            {
+                title,
+                "```"
+            };
+            result.AddRange(content);
+            result.Add("```");
+            if (!string.IsNullOrEmpty(footer))
+            {
+                result.Add(footer);
+            }
+            return string.Join(nl, result) + nl + nl;
         }
 
         private string FormatDateTime(DateTime utc)

@@ -23,9 +23,9 @@ namespace TestNetRewarder
             return Safe(cid, LookupContent);
         }
 
-        public string[] GenerateDownloadLink(string cid)
+        public string GenerateDownloadLink(string cid)
         {
-            return Safe(cid, GetDownloadLink);
+            return string.Join("", Safe(cid, GetDownloadLink));
         }
 
         private string[] LookupContent(string cid)
@@ -46,10 +46,7 @@ namespace TestNetRewarder
             var downloadLink = $"{network.Team.Utils.Gateway}/{cid}";
             return
             [
-                $"   Filename: '{manifest.Filename}'",
-                $"   ContentType: {manifest.Mimetype}",
-                $"   DatasetSize: {manifest.DatasetSize}",
-                $"   [Download via Gateway]({downloadLink})"
+                $"[Download via Gateway]({downloadLink})"
             ];
         }
 
