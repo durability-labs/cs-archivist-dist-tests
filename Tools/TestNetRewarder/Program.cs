@@ -44,7 +44,7 @@ namespace TestNetRewarder
             var connector = GethConnector.GethConnector.Initialize(Log, network, blockCache, requestsCache);
             if (connector == null) throw new Exception("Invalid Eth RPC information");
 
-            var lookup = new ContentInformationLookup(network);
+            var lookup = new ContentInformationLookup(Config, network);
             BotClient = new BotClient(Config.DiscordHost, Config.DiscordPort, Log);
             node = connector.GethNode;
             processor = new Processor(Config, BotClient, lookup, connector.GethNode, connector.ArchivistContracts, Log);

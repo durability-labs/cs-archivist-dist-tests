@@ -29,6 +29,9 @@ namespace TestNetRewarder
 
         [Uniform("proofs-missed-events", "pme", "PROOFSMISSEDEVENTS", false, "When greater than zero, missed proofs will be reported every period.")]
         public int ShowProofsMissed { get; set; } = 1;
+        
+        [Uniform("download-link-max-size", "dlms", "DOWNLOADLINKMAXSIZE", false, "When greater than zero, download links may be generated for datasets smaller than this many megabytes.")]
+        public int DownloadLinkMaxSizeMb { get; set; } = 10;
 
         public string LogPath
         {

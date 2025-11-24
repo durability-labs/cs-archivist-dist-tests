@@ -1,17 +1,56 @@
-﻿using ArchivistNetworkConfig;
+﻿using ArchivistClient;
+using ArchivistNetworkConfig;
+using Utils;
 
 namespace TestNetRewarder
 {
     public class ContentInformationLookup
     {
         private readonly GatewayClient.GatewayClient client;
+        private readonly Configuration config;
+        private readonly ArchivistNetwork network;
+        private readonly Dictionary<string, Manifest> cache = new Dictionary<string, Manifest>();
 
-        public ContentInformationLookup(ArchivistNetwork network)
+        public ContentInformationLookup(Configuration config, ArchivistNetwork network)
         {
             client = new GatewayClient.GatewayClient(network);
+            this.config = config;
+            this.network = network;
         }
 
         public string[] LookUp(string cid)
+        {
+            return Safe(cid, LookupContent);
+        }
+
+        public string[] GenerateDownloadLink(string cid)
+        {
+            return Safe(cid, GetDownloadLink);
+        }
+
+        private string[] LookupContent(string cid)
+        {
+            var manifest = GetManifest(cid);
+            return
+            [
+                $"   Filename: '{manifest.Filename}'",
+                $"   ContentType: {manifest.Mimetype}",
+                $"   DatasetSize: {manifest.DatasetSize}"
+            ];
+        }
+
+        private string[] GetDownloadLink(string cid)
+        {
+            var manifest = GetManifest(cid);
+            if (manifest.DatasetSize.SizeInBytes > config.DownloadLinkMaxSizeMb.MB().SizeInBytes) return Array.Empty<string>();
+            var downloadLink = $"{network.Team.Utils.Gateway}/{cid}";
+            return
+            [
+                $"   [Download via Gateway]({downloadLink})"
+            ];
+        }
+
+        private string[] Safe(string cid, Func<string, string[]> operation)
         {
             if (string.IsNullOrEmpty(cid)) return Array.Empty<string>();
 
@@ -25,15 +64,16 @@ namespace TestNetRewarder
             }
         }
 
-        private string[] LookupContent(string cid)
+        private Manifest GetManifest(string cid)
         {
+            if (cache.TryGetValue(cid, out Manifest? value)) return value;
+            
+            if (cache.Count > 1000) cache.Clear();
+
             var manifest = client.GetManifest(cid).Manifest;
-            return
-            [
-                $"   Filename: '{manifest.Filename}'",
-                $"   ContentType: {manifest.Mimetype}",
-                $"   DatasetSize: {manifest.DatasetSize}"
-            ];
+            cache.Add(cid, manifest);
+
+            return manifest;
         }
     }
 }

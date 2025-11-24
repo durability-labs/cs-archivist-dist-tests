@@ -88,7 +88,12 @@ namespace TestNetRewarder
 
         public void OnRequestFulfilled(RequestEvent requestEvent)
         {
-            AddRequestBlock(requestEvent, emojiMaps.Started, "Started");
+            var request = requestEvent.Request;
+            var cid = BytesToHexString(request.Request.Content.Cid);
+
+            AddRequestBlock(requestEvent, emojiMaps.Started, "Started",
+                lookup.GenerateDownloadLink(cid)
+            );
         }
 
         public void OnSlotFilled(RequestEvent requestEvent, EthAddress host, BigInteger slotIndex, bool isRepair)
@@ -237,7 +242,7 @@ namespace TestNetRewarder
 
         private string FormatBlockMessage(string title, string[] content)
         {
-            if (content == null || !content.Any())
+            if (content == null || content.Length == 0)
             {
                 return $"{title}{nl}{nl}";
             }
