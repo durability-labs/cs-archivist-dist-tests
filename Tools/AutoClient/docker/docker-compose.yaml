@@ -2,6 +2,7 @@ services:
   autoclient:
     image: durabilitylabs/archivist-autoclient:latest
     pull_policy: always
+    restart: always
     container_name: autoclient
     environment:
       - ARCHIVISTENDPOINTS=
