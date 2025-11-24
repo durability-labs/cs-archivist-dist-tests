@@ -18,7 +18,7 @@ namespace TestNetRewarder
             this.network = network;
         }
 
-        public string[] LookUp(string cid)
+        public string[] DescribeManifest(string cid)
         {
             return Safe(cid, LookupContent);
         }

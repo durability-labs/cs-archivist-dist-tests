@@ -26,9 +26,15 @@ namespace TestNetRewarder
         public ChainEventMessage[] GetInitializationEvents(Configuration config)
         {
             return [
-                FormatBlock(0, "Bot initializing...",
-                    $"History-check start (UTC) = {Time.FormatTimestamp(config.HistoryStartUtc)}",
-                    $"Update interval = {Time.FormatDuration(config.Interval)}"
+                FormatBlock(0, 
+                    new MsgBlock(
+                        header: "Bot initializing...",
+                        content: [
+                            $"History-check start (UTC) = {Time.FormatTimestamp(config.HistoryStartUtc)}",
+                            $"Update interval = {Time.FormatDuration(config.Interval)}"
+                        ],
+                        footer: string.Empty
+                    )
                 )
             ];
         }
@@ -56,7 +62,7 @@ namespace TestNetRewarder
                 $"Client: {request.Client}",
                 $"Content: {cid}",
             };
-            content.AddRange(lookup.LookUp(cid));
+            content.AddRange(lookup.DescribeManifest(cid));
             content.AddRange([
                 $"Duration: {BigIntToDuration(request.Request.Ask.Duration)}",
                 $"Expiry: {BigIntToDuration(request.Request.Expiry)}",
@@ -68,22 +74,46 @@ namespace TestNetRewarder
                 $"Proof Probability: 1 / {request.Request.Ask.ProofProbability} every {periodDuration}"
             ]);
 
-            AddRequestBlock(requestEvent, emojiMaps.NewRequest, "New Request", string.Empty, content.ToArray());
+            AddRequestBlock(requestEvent, emojiMaps.NewRequest,
+                new MsgBlock(
+                    header: "New Request",
+                    content: content.ToArray(),
+                    footer: string.Empty
+                )
+            );
         }
 
         public void OnRequestCancelled(RequestEvent requestEvent)
         {
-            AddRequestBlock(requestEvent, emojiMaps.Cancelled, "Cancelled", string.Empty);
+            AddRequestBlock(requestEvent, emojiMaps.Cancelled,
+                new MsgBlock(
+                    header: "Cancelled",
+                    content: [],
+                    footer: string.Empty
+                )
+            );
         }
 
         public void OnRequestFailed(RequestEvent requestEvent)
         {
-            AddRequestBlock(requestEvent, emojiMaps.Failed, "Failed", string.Empty);
+            AddRequestBlock(requestEvent, emojiMaps.Failed,
+                new MsgBlock(
+                    header: "Failed",
+                    content: [],
+                    footer: string.Empty
+                )
+            );
         }
 
         public void OnRequestFinished(RequestEvent requestEvent)
         {
-            AddRequestBlock(requestEvent, emojiMaps.Finished, "Finished", string.Empty);
+            AddRequestBlock(requestEvent, emojiMaps.Finished,
+                new MsgBlock(
+                    header: "Finished",
+                    content: [],
+                    footer: string.Empty
+                )
+            );
         }
 
         public void OnRequestFulfilled(RequestEvent requestEvent)
@@ -91,31 +121,48 @@ namespace TestNetRewarder
             var request = requestEvent.Request;
             var cid = BytesToHexString(request.Request.Content.Cid);
 
-            AddRequestBlock(requestEvent, emojiMaps.Started, "Started",
-                footer: lookup.GenerateDownloadLink(cid),
-                content: lookup.LookUp(cid)
+            AddRequestBlock(requestEvent, emojiMaps.Started,
+                new MsgBlock(
+                    header: "Started",
+                    content: lookup.DescribeManifest(cid),
+                    footer: lookup.GenerateDownloadLink(cid)
+                )
             );
         }
 
         public void OnSlotFilled(RequestEvent requestEvent, EthAddress host, BigInteger slotIndex, bool isRepair)
         {
-            AddRequestBlock(requestEvent, GetSlotFilledIcon(isRepair), GetSlotFilledTitle(isRepair),
-                $"Host: {host}",
-                $"Slot Index: {slotIndex}"
+            AddRequestBlock(requestEvent, GetSlotFilledIcon(isRepair),
+                new MsgBlock(
+                    header: GetSlotFilledTitle(isRepair),
+                    content: [
+                        $"Host: {host}",
+                        $"Slot Index: {slotIndex}"
+                    ],
+                    footer: string.Empty
+                )
             );
         }
 
         public void OnSlotFreed(RequestEvent requestEvent, BigInteger slotIndex)
         {
-            AddRequestBlock(requestEvent, emojiMaps.SlotFreed, "Slot Freed",
-                $"Slot Index: {slotIndex}"
+            AddRequestBlock(requestEvent, emojiMaps.SlotFreed,
+                new MsgBlock(
+                    header: "Slot Freed",
+                    content: [$"Slot Index: {slotIndex}"],
+                    footer: string.Empty
+                )
             );
         }
 
         public void OnSlotReservationsFull(RequestEvent requestEvent, BigInteger slotIndex)
         {
-            AddRequestBlock(requestEvent, emojiMaps.SlotReservationsFull, "Slot Reservations Full",
-                $"Slot Index: {slotIndex}"
+            AddRequestBlock(requestEvent, emojiMaps.SlotReservationsFull,
+                new MsgBlock(
+                    header: "Slot Reservations Full",
+                    content: [$"Slot Index: {slotIndex}"],
+                    footer: string.Empty
+                )
             );
         }
 
@@ -204,7 +251,13 @@ namespace TestNetRewarder
                 lines.Add($"No proofs were missed {emojiMaps.NoProofsMissed}");
             }
 
-            AddBlock(0, $"{emojiMaps.ProofReport} **Proof system report**", string.Empty, lines.ToArray());
+            AddBlock(0,
+                new MsgBlock(
+                    header: $"{emojiMaps.ProofReport} **Proof system report**",
+                    content: lines.ToArray(),
+                    footer: string.Empty
+                )
+            );
         }
 
         private string GetSlotFilledIcon(bool isRepair)
@@ -219,21 +272,23 @@ namespace TestNetRewarder
             return $"Slot Filled";
         }
 
-        private void AddRequestBlock(RequestEvent requestEvent, string icon, string eventName, string footer, params string[] content)
+        private void AddRequestBlock(RequestEvent requestEvent, string icon, MsgBlock msgBlock)
         {
             var blockNumber = $"[{requestEvent.Block.BlockNumber} {FormatDateTime(requestEvent.Block.Utc)}]";
-            var title = $"{blockNumber} {icon} **{eventName}** {FormatRequestId(requestEvent)}";
-            AddBlock(requestEvent.Block.BlockNumber, title, footer, content);
+            var title = $"{blockNumber} {icon} **{msgBlock.Header}** {FormatRequestId(requestEvent)}";
+            var requestMsgBlock = new MsgBlock(title, msgBlock.Content, msgBlock.Footer);
+
+            AddBlock(requestEvent.Block.BlockNumber, requestMsgBlock);
         }
 
-        private void AddBlock(ulong blockNumber, string title, string footer, params string[] content)
+        private void AddBlock(ulong blockNumber, MsgBlock msgBlock)
         {
-            events.Add(FormatBlock(blockNumber, title, footer, content));
+            events.Add(FormatBlock(blockNumber, msgBlock));
         }
 
-        private ChainEventMessage FormatBlock(ulong blockNumber, string title, string footer, params string[] content)
+        private ChainEventMessage FormatBlock(ulong blockNumber, MsgBlock msgBlock)
         {
-            var msg = FormatBlockMessage(title, footer, content);
+            var msg = FormatBlockMessage(msgBlock);
             return new ChainEventMessage
             {
                 BlockNumber = blockNumber,
@@ -241,23 +296,36 @@ namespace TestNetRewarder
             };
         }
 
-        private string FormatBlockMessage(string title, string footer, string[] content)
+        private class MsgBlock
         {
-            if (content == null || content.Length == 0)
+            public MsgBlock(string header, string[] content, string footer)
             {
-                return $"{title}{nl}{nl}";
+                Header = header;
+                Content = content;
+                Footer = footer;
             }
 
-            var result = new List<string>()
+            public string Header { get; }
+            public string[] Content { get; }
+            public string Footer { get; }
+        }
+
+        private string FormatBlockMessage(MsgBlock msgBlock)
+        {
+            var result = new List<string>();
+            if (!string.IsNullOrEmpty(msgBlock.Header))
             {
-                title,
-                "```"
-            };
-            result.AddRange(content);
-            result.Add("```");
-            if (!string.IsNullOrEmpty(footer))
+                result.Add(msgBlock.Header);
+            }
+            if (msgBlock.Content != null &&  msgBlock.Content.Length > 0)
             {
-                result.Add(footer);
+                result.Add("```");
+                result.AddRange(msgBlock.Content);
+                result.Add("```");
+            }
+            if (!string.IsNullOrEmpty(msgBlock.Footer))
+            {
+                result.Add(msgBlock.Footer);
             }
             return string.Join(nl, result) + nl + nl;
         }
