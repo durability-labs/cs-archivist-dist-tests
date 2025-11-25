@@ -136,8 +136,8 @@ namespace TestNetRewarder
                 new MsgBlock(
                     header: GetSlotFilledTitle(isRepair),
                     content: [
-                        $"Host: {host}",
-                        $"Slot Index: {slotIndex}"
+                        $"Slot Index: {slotIndex}",
+                        $"Host: {host}"
                     ],
                     footer: string.Empty
                 )
