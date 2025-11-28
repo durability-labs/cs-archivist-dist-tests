@@ -96,7 +96,11 @@ namespace TestNetRewarder
 
             foreach (var creationEvent in creationEvents)
             {
-                if (!chainState.TryAddRequest(creationEvent))
+                if (chainState.TryAddRequest(creationEvent))
+                {
+                    recovered++;
+                }
+                else
                 {
                     requestsCache.Delete(creationEvent.RequestId);
                 }
