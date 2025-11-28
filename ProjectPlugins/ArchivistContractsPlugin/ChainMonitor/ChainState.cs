@@ -61,10 +61,10 @@ namespace ArchivistContractsPlugin.ChainMonitor
         public PeriodMonitor PeriodMonitor { get; }
         public BlockTimeEntry CurrentBlock { get; private set; } = null!;
 
-        public bool TryAddRequest(byte[] requestId, StorageRequestedEventDTO creationEvent)
+        public bool TryAddRequest(StorageRequestedEventDTO creationEvent)
         {
-            if (requests.Any(r => ByteArrayUtils.Equal(r.RequestId, requestId))) return true;
-            var r = FindRequest(requestId, creationEvent.Block);
+            if (requests.Any(r => ByteArrayUtils.Equal(r.RequestId, creationEvent.RequestId))) return true;
+            var r = FindRequest(creationEvent.RequestId, creationEvent.Block);
             return r != null;
         }
 

@@ -32,7 +32,7 @@ namespace TestNetRewarder
                         content: [
                             $"History-check start (UTC) = {Time.FormatTimestamp(config.HistoryStartUtc)}",
                             $"Update interval = {Time.FormatDuration(config.Interval)}",
-                            $"{numRecoveredRequests} storage requests recovered from cache"
+                            $"Found {numRecoveredRequests} running storage requests at start-up"
                         ],
                         footer: string.Empty
                     )

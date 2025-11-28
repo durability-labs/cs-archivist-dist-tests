@@ -4,7 +4,6 @@ using ArchivistContractsPlugin.Marketplace;
 using DiscordRewards;
 using GethPlugin;
 using Logging;
-using Nethereum.Hex.HexConvertors.Extensions;
 using Utils;
 
 namespace TestNetRewarder
@@ -35,8 +34,7 @@ namespace TestNetRewarder
 
         public async Task Initialize(IRequestsCache requestsCache)
         {
-            log.Log("Recovering cached requests...");
-            var numRecoveredRequests = TryRecoverCachedRequests(requestsCache);
+            var numRecoveredRequests = TryRecoverRunningRequests(requestsCache);
             var events = eventsFormatter.GetInitializationEvents(config, numRecoveredRequests);
             log.Log("Building initial state...");
             var request = builder.Build(chainState, events, Array.Empty<string>());
@@ -91,29 +89,20 @@ namespace TestNetRewarder
             eventsFormatter.OnPeriodReport(new PeriodReportWithMisses(report, missedSlots.ToArray()));
         }
 
-        private int TryRecoverCachedRequests(IRequestsCache requestsCache)
+        private int TryRecoverRunningRequests(IRequestsCache requestsCache)
         {
             var recovered = 0;
             var creationEvents = FetchCreationEvents();
 
-            requestsCache.IterateAll(requestId =>
+            foreach (var creationEvent in creationEvents)
             {
-                var creationEvent = creationEvents.SingleOrDefault(e => ByteArrayUtils.Equal(e.RequestId, requestId));
-                if (creationEvent == null) requestsCache.Delete(requestId);
-                else
+                if (!chainState.TryAddRequest(creationEvent))
                 {
-                    if (chainState.TryAddRequest(requestId, creationEvent))
-                    {
-                        recovered++;
-                    }
-                    else
-                    {
-                        requestsCache.Delete(requestId);
-                    }
+                    requestsCache.Delete(creationEvent.RequestId);
                 }
-            });
+            }
 
-            log.Log("Recovered cached requests: " + recovered);
+            log.Log("Recovered requests: " + recovered);
             return recovered;
         }
 
@@ -121,7 +110,7 @@ namespace TestNetRewarder
         {
             var now = DateTime.UtcNow;
             var timeRange = new TimeRange(
-                from: now - TimeSpan.FromDays(30.0),
+                from: now - TimeSpan.FromDays(7.0),
                 to: now
             );
             var events = contracts.GetEvents(timeRange);

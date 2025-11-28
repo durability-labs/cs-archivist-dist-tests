@@ -9,7 +9,6 @@ namespace ArchivistContractsPlugin
         void Add(byte[] requestId, Request request);
         Request? Get(byte[] requestId);
         void Delete(byte[] requestId);
-        void IterateAll(Action<byte[]> onRequestId);
     }
 
     public class NullRequestsCache : IRequestsCache
@@ -24,10 +23,6 @@ namespace ArchivistContractsPlugin
         }
 
         public void Delete(byte[] requestId)
-        {
-        }
-
-        public void IterateAll(Action<byte[]> onRequestId)
         {
         }
     }
@@ -70,26 +65,6 @@ namespace ArchivistContractsPlugin
         {
             var filename = FilePath(requestId);
             if (File.Exists(filename)) File.Delete(filename);
-        }
-
-        public void IterateAll(Action<byte[]> onRequestId)
-        {
-            var files = Directory.GetFiles(dataDir);
-            foreach (var f in files)
-            {
-                var filename = Path.GetFileName(f);
-                if (filename.EndsWith(".json"))
-                {
-                    try
-                    {
-                        var id = filename.Substring(0, filename.Length - 5).HexToByteArray();
-                        onRequestId(id);
-                    }
-                    catch
-                    {
-                    }
-                }
-            }
         }
 
         private string FilePath(byte[] id)
