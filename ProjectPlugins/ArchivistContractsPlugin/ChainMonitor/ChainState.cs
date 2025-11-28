@@ -81,7 +81,7 @@ namespace ArchivistContractsPlugin.ChainMonitor
 
         private int UpdateInternal(DateTime toUtc)
         {
-            var entry = geth.GetBlockForUtc(toUtc);
+            var entry = geth.GetHighestBlockBeforeUtc(toUtc);
             if (entry == null) throw new Exception("Unable to find block for update utc: " + Time.FormatTimestamp(toUtc));
             var span = new BlockInterval(new TimeRange(CurrentBlock.Utc, entry.Utc), CurrentBlock.BlockNumber + 1, entry.BlockNumber);
             var events = ChainEvents.FromBlockInterval(contracts, span);
@@ -94,7 +94,7 @@ namespace ArchivistContractsPlugin.ChainMonitor
 
         private void Initialize(DateTime startingUtc)
         {
-            var entry = geth.GetBlockForUtc(startingUtc);
+            var entry = geth.GetHighestBlockBeforeUtc(startingUtc);
             if (entry == null)
             {
                 log.Error("Unable to find block for starting utc: " + Time.FormatTimestamp(startingUtc));

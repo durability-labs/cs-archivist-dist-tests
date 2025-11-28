@@ -91,7 +91,7 @@ namespace TraceContract
                     utc = DateTime.UtcNow;
                     log.Log($"Querying up to {Time.FormatTimestamp(utc)}");
                     chainState.Update(utc);
-                    return geth.GetBlockForUtc(utc)!;
+                    return geth.GetHighestBlockBeforeUtc(utc)!;
                 }
 
                 log.Log($"Querying up to {Time.FormatTimestamp(utc)}");
@@ -114,7 +114,7 @@ namespace TraceContract
         public StorageRequestedEventDTO FindRequestCreationEvent()
         {
             ulong blocksPerLoop = 3600;
-            var end = geth.GetBlockForUtc(DateTime.UtcNow)!;
+            var end = geth.GetHighestBlockBeforeUtc(DateTime.UtcNow);
             var start = geth.GetBlockForNumber(end.BlockNumber - blocksPerLoop)!;
             var limit = GetBlockLimit();
             var range = new BlockInterval(new TimeRange(start.Utc, end.Utc), start.BlockNumber, end.BlockNumber);
@@ -139,7 +139,7 @@ namespace TraceContract
         private BlockTimeEntry GetBlockLimit()
         {
             var utc = DateTime.UtcNow - TimeSpan.FromDays(30);
-            var limit = geth.GetBlockForUtc(utc);
+            var limit = geth.GetLowestBlockAfterUtc(utc);
             if (limit == null)
             {
                 var blockOne = geth.GetBlockForNumber(1);

@@ -19,19 +19,17 @@ namespace BlockchainUtils
             bounds.InitializeBounds();
         }
 
-        public BlockTimeEntry? GetHighestBlockNumberBefore(DateTime moment)
+        public BlockTimeEntry GetHighestBlockNumberBefore(DateTime moment)
         {
-            if (moment < bounds.Earliest.Utc) return null;
-            if (moment == bounds.Earliest.Utc) return bounds.Earliest;
+            if (moment <= bounds.Earliest.Utc) return bounds.Earliest;
             if (moment >= bounds.Current.Utc) return bounds.Current;
 
             return Log(() => StartSearch(bounds.Earliest, bounds.Current, moment, HighestBeforeSelector));
         }
 
-        public BlockTimeEntry? GetLowestBlockNumberAfter(DateTime moment)
+        public BlockTimeEntry GetLowestBlockNumberAfter(DateTime moment)
         {
-            if (moment > bounds.Current.Utc) return null;
-            if (moment == bounds.Current.Utc) return bounds.Current;
+            if (moment >= bounds.Current.Utc) return bounds.Current;
             if (moment <= bounds.Earliest.Utc) return bounds.Earliest;
 
             return Log(()=> StartSearch(bounds.Earliest, bounds.Current, moment, LowestAfterSelector)); ;

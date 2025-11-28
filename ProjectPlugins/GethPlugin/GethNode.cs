@@ -31,7 +31,8 @@ namespace GethPlugin
         IEventsCollector[] GetEvents(ContractAddress address, BlockInterval blockRange, params IEventsCollector[] collectors);
         IFunctionCallCollector[] GetFunctionCalls(ContractAddress address, BlockInterval blockRange, params IFunctionCallCollector[] collectors);
         BlockTimeEntry? GetBlockForNumber(ulong number);
-        BlockTimeEntry? GetBlockForUtc(DateTime utc);
+        BlockTimeEntry GetHighestBlockBeforeUtc(DateTime utc);
+        BlockTimeEntry GetLowestBlockAfterUtc(DateTime utc);
         IGethNode WithDifferentAccount(EthAccount account);
     }
 
@@ -209,9 +210,14 @@ namespace GethPlugin
             return StartInteraction().GetBlockForNumber(number);
         }
 
-        public BlockTimeEntry? GetBlockForUtc(DateTime utc)
+        public BlockTimeEntry GetHighestBlockBeforeUtc(DateTime utc)
         {
-            return StartInteraction().GetBlockForUtc(utc);
+            return StartInteraction().GetHighestBlockBeforeUtc(utc);
+        }
+
+        public BlockTimeEntry GetLowestBlockAfterUtc(DateTime utc)
+        {
+            return StartInteraction().GetLowestBlockAfterUtc(utc);
         }
 
         protected abstract NethereumInteraction StartInteraction();

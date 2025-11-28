@@ -123,8 +123,8 @@ namespace ArchivistContractsPlugin
         public IArchivistContractsEvents GetEvents(TimeRange timeRange)
         {
             return GetEvents(new BlockInterval(timeRange,
-                gethNode.GetBlockForUtc(timeRange.From)!.BlockNumber,
-                gethNode.GetBlockForUtc(timeRange.To)!.BlockNumber));
+                gethNode.GetLowestBlockAfterUtc(timeRange.From).BlockNumber,
+                gethNode.GetHighestBlockBeforeUtc(timeRange.To).BlockNumber));
         }
 
         public IArchivistContractsEvents GetEvents(BlockInterval blockInterval)

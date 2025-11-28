@@ -161,13 +161,22 @@ namespace NethereumWorkflow
             return blocks.GetTimestampForBlock(number);
         }
 
-        public BlockTimeEntry? GetBlockForUtc(DateTime utc)
+        public BlockTimeEntry GetHighestBlockBeforeUtc(DateTime utc)
         {
             return LockWrap(() =>
             {
                 var blockTimeFinder = new BlockTimeFinder(blocks, log, blockCache.Ladder);
                 return blockTimeFinder.GetHighestBlockNumberBefore(utc);
-            }, nameof(GetBlockForUtc));
+            }, nameof(GetHighestBlockBeforeUtc));
+        }
+
+        public BlockTimeEntry GetLowestBlockAfterUtc(DateTime utc)
+        {
+            return LockWrap(() =>
+            {
+                var blockTimeFinder = new BlockTimeFinder(blocks, log, blockCache.Ladder);
+                return blockTimeFinder.GetLowestBlockNumberAfter(utc);
+            }, nameof(GetLowestBlockAfterUtc));
         }
 
         private IEventsCollector[] GetEvents(ContractAddress address, ulong fromBlockNumber, ulong toBlockNumber, params IEventsCollector[] collectors)
