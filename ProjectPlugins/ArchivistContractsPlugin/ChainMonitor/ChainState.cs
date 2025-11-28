@@ -61,6 +61,13 @@ namespace ArchivistContractsPlugin.ChainMonitor
         public PeriodMonitor PeriodMonitor { get; }
         public BlockTimeEntry CurrentBlock { get; private set; } = null!;
 
+        public bool TryAddRequest(byte[] requestId, StorageRequestedEventDTO creationEvent)
+        {
+            if (requests.Any(r => ByteArrayUtils.Equal(r.RequestId, requestId))) return true;
+            var r = FindRequest(requestId, creationEvent.Block);
+            return r != null;
+        }
+
         public int Update()
         {
             return Update(DateTime.UtcNow);
@@ -148,7 +155,7 @@ namespace ArchivistContractsPlugin.ChainMonitor
 
         private void ApplyEvent(StorageRequestedEventDTO @event)
         {
-            if (requests.Any(r => Equal(r.RequestId, @event.RequestId)))
+            if (requests.Any(r => ByteArrayUtils.Equal(r.RequestId, @event.RequestId)))
             {
                 var r = FindRequest(@event);
                 if (r == null) throw new Exception("ChainState is inconsistent. Received already-known requestId that's not known.");
@@ -157,6 +164,7 @@ namespace ArchivistContractsPlugin.ChainMonitor
             }
 
             var request = contracts.GetRequest(@event.RequestId);
+            if (request == null) throw new Exception("ChainState is inconsistent. Can't find request for which we just saw a creation event.");
             var newRequest = new ChainStateRequest(log, @event.RequestId, @event.Block, request, RequestState.New);
             requests.Add(newRequest);
 
@@ -260,31 +268,50 @@ namespace ArchivistContractsPlugin.ChainMonitor
             }
         }
 
+        private void HandleRequestNotFound(byte[] requestId)
+        {
+            var r = requests.SingleOrDefault(r => ByteArrayUtils.Equal(r.RequestId, requestId));
+            if (r != null)
+            {
+                requests.Remove(r);
+            }
+        }
+
         private ChainStateRequest? FindRequest(IHasBlockAndRequestId hasBoth)
         {
-            var r = requests.SingleOrDefault(r => Equal(r.RequestId, hasBoth.RequestId));
+            return FindRequest(hasBoth.RequestId, hasBoth.Block);
+        }
+
+        private ChainStateRequest? FindRequest(byte[] requestId, BlockTimeEntry creationBlock)
+        {
+            var r = requests.SingleOrDefault(r => ByteArrayUtils.Equal(r.RequestId, requestId));
             if (r != null) return r;
            
             try
             {
-                var req = contracts.GetRequest(hasBoth.RequestId);
-                var state = contracts.GetRequestState(hasBoth.RequestId);
-                var newRequest = new ChainStateRequest(log, hasBoth.RequestId, hasBoth.Block, req, state);
+                var req = contracts.GetRequest(requestId);
+                if (req == null)
+                {
+                    HandleRequestNotFound(requestId);
+                    return null;
+                }
+                var state = contracts.GetRequestState(requestId);
+                if (state == null)
+                {
+                    HandleRequestNotFound(requestId);
+                    return null;
+                }
+                var newRequest = new ChainStateRequest(log, requestId, creationBlock, req, state.Value);
                 requests.Add(newRequest);
                 return newRequest;
             }
             catch (Exception ex)
             {
-                var msg = $"Failed to get request with id '{hasBoth.RequestId.ToHex()}' from chain: {ex}";
+                var msg = $"Failed to get request with id '{requestId.ToHex()}' from chain: {ex}";
                 log.Error(msg);
                 handler.OnError(msg);
                 return null;
             }
-        }
-
-        private bool Equal(byte[] a, byte[] b)
-        {
-            return a.SequenceEqual(b);
         }
 
         public class BlockTimeGetter

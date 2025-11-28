@@ -1,8 +1,10 @@
 using ArchivistContractsPlugin;
 using ArchivistContractsPlugin.ChainMonitor;
+using ArchivistContractsPlugin.Marketplace;
 using DiscordRewards;
 using GethPlugin;
 using Logging;
+using Nethereum.Hex.HexConvertors.Extensions;
 using Utils;
 
 namespace TestNetRewarder
@@ -14,15 +16,15 @@ namespace TestNetRewarder
         private readonly ChainState chainState;
         private readonly Configuration config;
         private readonly BotClient client;
+        private readonly IArchivistContracts contracts;
         private readonly ILog log;
-        private DateTime lastPeriodUpdateUtc;
 
         public Processor(Configuration config, BotClient client, ContentInformationLookup lookup, IGethNode geth, IArchivistContracts contracts, ILog log)
         {
             this.config = config;
             this.client = client;
+            this.contracts = contracts;
             this.log = log;
-            lastPeriodUpdateUtc = DateTime.UtcNow;
 
             builder = new RequestBuilder();
             eventsFormatter = new EventsFormatter(lookup, contracts.Deployment.Config);
@@ -31,9 +33,12 @@ namespace TestNetRewarder
                 doProofPeriodMonitoring: config.ShowProofsMissed > 0, this);
         }
 
-        public async Task Initialize()
+        public async Task Initialize(IRequestsCache requestsCache)
         {
-            var events = eventsFormatter.GetInitializationEvents(config);
+            log.Log("Recovering cached requests...");
+            var numRecoveredRequests = TryRecoverCachedRequests(requestsCache);
+            var events = eventsFormatter.GetInitializationEvents(config, numRecoveredRequests);
+            log.Log("Building initial state...");
             var request = builder.Build(chainState, events, Array.Empty<string>());
             if (request.HasAny())
             {
@@ -84,6 +89,43 @@ namespace TestNetRewarder
             }
 
             eventsFormatter.OnPeriodReport(new PeriodReportWithMisses(report, missedSlots.ToArray()));
+        }
+
+        private int TryRecoverCachedRequests(IRequestsCache requestsCache)
+        {
+            var recovered = 0;
+            var creationEvents = FetchCreationEvents();
+
+            requestsCache.IterateAll(requestId =>
+            {
+                var creationEvent = creationEvents.SingleOrDefault(e => ByteArrayUtils.Equal(e.RequestId, requestId));
+                if (creationEvent == null) requestsCache.Delete(requestId);
+                else
+                {
+                    if (chainState.TryAddRequest(requestId, creationEvent))
+                    {
+                        recovered++;
+                    }
+                    else
+                    {
+                        requestsCache.Delete(requestId);
+                    }
+                }
+            });
+
+            log.Log("Recovered cached requests: " + recovered);
+            return recovered;
+        }
+
+        private StorageRequestedEventDTO[] FetchCreationEvents()
+        {
+            var now = DateTime.UtcNow;
+            var timeRange = new TimeRange(
+                from: now - TimeSpan.FromDays(30.0),
+                to: now
+            );
+            var events = contracts.GetEvents(timeRange);
+            return events.GetEvents<StorageRequestedEventDTO>();
         }
 
         private async Task<int> ProcessEvents(TimeRange timeRange)

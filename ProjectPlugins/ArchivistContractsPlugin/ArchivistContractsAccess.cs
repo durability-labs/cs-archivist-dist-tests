@@ -26,8 +26,8 @@ namespace ArchivistContractsPlugin
         IArchivistContractsEvents GetEvents(TimeRange timeRange);
         IArchivistContractsEvents GetEvents(BlockInterval blockInterval);
         EthAddress? GetSlotHost(byte[] requestId, decimal slotIndex);
-        RequestState GetRequestState(byte[] requestId);
-        Request GetRequest(byte[] requestId);
+        RequestState? GetRequestState(byte[] requestId);
+        Request? GetRequest(byte[] requestId);
         ulong GetPeriodNumber(DateTime utc);
         TimeRange GetPeriodTimeRange(ulong periodNumber);
         void WaitUntilNextPeriod();
@@ -144,7 +144,7 @@ namespace ArchivistContractsPlugin
             return new EthAddress(address);
         }
 
-        public RequestState GetRequestState(byte[] requestId)
+        public RequestState? GetRequestState(byte[] requestId)
         {
             if (requestId == null) throw new ArgumentNullException(nameof(requestId));
             if (requestId.Length != 32) throw new InvalidDataException(nameof(requestId) + $"{nameof(requestId)} length should be 32 bytes, but was: {requestId.Length}" + requestId.Length);
@@ -153,10 +153,23 @@ namespace ArchivistContractsPlugin
             {
                 RequestId = requestId
             };
-            return gethNode.Call<RequestStateFunction, RequestState>(Deployment.MarketplaceAddress, func);
+
+            try
+            {
+                return gethNode.Call<RequestStateFunction, RequestState>(Deployment.MarketplaceAddress, func);
+            }
+            catch (SmartContractCustomErrorRevertException ex)
+            {
+                if (ex.IsCustomErrorFor<MarketplaceUnknownrequestError>())
+                {
+                    log.Debug("Call to RequestState was successful but request was not found.");
+                    return null;
+                }
+                throw;
+            }
         }
 
-        public Request GetRequest(byte[] requestId)
+        public Request? GetRequest(byte[] requestId)
         {
             var cached = requestsCache.Get(requestId);
             if (cached != null) return cached;
@@ -168,10 +181,22 @@ namespace ArchivistContractsPlugin
                 RequestId = requestId
             };
 
-            var request = gethNode.Call<GetRequestFunction, GetRequestOutputDTO>(Deployment.MarketplaceAddress, func);
-            var result = request.ReturnValue1;
-            requestsCache.Add(requestId, result);
-            return result;
+            try
+            {
+                var request = gethNode.Call<GetRequestFunction, GetRequestOutputDTO>(Deployment.MarketplaceAddress, func);
+                var result = request.ReturnValue1;
+                requestsCache.Add(requestId, result);
+                return result;
+            }
+            catch (SmartContractCustomErrorRevertException ex)
+            {
+                if (ex.IsCustomErrorFor<MarketplaceUnknownrequestError>())
+                {
+                    log.Debug("Call to GetRequest was successful but request was not found.");
+                    return null;
+                }
+                throw;
+            }
         }
 
         public ulong GetPeriodNumber(DateTime utc)

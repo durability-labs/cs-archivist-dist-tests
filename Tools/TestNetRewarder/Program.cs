@@ -52,18 +52,19 @@ namespace TestNetRewarder
             EnsurePath(Config.DataPath);
             EnsurePath(Config.LogPath);
 
-            return new Program().MainAsync();
+            return new Program().MainAsync(requestsCache);
         }
 
-        public async Task MainAsync()
+        public async Task MainAsync(IRequestsCache requestsCache)
         {
             EnsureGethOnline();
 
             Log.Log("Starting Testnet Rewarder...");
             var segmenter = new TimeSegmenter(Log, Config.Interval, Config.HistoryStartUtc, processor);
             await EnsureBotOnline();
-            await processor.Initialize();
-         
+            await processor.Initialize(requestsCache);
+
+            Log.Log("Running...");
             while (!CancellationToken.IsCancellationRequested)
             {
                 await EnsureBotOnline();

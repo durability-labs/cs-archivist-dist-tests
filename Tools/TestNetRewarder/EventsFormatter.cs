@@ -23,7 +23,7 @@ namespace TestNetRewarder
             periodDuration = Time.FormatDuration(marketplaceConfig.PeriodDuration);
         }
 
-        public ChainEventMessage[] GetInitializationEvents(Configuration config)
+        public ChainEventMessage[] GetInitializationEvents(Configuration config, int numRecoveredRequests)
         {
             return [
                 FormatBlock(0, 
@@ -31,7 +31,8 @@ namespace TestNetRewarder
                         header: "Bot initializing...",
                         content: [
                             $"History-check start (UTC) = {Time.FormatTimestamp(config.HistoryStartUtc)}",
-                            $"Update interval = {Time.FormatDuration(config.Interval)}"
+                            $"Update interval = {Time.FormatDuration(config.Interval)}",
+                            $"{numRecoveredRequests} storage requests recovered from cache"
                         ],
                         footer: string.Empty
                     )
