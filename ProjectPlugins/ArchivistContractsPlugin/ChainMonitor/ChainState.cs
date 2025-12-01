@@ -64,8 +64,11 @@ namespace ArchivistContractsPlugin.ChainMonitor
         public bool TryAddRequest(StorageRequestedEventDTO creationEvent)
         {
             if (requests.Any(r => ByteArrayUtils.Equal(r.RequestId, creationEvent.RequestId))) return true;
-            var r = FindRequest(creationEvent.RequestId, creationEvent.Block);
-            return r != null;
+            var request = contracts.GetRequest(creationEvent.RequestId);
+            if (request == null) return false;
+            var newRequest = new ChainStateRequest(log, creationEvent.RequestId, creationEvent.Block, request, RequestState.New);
+            requests.Add(newRequest);
+            return true;
         }
 
         public int Update()
@@ -277,41 +280,45 @@ namespace ArchivistContractsPlugin.ChainMonitor
             }
         }
 
-        private ChainStateRequest? FindRequest(IHasBlockAndRequestId hasBoth)
+        private ChainStateRequest? FindRequest(IHasRequestId hasRequestId)
         {
-            return FindRequest(hasBoth.RequestId, hasBoth.Block);
+            return FindRequest(hasRequestId.RequestId);
         }
 
-        private ChainStateRequest? FindRequest(byte[] requestId, BlockTimeEntry creationBlock)
+        private ChainStateRequest? FindRequest(byte[] requestId)
         {
             var r = requests.SingleOrDefault(r => ByteArrayUtils.Equal(r.RequestId, requestId));
             if (r != null) return r;
-           
-            try
-            {
-                var req = contracts.GetRequest(requestId);
-                if (req == null)
-                {
-                    HandleRequestNotFound(requestId);
-                    return null;
-                }
-                var state = contracts.GetRequestState(requestId);
-                if (state == null)
-                {
-                    HandleRequestNotFound(requestId);
-                    return null;
-                }
-                var newRequest = new ChainStateRequest(log, requestId, creationBlock, req, state.Value);
-                requests.Add(newRequest);
-                return newRequest;
-            }
-            catch (Exception ex)
-            {
-                var msg = $"Failed to get request with id '{requestId.ToHex()}' from chain: {ex}";
-                log.Error(msg);
-                handler.OnError(msg);
-                return null;
-            }
+            return null;
+
+            // we cannot create the request object from any event-block.
+            // it has to be the creation event. otherwise, timing values will be wrong.
+
+            //try
+            //{
+            //    var req = contracts.GetRequest(requestId);
+            //    if (req == null)
+            //    {
+            //        HandleRequestNotFound(requestId);
+            //        return null;
+            //    }
+            //    var state = contracts.GetRequestState(requestId);
+            //    if (state == null)
+            //    {
+            //        HandleRequestNotFound(requestId);
+            //        return null;
+            //    }
+            //    var newRequest = new ChainStateRequest(log, requestId, creationBlock, req, state.Value);
+            //    requests.Add(newRequest);
+            //    return newRequest;
+            //}
+            //catch (Exception ex)
+            //{
+            //    var msg = $"Failed to get request with id '{requestId.ToHex()}' from chain: {ex}";
+            //    log.Error(msg);
+            //    handler.OnError(msg);
+            //    return null;
+            //}
         }
 
         public class BlockTimeGetter
