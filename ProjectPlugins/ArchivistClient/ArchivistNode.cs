@@ -33,6 +33,7 @@ namespace ArchivistClient
         ITransferSpeeds TransferSpeeds { get; }
         EthAccount EthAccount { get; }
         StoragePurchase? GetPurchaseStatus(string purchaseId);
+        string[] GetPurchases();
 
         Address GetDiscoveryEndpoint();
         Address GetApiEndpoint();
@@ -101,6 +102,11 @@ namespace ArchivistClient
         public StoragePurchase? GetPurchaseStatus(string purchaseId)
         {
             return archivistAccess.GetPurchaseStatus(purchaseId);
+        }
+
+        public string[] GetPurchases()
+        {
+            return archivistAccess.GetPurchases();
         }
 
         public EthAddress EthAddress 

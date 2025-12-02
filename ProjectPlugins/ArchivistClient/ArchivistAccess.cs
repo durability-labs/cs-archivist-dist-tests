@@ -187,6 +187,13 @@ namespace ArchivistClient
             return mapper.Map(purchase);
         }
 
+        public string[] GetPurchases()
+        {
+            return OnArchivist(api => api.GetPurchasesAsync())
+                .Select(p => p.ToLowerInvariant())
+                .ToArray();
+        }
+
         public string GetName()
         {
             return instance.Name;

@@ -24,6 +24,8 @@ namespace AutoClient
 
         public StoragePurchase? GetStoragePurchase(string pid)
         {
+            var purchases = Node.GetPurchases();
+            if (!purchases.Contains(pid.ToLowerInvariant())) return null;
             return Node.GetPurchaseStatus(pid);
         }
 
