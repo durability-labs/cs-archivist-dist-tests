@@ -16,7 +16,7 @@ namespace TestNetRewarder
         public int DiscordPort { get; set; } = 31080;
 
         [Uniform("interval-minutes", "im", "INTERVALMINUTES", true, "time in minutes between reward updates.")]
-        public int IntervalMinutes { get; set; } = 10;
+        public int IntervalMinutes { get; set; } = 2;
 
         [Uniform("relative-history", "rh", "RELATIVEHISTORY", false, "Number of seconds into the past (from app start) that checking of chain history will start. Default: 3 hours ago.")]
         public int RelativeHistorySeconds { get; set; } = 3600 * 3;
@@ -28,7 +28,7 @@ namespace TestNetRewarder
         public int CreateChainEventsOverview { get; set; } = 1;
 
         [Uniform("proofs-missed-events", "pme", "PROOFSMISSEDEVENTS", false, "When greater than zero, missed proofs will be reported every period.")]
-        public int ShowProofsMissed { get; set; } = 1;
+        public int ShowProofsMissed { get; set; } = 0;
         
         [Uniform("download-link-max-size", "dlms", "DOWNLOADLINKMAXSIZE", false, "When greater than zero, download links may be generated for datasets smaller than this many megabytes.")]
         public int DownloadLinkMaxSizeMb { get; set; } = 10;

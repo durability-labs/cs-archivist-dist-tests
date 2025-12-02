@@ -22,7 +22,7 @@ namespace ArchivistContractsPlugin.ChainMonitor
         public static CurrentRequest CreateCurrentRequest(IArchivistContracts contracts, IChainStateRequest r)
         {
             var cSlots = new List<CurrentRequestSlot>();
-            for (ulong slotIndex = 0; slotIndex < r.Request.Ask.Slots; slotIndex++)
+            for (ulong slotIndex = 0; slotIndex < r.Ask.Slots; slotIndex++)
             {
                 cSlots.Add(CurrentRequestSlot.CreateCurrentRequestSlot(contracts, r, slotIndex));
             };

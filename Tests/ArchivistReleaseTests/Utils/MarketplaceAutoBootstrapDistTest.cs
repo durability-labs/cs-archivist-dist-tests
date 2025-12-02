@@ -496,8 +496,9 @@ namespace ArchivistReleaseTests.Utils
 
             // Check that the getRequest call returns it.
             var rid = contract.PurchaseId.HexToByteArray();
-            var r = GetContracts().GetRequest(rid);
-            if (r == null) throw new Exception($"Failed to get Request from {nameof(GetRequestFunction)}");
+            var cachedRequest = GetContracts().GetRequest(rid);
+            if (cachedRequest == null) throw new Exception($"Failed to get Request from {nameof(GetRequestFunction)}");
+            var r = cachedRequest.Request;
             Assert.That(r.Ask.Duration, Is.EqualTo(contract.Purchase.Duration.TotalSeconds));
             Assert.That(r.Ask.Slots, Is.EqualTo(contract.Purchase.MinRequiredNumberOfNodes));
             Assert.That(((int)r.Ask.ProofProbability), Is.EqualTo(contract.Purchase.ProofProbability));

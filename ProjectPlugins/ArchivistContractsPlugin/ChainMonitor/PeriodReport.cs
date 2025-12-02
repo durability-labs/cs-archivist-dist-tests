@@ -78,7 +78,7 @@ namespace ArchivistContractsPlugin.ChainMonitor
             // There's no info from the period start to consider.
             // So just fetch the current state and report it.
             var slots = new List<PeriodRequestSlotReport>();
-            for (ulong slotIndex = 0; slotIndex < r.Request.Ask.Slots; slotIndex++)
+            for (ulong slotIndex = 0; slotIndex < r.Ask.Slots; slotIndex++)
             {
                 var idx = Convert.ToInt32(slotIndex);
                 var host = r.Hosts.GetHost(idx);

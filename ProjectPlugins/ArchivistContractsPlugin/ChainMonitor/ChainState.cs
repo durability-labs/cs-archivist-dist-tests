@@ -61,14 +61,9 @@ namespace ArchivistContractsPlugin.ChainMonitor
         public PeriodMonitor PeriodMonitor { get; }
         public BlockTimeEntry CurrentBlock { get; private set; } = null!;
 
-        public bool TryAddRequest(StorageRequestedEventDTO creationEvent)
+        public bool TryAddRequest(byte[] requestId)
         {
-            if (requests.Any(r => ByteArrayUtils.Equal(r.RequestId, creationEvent.RequestId))) return true;
-            var request = contracts.GetRequest(creationEvent.RequestId);
-            if (request == null) return false;
-            var newRequest = new ChainStateRequest(log, creationEvent.RequestId, creationEvent.Block, request, RequestState.New);
-            requests.Add(newRequest);
-            return true;
+            return FindRequest(requestId) != null;
         }
 
         public int Update()
@@ -158,20 +153,10 @@ namespace ArchivistContractsPlugin.ChainMonitor
 
         private void ApplyEvent(StorageRequestedEventDTO @event)
         {
-            if (requests.Any(r => ByteArrayUtils.Equal(r.RequestId, @event.RequestId)))
-            {
-                var r = FindRequest(@event);
-                if (r == null) throw new Exception("ChainState is inconsistent. Received already-known requestId that's not known.");
-                if (@event.Block.BlockNumber != @event.Block.BlockNumber) throw new Exception("Same request found in different blocks.");
-                throw new Exception("Received the same request-creation event multiple times.");
-            }
-
-            var request = contracts.GetRequest(@event.RequestId);
-            if (request == null) throw new Exception("ChainState is inconsistent. Can't find request for which we just saw a creation event.");
-            var newRequest = new ChainStateRequest(log, @event.RequestId, @event.Block, request, RequestState.New);
-            requests.Add(newRequest);
-
-            handler.OnNewRequest(new RequestEvent(@event.Block, newRequest));
+            var r = FindRequest(@event);
+            if (r == null) throw new Exception("ChainState is inconsistent. Failed to find request after receiving creation event.");
+          
+            handler.OnNewRequest(new RequestEvent(@event.Block, r));
         }
 
         private void ApplyEvent(RequestFulfilledEventDTO @event)
@@ -241,7 +226,7 @@ namespace ArchivistContractsPlugin.ChainMonitor
         {
             foreach (var r in requests)
             {
-                for (decimal slotIndex = 0; slotIndex < r.Request.Ask.Slots; slotIndex++)
+                for (decimal slotIndex = 0; slotIndex < r.Ask.Slots; slotIndex++)
                 {
                     var thisSlotId = contracts.GetSlotId(r.RequestId, slotIndex);
                     var id = Base58.Encode(thisSlotId);
@@ -271,15 +256,6 @@ namespace ArchivistContractsPlugin.ChainMonitor
             }
         }
 
-        private void HandleRequestNotFound(byte[] requestId)
-        {
-            var r = requests.SingleOrDefault(r => ByteArrayUtils.Equal(r.RequestId, requestId));
-            if (r != null)
-            {
-                requests.Remove(r);
-            }
-        }
-
         private ChainStateRequest? FindRequest(IHasRequestId hasRequestId)
         {
             return FindRequest(hasRequestId.RequestId);
@@ -289,36 +265,24 @@ namespace ArchivistContractsPlugin.ChainMonitor
         {
             var r = requests.SingleOrDefault(r => ByteArrayUtils.Equal(r.RequestId, requestId));
             if (r != null) return r;
-            return null;
 
-            // we cannot create the request object from any event-block.
-            // it has to be the creation event. otherwise, timing values will be wrong.
-
-            //try
-            //{
-            //    var req = contracts.GetRequest(requestId);
-            //    if (req == null)
-            //    {
-            //        HandleRequestNotFound(requestId);
-            //        return null;
-            //    }
-            //    var state = contracts.GetRequestState(requestId);
-            //    if (state == null)
-            //    {
-            //        HandleRequestNotFound(requestId);
-            //        return null;
-            //    }
-            //    var newRequest = new ChainStateRequest(log, requestId, creationBlock, req, state.Value);
-            //    requests.Add(newRequest);
-            //    return newRequest;
-            //}
-            //catch (Exception ex)
-            //{
-            //    var msg = $"Failed to get request with id '{requestId.ToHex()}' from chain: {ex}";
-            //    log.Error(msg);
-            //    handler.OnError(msg);
-            //    return null;
-            //}
+            try
+            {
+                var request = contracts.GetRequest(requestId);
+                if (request == null) return null;
+                var state = contracts.GetRequestState(requestId);
+                if (state == null) return null;
+                var newRequest = new ChainStateRequest(log, requestId, request, state.Value);
+                requests.Add(newRequest);
+                return newRequest;
+            }
+            catch (Exception ex)
+            {
+                var msg = $"Failed to get request with id '{requestId.ToHex()}' from chain: {ex}";
+                log.Error(msg);
+                handler.OnError(msg);
+                return null;
+            }
         }
 
         public class BlockTimeGetter

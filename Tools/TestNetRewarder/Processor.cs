@@ -92,33 +92,19 @@ namespace TestNetRewarder
         private int TryRecoverRunningRequests(IRequestsCache requestsCache)
         {
             var recovered = 0;
-            var creationEvents = FetchCreationEvents();
-
-            foreach (var creationEvent in creationEvents)
+            requestsCache.IterateAll(requestId =>
             {
-                if (chainState.TryAddRequest(creationEvent))
+                if (chainState.TryAddRequest(requestId))
                 {
                     recovered++;
                 }
                 else
                 {
-                    requestsCache.Delete(creationEvent.RequestId);
+                    requestsCache.Delete(requestId);
                 }
-            }
-
+            });
             log.Log("Recovered requests: " + recovered);
             return recovered;
-        }
-
-        private StorageRequestedEventDTO[] FetchCreationEvents()
-        {
-            var now = DateTime.UtcNow;
-            var timeRange = new TimeRange(
-                from: now - TimeSpan.FromDays(7.0),
-                to: now
-            );
-            var events = contracts.GetEvents(timeRange);
-            return events.GetEvents<StorageRequestedEventDTO>();
         }
 
         private async Task<int> ProcessEvents(TimeRange timeRange)

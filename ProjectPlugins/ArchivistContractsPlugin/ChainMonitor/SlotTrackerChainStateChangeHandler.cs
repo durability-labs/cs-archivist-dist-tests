@@ -1,6 +1,5 @@
 ﻿using System.Numerics;
 using BlockchainUtils;
-using KubernetesWorkflow.Recipe;
 using Logging;
 using Nethereum.Hex.HexConvertors.Extensions;
 using Utils;
@@ -29,7 +28,7 @@ namespace ArchivistContractsPlugin.ChainMonitor
             if (!IsMyRequest(requestEvent)) return;
 
             var d = new Dictionary<ulong, SlotReport>();
-            for (ulong s = 0; s < requestEvent.Request.Request.Ask.Slots; s++)
+            for (ulong s = 0; s < requestEvent.Request.Ask.Slots; s++)
             {
                 d.Add(s, new SlotReport(requestEvent.Request.Id, s, requestEvent.Block));
             }

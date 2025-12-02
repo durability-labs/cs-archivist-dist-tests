@@ -27,7 +27,7 @@ namespace ArchivistContractsPlugin
         IArchivistContractsEvents GetEvents(BlockInterval blockInterval);
         EthAddress? GetSlotHost(byte[] requestId, decimal slotIndex);
         RequestState? GetRequestState(byte[] requestId);
-        Request? GetRequest(byte[] requestId);
+        CacheRequest? GetRequest(byte[] requestId);
         ulong GetPeriodNumber(DateTime utc);
         TimeRange GetPeriodTimeRange(ulong periodNumber);
         void WaitUntilNextPeriod();
@@ -169,24 +169,55 @@ namespace ArchivistContractsPlugin
             }
         }
 
-        public Request? GetRequest(byte[] requestId)
+        public CacheRequest? GetRequest(byte[] requestId)
         {
             var cached = requestsCache.Get(requestId);
             if (cached != null) return cached;
 
             if (requestId == null) throw new ArgumentNullException(nameof(requestId));
             if (requestId.Length != 32) throw new InvalidDataException(nameof(requestId) + $"{nameof(requestId)} length should be 32 bytes, but was: {requestId.Length}" + requestId.Length);
+
+            var request = GetRequestInternal(requestId);
+            if (request == null) return null;
+
+            var expiryUtc = GetRequestExpiryUtc(requestId);
+            var finishUtc = GetRequestFinishUtc(requestId);
+
+            var result = new CacheRequest(request, expiryUtc, finishUtc);
+            requestsCache.Add(requestId, result);
+            return result;
+        }
+
+        private DateTime GetRequestExpiryUtc(byte[] requestId)
+        {
+            var func = new RequestExpiryFunction
+            {
+                RequestId = requestId
+            };
+            var request = gethNode.Call<RequestExpiryFunction, RequestExpiryOutputDTO>(Deployment.MarketplaceAddress, func);
+            return Time.ToUtcDateTime(request.ReturnValue1);
+        }
+
+        private DateTime GetRequestFinishUtc(byte[] requestId)
+        {
+            var func = new RequestEndFunction
+            {
+                RequestId = requestId
+            };
+            var request = gethNode.Call<RequestEndFunction, RequestEndOutputDTO>(Deployment.MarketplaceAddress, func);
+            return Time.ToUtcDateTime(request.ReturnValue1);
+        }
+
+        private Request? GetRequestInternal(byte[] requestId)
+        {
             var func = new GetRequestFunction
             {
                 RequestId = requestId
             };
-
             try
             {
                 var request = gethNode.Call<GetRequestFunction, GetRequestOutputDTO>(Deployment.MarketplaceAddress, func);
-                var result = request.ReturnValue1;
-                requestsCache.Add(requestId, result);
-                return result;
+                return request.ReturnValue1;
             }
             catch (SmartContractCustomErrorRevertException ex)
             {

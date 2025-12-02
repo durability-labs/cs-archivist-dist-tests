@@ -152,7 +152,8 @@ namespace ExperimentalTests.BasicTests
         {
             Assert.That(contracts.GetRequestState(request.RequestId), Is.EqualTo(RequestState.Started));
             var r = contracts.GetRequest(request.RequestId);
-            Assert.That(r.ClientAddress, Is.EqualTo(buyer.EthAddress));
+            if (r == null) throw new AssertionException("Request is null");
+            Assert.That(r.Request.ClientAddress, Is.EqualTo(buyer.EthAddress));
             Assert.That(request.Ask.Slots, Is.EqualTo(purchase.MinRequiredNumberOfNodes));
         }
 

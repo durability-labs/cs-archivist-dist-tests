@@ -6,23 +6,42 @@ namespace ArchivistContractsPlugin
 {
     public interface IRequestsCache
     {
-        void Add(byte[] requestId, Request request);
-        Request? Get(byte[] requestId);
+        void Add(byte[] requestId, CacheRequest request);
+        CacheRequest? Get(byte[] requestId);
         void Delete(byte[] requestId);
+        void IterateAll(Action<byte[]> onRequestId);
+    }
+
+    public class CacheRequest
+    {
+        public CacheRequest(Request request, DateTime expiryUtc, DateTime finishUtc)
+        {
+            Request = request;
+            ExpiryUtc = expiryUtc;
+            FinishUtc = finishUtc;
+        }
+
+        public Request Request { get; }
+        public DateTime ExpiryUtc { get; }
+        public DateTime FinishUtc { get; }
     }
 
     public class NullRequestsCache : IRequestsCache
     {
-        public void Add(byte[] requestId, Request request)
+        public void Add(byte[] requestId, CacheRequest request)
         {
         }
 
-        public Request? Get(byte[] requestId)
+        public CacheRequest? Get(byte[] requestId)
         {
             return null;
         }
 
         public void Delete(byte[] requestId)
+        {
+        }
+
+        public void IterateAll(Action<byte[]> onRequestId)
         {
         }
     }
@@ -37,14 +56,14 @@ namespace ArchivistContractsPlugin
             Directory.CreateDirectory(dataDir);
         }
 
-        public void Add(byte[] requestId, Request request)
+        public void Add(byte[] requestId, CacheRequest request)
         {
             var filename = FilePath(requestId);
             if (File.Exists(filename)) return;
             File.WriteAllText(filename, JsonConvert.SerializeObject(request));
         }
 
-        public Request? Get(byte[] requestId)
+        public CacheRequest? Get(byte[] requestId)
         {
             var filename = FilePath(requestId);
             if (!File.Exists(filename)) return null;
@@ -52,7 +71,7 @@ namespace ArchivistContractsPlugin
             try
             {
                 var text = File.ReadAllText(filename);
-                return JsonConvert.DeserializeObject<Request>(text);
+                return JsonConvert.DeserializeObject<CacheRequest>(text);
             }
             catch
             {
@@ -65,6 +84,27 @@ namespace ArchivistContractsPlugin
         {
             var filename = FilePath(requestId);
             if (File.Exists(filename)) File.Delete(filename);
+        }
+
+        public void IterateAll(Action<byte[]> onRequestId)
+        {
+            var files = Directory.GetFiles(dataDir);
+            foreach (var file in files)
+            {
+                if (file.EndsWith(".json"))
+                {
+                    var name = Path.GetFileName(file);
+                    try
+                    {
+                        var requestId = name.Substring(0, name.Length - 5).HexToByteArray();
+                        onRequestId(requestId);
+                    }
+                    catch
+                    {
+                        // Unknown json file in datadir?
+                    }
+                }
+            }
         }
 
         private string FilePath(byte[] id)

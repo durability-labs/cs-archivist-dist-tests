@@ -108,7 +108,9 @@ namespace TraceContract
 
         private Request? GetRequest()
         {
-            return contracts.GetRequest(input.RequestId);
+            var item = contracts.GetRequest(input.RequestId);
+            if (item == null) return null;
+            return item.Request;
         }
 
         public StorageRequestedEventDTO FindRequestCreationEvent()

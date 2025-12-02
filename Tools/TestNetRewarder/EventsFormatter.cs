@@ -57,22 +57,22 @@ namespace TestNetRewarder
         public void OnNewRequest(RequestEvent requestEvent)
         {
             var request = requestEvent.Request;
-            var cid = BytesToHexString(request.Request.Content.Cid);
+            var cid = request.Cid;
             var content = new List<string>()
             {
                 $"Client: {request.Client}",
                 $"Content: {cid}",
             };
-            content.AddRange(lookup.DescribeManifest(cid));
+            content.AddRange(lookup.DescribeManifest(cid.Id));
             content.AddRange([
-                $"Duration: {BigIntToDuration(request.Request.Ask.Duration)}",
-                $"Expiry: {BigIntToDuration(request.Request.Expiry)}",
-                $"CollateralPerByte: {BitIntToTestTokens(request.Request.Ask.CollateralPerByte)}",
-                $"PricePerBytePerSecond: {BitIntToTestTokens(request.Request.Ask.PricePerBytePerSecond)}",
-                $"Number of Slots: {request.Request.Ask.Slots}",
-                $"Slot Tolerance: {request.Request.Ask.MaxSlotLoss}",
-                $"Slot Size: {BigIntToByteSize(request.Request.Ask.SlotSize)}",
-                $"Proof Probability: 1 / {request.Request.Ask.ProofProbability} every {periodDuration}"
+                $"Duration: {Time.FormatDuration(request.Ask.Duration)}",
+                $"Expiry: {Time.FormatDuration(request.Expiry)}",
+                $"CollateralPerByte: {request.Ask.CollateralPerByte}",
+                $"PricePerBytePerSecond: {request.Ask.PricePerBytePerSecond}",
+                $"Number of Slots: {request.Ask.Slots}",
+                $"Slot Tolerance: {request.Ask.MaxSlotLoss}",
+                $"Slot Size: {request.Ask.SlotSize}",
+                $"Proof Probability: 1 / {request.Ask.ProofProbability} every {periodDuration}"
             ]);
 
             AddRequestBlock(requestEvent, emojiMaps.NewRequest,
@@ -120,7 +120,7 @@ namespace TestNetRewarder
         public void OnRequestFulfilled(RequestEvent requestEvent)
         {
             var request = requestEvent.Request;
-            var cid = BytesToHexString(request.Request.Content.Cid);
+            var cid = request.Cid.Id;
 
             AddRequestBlock(requestEvent, emojiMaps.Started,
                 new MsgBlock(
@@ -352,30 +352,6 @@ namespace TestNetRewarder
             return
                 $"({emojiMaps.StringToEmojis(str, 3)})" +
                 $"`{str}`";
-        }
-
-        private string BytesToHexString(byte[] bytes)
-        {
-            // libp2p CIDs use MultiBase btcbase64 encoding, which is prefixed with 'z'.
-            return "z" + Base58.Encode(bytes);
-        }
-
-        private string BigIntToDuration(BigInteger big)
-        {
-            var span = TimeSpan.FromSeconds((int)big);
-            return Time.FormatDuration(span);
-        }
-
-        private string BigIntToByteSize(BigInteger big)
-        {
-            var size = new ByteSize((long)big);
-            return size.ToString();
-        }
-
-        private string BitIntToTestTokens(BigInteger big)
-        {
-            var tt = new TestToken(big);
-            return tt.ToString();
         }
     }
 }

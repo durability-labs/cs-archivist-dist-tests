@@ -24,6 +24,11 @@ namespace Utils
             return utco.ToUnixTimeSeconds();
         }
 
+        public static DateTime ToUtcDateTime(ulong unixTimeSeconds)
+        {
+            return ToUtcDateTime(Convert.ToInt64(unixTimeSeconds));
+        }
+
         public static DateTime ToUtcDateTime(long unixTimeSeconds)
         {
             return DateTimeOffset.FromUnixTimeSeconds(unixTimeSeconds).UtcDateTime;
