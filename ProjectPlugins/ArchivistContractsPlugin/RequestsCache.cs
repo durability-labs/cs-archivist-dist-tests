@@ -71,7 +71,17 @@ namespace ArchivistContractsPlugin
             try
             {
                 var text = File.ReadAllText(filename);
-                return JsonConvert.DeserializeObject<CacheRequest>(text);
+                var result = JsonConvert.DeserializeObject<CacheRequest>(text);
+                if (result == null ||
+                    result.Request == null ||
+                    result.Request.Expiry < 1 ||
+                    result.Request.Ask == null ||
+                    result.Request.Ask.Duration < 1)
+                {
+                    File.Delete(filename);
+                    return null;
+                }
+                return result;
             }
             catch
             {
