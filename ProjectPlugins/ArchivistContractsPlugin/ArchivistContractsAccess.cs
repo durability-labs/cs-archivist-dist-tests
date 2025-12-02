@@ -181,7 +181,7 @@ namespace ArchivistContractsPlugin
             if (request == null) return null;
 
             var expiryUtc = GetRequestExpiryUtc(requestId);
-            var finishUtc = GetRequestFinishUtc(requestId);
+            var finishUtc = GetRequestFinishUtc(request, expiryUtc);
 
             var result = new CacheRequest(request, expiryUtc, finishUtc);
             requestsCache.Add(requestId, result);
@@ -198,14 +198,17 @@ namespace ArchivistContractsPlugin
             return Time.ToUtcDateTime(request.ReturnValue1);
         }
 
-        private DateTime GetRequestFinishUtc(byte[] requestId)
+        private DateTime GetRequestFinishUtc(Request request, DateTime expiryUtc)
         {
-            var func = new RequestEndFunction
-            {
-                RequestId = requestId
-            };
-            var request = gethNode.Call<RequestEndFunction, RequestEndOutputDTO>(Deployment.MarketplaceAddress, func);
-            return Time.ToUtcDateTime(request.ReturnValue1);
+            // There is a "RequestEnd" function on-chain. But,
+            // it returns different values depending on the state of the request.
+            // That's not what I would expect or want. I just want to know
+            // the normal finish-UTC.
+
+            // So we calculate: expiry UTC back to request-creation, then forward to finish UTC.
+            return expiryUtc
+                - TimeSpan.FromSeconds(request.Expiry)
+                + TimeSpan.FromSeconds(request.Ask.Duration);
         }
 
         private Request? GetRequestInternal(byte[] requestId)
