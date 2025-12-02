@@ -16,11 +16,17 @@ namespace TraceContract
         {
             public Entry(BlockTimeEntry blk, string msg)
             {
-                Blk = blk;
+                Utc = blk.Utc;
                 Msg = msg;
             }
 
-            public BlockTimeEntry Blk { get; }
+            public Entry(DateTime utc, string msg)
+            {
+                Utc = utc;
+                Msg = msg;
+            }
+
+            public DateTime Utc{ get; }
             public string Msg { get; }
         }
 
@@ -55,11 +61,10 @@ namespace TraceContract
             log.Log($"RequestId: '{requestId.ToHex()}'");
         }
 
-        public void LogRequestCreationEvent(StorageRequestedEventDTO requestEvent)
+        public void LogRequest(DateTime startUtc, byte[] requestId, Request request)
         {
-            Add(requestEvent.Block, $"Storage Requested Event: '{requestEvent.RequestId.ToHex()}' = {Environment.NewLine}" +
-                $"expiry: {requestEvent.Expiry}{Environment.NewLine}" +
-                $"{JsonConvert.SerializeObject(requestEvent.Ask, Formatting.Indented)}{Environment.NewLine}");
+            Add(startUtc, $"Storage Requested Event: '{requestId.ToHex()}' = {Environment.NewLine}" +
+                $"{JsonConvert.SerializeObject(request, Formatting.Indented)}{Environment.NewLine}");
         }
 
         public void LogRequestCreated(RequestEvent requestEvent)
@@ -107,7 +112,7 @@ namespace TraceContract
 
         public void WriteContractEvents()
         {
-            var sorted = entries.OrderBy(e => e.Blk.Utc).ToArray();
+            var sorted = entries.OrderBy(e => e.Utc).ToArray();
             foreach (var e in sorted) Write(e);
 
             foreach (var slotTracker in slotTrackers)
@@ -140,12 +145,17 @@ namespace TraceContract
 
         private void Write(Entry e)
         {
-            log.Log($"Block: {e.Blk.BlockNumber} [{Time.FormatTimestamp(e.Blk.Utc)}] {e.Msg}");
+            log.Log($"[{Time.FormatTimestamp(e.Utc)}] {e.Msg}");
         }
 
         public void LogReserveSlotCall(ReserveSlotFunction call)
         {
             Add(call.Block, $"Reserve-slot called. Block: {call.Block.BlockNumber} Index: {call.SlotIndex} Host: '{call.FromAddress}'");
+        }
+
+        private void Add(DateTime utc, string msg)
+        {
+            entries.Add(new Entry(utc, msg));
         }
 
         private void Add(BlockTimeEntry blk, string msg)

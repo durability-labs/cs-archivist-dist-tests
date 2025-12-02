@@ -34,19 +34,19 @@ namespace TraceContract
             var request = Measure(GetRequest, nameof(GetRequest));
             if (request == null) throw new Exception("Failed to find the purchase in the last week of transactions.");
 
-            var creationEvent = Measure(FindRequestCreationEvent, nameof(FindRequestCreationEvent));
+            var startUtc = CalculateStartUtc(request);
 
-            log.Log($"Request started at {Time.FormatTimestamp(creationEvent.Block.Utc)}");
-            output.LogRequestCreationEvent(creationEvent);
-            var contractEnd = Measure(() => RunToContractEnd(creationEvent), nameof(RunToContractEnd));
+            log.Log($"Request started at {Time.FormatTimestamp(startUtc)}");
+            output.LogRequest(startUtc, input.RequestId, request.Request);
+            var contractEnd = Measure(() => RunToContractEnd(startUtc), nameof(RunToContractEnd));
 
-            log.Log($"Request timeline: {creationEvent.Block} -> {contractEnd}");
+            log.Log($"Request timeline: {startUtc} -> {contractEnd}");
 
             // For this timeline, we log all the calls to reserve-slot.
+            var startBlock = geth.GetLowestBlockAfterUtc(startUtc);
             var blockRange = new BlockInterval(
-                new TimeRange(creationEvent.Block.Utc, contractEnd.Utc),
-                creationEvent.Block.BlockNumber,
-                contractEnd.BlockNumber);
+                new TimeRange(startBlock.Utc, contractEnd.Utc),
+                startBlock.BlockNumber, contractEnd.BlockNumber);
 
             var events = contracts.GetEvents(blockRange);
 
@@ -68,14 +68,19 @@ namespace TraceContract
             return blockRange.TimeRange;
         }
 
+        private DateTime CalculateStartUtc(CacheRequest request)
+        {
+            ulong toleranceSeconds = 30;
+            return request.ExpiryUtc - TimeSpan.FromSeconds(request.Request.Expiry + toleranceSeconds);
+        }
+
         private T Measure<T>(Func<T> task, string name)
         {
             return Stopwatch.Measure(log, name, task).Value;
         }
 
-        private BlockTimeEntry RunToContractEnd(StorageRequestedEventDTO request)
+        private BlockTimeEntry RunToContractEnd(DateTime utc)
         {
-            var utc = request.Block.Utc.AddMinutes(-1.0);
             var tracker = new ChainRequestTracker(output, input.PurchaseId);
             var slotTracker = new SlotTrackerChainStateChangeHandler(contracts, input.PurchaseId);
             output.AddSlotTracker(slotTracker);
@@ -106,36 +111,9 @@ namespace TraceContract
             return requestId.ToHex().ToLowerInvariant() == input.PurchaseId.ToLowerInvariant();
         }
 
-        private Request? GetRequest()
+        private CacheRequest? GetRequest()
         {
-            var item = contracts.GetRequest(input.RequestId);
-            if (item == null) return null;
-            return item.Request;
-        }
-
-        public StorageRequestedEventDTO FindRequestCreationEvent()
-        {
-            ulong blocksPerLoop = 3600;
-            var end = geth.GetHighestBlockBeforeUtc(DateTime.UtcNow);
-            var start = geth.GetBlockForNumber(end.BlockNumber - blocksPerLoop)!;
-            var limit = GetBlockLimit();
-            var range = new BlockInterval(new TimeRange(start.Utc, end.Utc), start.BlockNumber, end.BlockNumber);
-
-            while (range.From > limit.BlockNumber)
-            {
-                var events = contracts.GetEvents(range);
-                var requests = events.GetEvents<StorageRequestedEventDTO>();
-                foreach (var r in requests)
-                {
-                    if (r.RequestId.ToHex() == input.RequestId.ToHex()) return r;
-                }
-
-                end = start;
-                start = geth.GetBlockForNumber(end.BlockNumber - blocksPerLoop)!;
-                range = new BlockInterval(new TimeRange(start.Utc, end.Utc), start.BlockNumber, end.BlockNumber);
-            }
-
-            throw new Exception("Unable to find storage request creation event on-chain after (limit) 30 days");
+            return contracts.GetRequest(input.RequestId);
         }
 
         private BlockTimeEntry GetBlockLimit()
