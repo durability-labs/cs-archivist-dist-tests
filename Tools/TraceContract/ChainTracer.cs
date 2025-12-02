@@ -1,6 +1,5 @@
 using ArchivistContractsPlugin;
 using ArchivistContractsPlugin.ChainMonitor;
-using ArchivistContractsPlugin.Marketplace;
 using BlockchainUtils;
 using GethPlugin;
 using Logging;

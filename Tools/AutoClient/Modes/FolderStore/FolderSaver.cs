@@ -41,7 +41,11 @@ namespace AutoClient.Modes.FolderStore
 
                 if (!folderFile.ToLowerInvariant().EndsWith(FolderSaverFilename))
                 {
-                    SaveFile(folderFile);
+                    var fileSize = (new FileInfo(folderFile)).Length;
+                    if (fileSize > 1.MB().SizeInBytes)
+                    {
+                        SaveFile(folderFile);
+                    }
                 }
                 
                 CheckAndSaveChanges();
