@@ -114,18 +114,5 @@ namespace TraceContract
         {
             return contracts.GetRequest(input.RequestId);
         }
-
-        private BlockTimeEntry GetBlockLimit()
-        {
-            var utc = DateTime.UtcNow - TimeSpan.FromDays(30);
-            var limit = geth.GetLowestBlockAfterUtc(utc);
-            if (limit == null)
-            {
-                var blockOne = geth.GetBlockForNumber(1);
-                if (blockOne == null) throw new Exception($"Unable to find block at {Time.FormatTimestamp(utc)} or block with number 1.");
-                return blockOne;
-            }
-            return limit;
-        }
     }
 }
