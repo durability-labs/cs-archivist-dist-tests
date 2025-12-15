@@ -26,19 +26,13 @@ namespace ArchivistContractsPlugin.ChainMonitor
         public void OnNewRequest(RequestEvent requestEvent)
         {
             if (!IsMyRequest(requestEvent)) return;
-
-            var d = new Dictionary<ulong, SlotReport>();
-            for (ulong s = 0; s < requestEvent.Request.Ask.Slots; s++)
-            {
-                d.Add(s, new SlotReport(requestEvent.Request.Id, s, requestEvent.Block));
-            }
-            reports.Add(requestEvent.Request.Id, d);
+            GetMap(requestEvent);
         }
 
         public void OnRequestCancelled(RequestEvent requestEvent)
         {
             if (!IsMyRequest(requestEvent)) return;
-            var d = reports[requestEvent.Request.Id];
+            var d = GetMap(requestEvent);
             foreach (var pair in d) pair.Value.RequestCancelled(requestEvent.Block);
             FindSlotReserveCalls(d, requestEvent.Block);
         }
@@ -46,7 +40,7 @@ namespace ArchivistContractsPlugin.ChainMonitor
         public void OnRequestFailed(RequestEvent requestEvent)
         {
             if (!IsMyRequest(requestEvent)) return;
-            var d = reports[requestEvent.Request.Id];
+            var d = GetMap(requestEvent);
             foreach (var pair in d) pair.Value.RequestFailed(requestEvent.Block);
             FindSlotReserveCalls(d, requestEvent.Block);
         }
@@ -54,7 +48,7 @@ namespace ArchivistContractsPlugin.ChainMonitor
         public void OnRequestFinished(RequestEvent requestEvent)
         {
             if (!IsMyRequest(requestEvent)) return;
-            var d = reports[requestEvent.Request.Id];
+            var d = GetMap(requestEvent);
             foreach (var pair in d) pair.Value.RequestFinished(requestEvent.Block);
             FindSlotReserveCalls(d, requestEvent.Block);
         }
@@ -62,7 +56,7 @@ namespace ArchivistContractsPlugin.ChainMonitor
         public void OnRequestFulfilled(RequestEvent requestEvent)
         {
             if (!IsMyRequest(requestEvent)) return;
-            var d = reports[requestEvent.Request.Id];
+            var d = GetMap(requestEvent);
             foreach (var pair in d) pair.Value.RequestStarted(requestEvent.Block);
             FindSlotReserveCalls(d, requestEvent.Block);
         }
@@ -70,14 +64,14 @@ namespace ArchivistContractsPlugin.ChainMonitor
         public void OnSlotFilled(RequestEvent requestEvent, EthAddress host, BigInteger slotIndex, bool isRepair)
         {
             if (!IsMyRequest(requestEvent)) return;
-            var d = reports[requestEvent.Request.Id];
+            var d = GetMap(requestEvent);
             d[(ulong)slotIndex].SlotFilled(host, isRepair, requestEvent.Block);
         }
 
         public void OnSlotFreed(RequestEvent requestEvent, BigInteger slotIndex)
         {
             if (!IsMyRequest(requestEvent)) return;
-            var d = reports[requestEvent.Request.Id];
+            var d = GetMap(requestEvent);
             d[(ulong)slotIndex].SlotFreed(requestEvent.Block);
         }
 
@@ -92,6 +86,22 @@ namespace ArchivistContractsPlugin.ChainMonitor
 
         public void OnProofSubmitted(BlockTimeEntry block, string id)
         {
+        }
+
+        private Dictionary<ulong, SlotReport> GetMap(RequestEvent requestEvent)
+        {
+            if (reports.TryGetValue(requestEvent.Request.Id, out var map))
+            {
+                return map;
+            }
+
+            var d = new Dictionary<ulong, SlotReport>();
+            for (ulong s = 0; s < requestEvent.Request.Ask.Slots; s++)
+            {
+                d.Add(s, new SlotReport(requestEvent.Request.Id, s, requestEvent.Block));
+            }
+            reports.Add(requestEvent.Request.Id, d);
+            return d;
         }
 
         private void FindSlotReserveCalls(Dictionary<ulong, SlotReport> slots, BlockTimeEntry end)
@@ -178,7 +188,7 @@ namespace ArchivistContractsPlugin.ChainMonitor
 
         public void SlotFilled(EthAddress host, bool isRepair, BlockTimeEntry block)
         {
-            entries.Add((block, $"Slot filled by {host}" + (isRepair ? " (repair)": "")));
+            entries.Add((block, $"Slot filled by {host}" + (isRepair ? " (repair)" : "")));
         }
 
         public void SlotFreed(BlockTimeEntry block)
