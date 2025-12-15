@@ -86,93 +86,51 @@ namespace ArchivistClient
 
     public class CreateStorageAvailability
     {
-        public CreateStorageAvailability(ByteSize totalSpace, TimeSpan maxDuration, TestToken minPricePerBytePerSecond, TestToken totalCollateral)
+        public CreateStorageAvailability(TimeSpan maxDuration, DateTime untilUtc, TestToken minPricePerBytePerSecond, TestToken maxCollateralPerByte)
         {
-            TotalSpace = totalSpace;
             MaxDuration = maxDuration;
+            UntilUtc = untilUtc;
             MinPricePerBytePerSecond = minPricePerBytePerSecond;
-            TotalCollateral = totalCollateral;
+            MaxCollateralPerByte = maxCollateralPerByte;
         }
 
-        public ByteSize TotalSpace { get; }
         public TimeSpan MaxDuration { get; }
+        public DateTime UntilUtc { get; }
         public TestToken MinPricePerBytePerSecond { get; }
-        public TestToken TotalCollateral { get; }
+        public TestToken MaxCollateralPerByte { get; }
 
         public void Log(ILog log)
         {
             log.Log($"Create storage Availability: (" +
-                $"totalSize: {TotalSpace}, " +
                 $"maxDuration: {Time.FormatDuration(MaxDuration)}, " +
+                $"untilUtc: {Time.FormatTimestamp(UntilUtc)}, " +
                 $"minPricePerBytePerSecond: {MinPricePerBytePerSecond}, " +
-                $"totalCollateral: {TotalCollateral})");
+                $"maxCollateralPerByte: {MaxCollateralPerByte})");
         }
     }
 
     public class StorageAvailability
     {
-        public StorageAvailability(string id, ByteSize totalSpace, TimeSpan maxDuration, TestToken minPricePerBytePerSecond, TestToken totalCollateral, ByteSize freeSpace, AvailabilityReservation[] reservations)
+        public StorageAvailability(TimeSpan maxDuration, DateTime untilUtc, TestToken minPricePerBytePerSecond, TestToken maxCollateralPerByte)
         {
-            Id = id;
-            TotalSpace = totalSpace;
             MaxDuration = maxDuration;
+            UntilUtc = untilUtc;
             MinPricePerBytePerSecond = minPricePerBytePerSecond;
-            TotalCollateral = totalCollateral;
-            FreeSpace = freeSpace;
-            Reservations = reservations;
+            MaxCollateralPerByte = maxCollateralPerByte;
         }
 
-        public string Id { get; }
-        public ByteSize TotalSpace { get; }
         public TimeSpan MaxDuration { get; }
+        public DateTime UntilUtc { get; }
         public TestToken MinPricePerBytePerSecond { get; }
-        public TestToken TotalCollateral { get; } 
-        public ByteSize FreeSpace { get; }
-        public AvailabilityReservation[] Reservations { get; }
+        public TestToken MaxCollateralPerByte { get; } 
 
         public void Log(ILog log)
         {
             log.Log($"Storage Availability: (" +
-                $"id: {Id}, " +
-                $"totalSize: {TotalSpace}, " +
                 $"maxDuration: {Time.FormatDuration(MaxDuration)}, " + 
                 $"minPricePerBytePerSecond: {MinPricePerBytePerSecond}, " +
-                $"totalCollateral: {TotalCollateral}, " +
-                $"freeSpace: {FreeSpace}, " +
-                $"reservations: {Reservations.Length})");
-
-            foreach (var r in Reservations) r.Log(log);
-        }
-    }
-
-    public class AvailabilityReservation
-    {
-        public AvailabilityReservation(string id, string availabilityId, long size, string requestId, long slotIndex, int validUntil)
-        {
-            Id = id;
-            AvailabilityId = availabilityId;
-            Size = size.Bytes();
-            RequestId = requestId;
-            SlotIndex = slotIndex;
-            ValidUntil = Time.ToUtcDateTime(validUntil);
-        }
-
-        public string Id { get; }
-        public string AvailabilityId { get; }
-        public ByteSize Size { get; }
-        public string RequestId { get; }
-        public long SlotIndex { get; }
-        public DateTime ValidUntil { get; }
-
-        public void Log(ILog log)
-        {
-            log.Log($"\tStorage Availability Reservation: (" +
-                $"id: {Id}, " +
-                $"availabilityId: {AvailabilityId}, " +
-                $"size: {Size}, " +
-                $"requestId: {RequestId}, " +
-                $"slotIndex: {SlotIndex}, " +
-                $"validUntil: {Time.FormatTimestamp(ValidUntil)})");
+                $"maxCollateralPerByte: {MaxCollateralPerByte}, " +
+                $"untilUtc: {Time.FormatTimestamp(UntilUtc)}");
         }
     }
 }

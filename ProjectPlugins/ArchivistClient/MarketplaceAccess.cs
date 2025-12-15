@@ -6,8 +6,8 @@ namespace ArchivistClient
 {
     public interface IMarketplaceAccess
     {
-        string MakeStorageAvailable(CreateStorageAvailability availability);
-        StorageAvailability[] GetAvailabilities();
+        void MakeStorageAvailable(CreateStorageAvailability availability);
+        StorageAvailability GetAvailability();
         IStoragePurchaseContract RequestStorage(StoragePurchaseRequest purchase);
     }
 
@@ -54,23 +54,21 @@ namespace ArchivistClient
             return new StoragePurchaseContract(log, archivistAccess, response, purchase, hooks);
         }
 
-        public string MakeStorageAvailable(CreateStorageAvailability availability)
+        public void MakeStorageAvailable(CreateStorageAvailability availability)
         {
             availability.Log(log);
 
-            var response = archivistAccess.SalesAvailability(availability);
+            archivistAccess.SalesAvailability(availability);
 
-            Log($"Storage successfully made available. Id: {response.Id}");
-            hooks.OnStorageAvailabilityCreated(response);
-
-            return response.Id;
+            Log($"Storage successfully made available.");
+            hooks.OnStorageAvailabilityCreated();
         }
 
-        public StorageAvailability[] GetAvailabilities()
+        public StorageAvailability GetAvailability()
         {
             var result = archivistAccess.GetAvailabilities();
-            Log($"Got {result.Length} availabilities:");
-            foreach (var a in result) a.Log(log);
+            Log($"Got availability:");
+            result.Log(log);
             return result;
         }
 
@@ -82,7 +80,7 @@ namespace ArchivistClient
 
     public class MarketplaceUnavailable : IMarketplaceAccess
     {
-        public string MakeStorageAvailable(CreateStorageAvailability availability)
+        public void MakeStorageAvailable(CreateStorageAvailability availability)
         {
             Unavailable();
             throw new NotImplementedException();
@@ -94,7 +92,7 @@ namespace ArchivistClient
             throw new NotImplementedException();
         }
 
-        public StorageAvailability[] GetAvailabilities()
+        public StorageAvailability GetAvailability()
         {
             Unavailable();
             throw new NotImplementedException();

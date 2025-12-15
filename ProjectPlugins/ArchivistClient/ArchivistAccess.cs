@@ -156,17 +156,20 @@ namespace ArchivistClient
             return mapper.Map(OnArchivist(api => api.ListDataAsync()));
         }
 
-        public StorageAvailability SalesAvailability(CreateStorageAvailability request)
+        public void SalesAvailability(CreateStorageAvailability request)
         {
             var body = mapper.Map(request);
-            var read = OnArchivist(api => api.OfferStorageAsync(body));
-            return mapper.Map(read, GetReservations);
+            OnArchivist(api =>
+            {
+                api.OfferStorageAsync(body).Wait();
+                return Task.FromResult(string.Empty);
+            });
         }
 
-        public StorageAvailability[] GetAvailabilities()
+        public StorageAvailability GetAvailabilities()
         {
             var collection = OnArchivist(api => api.GetAvailabilitiesAsync());
-            return mapper.Map(collection, GetReservations);
+            return mapper.Map(collection);
         }
 
         public string RequestStorage(StoragePurchaseRequest request)
@@ -232,11 +235,6 @@ namespace ArchivistClient
         public void DeleteDataDirFolder()
         {
             processControl.DeleteDataDirFolder();
-        }
-
-        private ICollection<Reservation> GetReservations(string id)
-        {
-            return OnArchivist(api => api.GetReservationsAsync(id));
         }
 
         private T OnArchivistNoRetry<T>(Func<ArchivistApiClient, Task<T>> action)

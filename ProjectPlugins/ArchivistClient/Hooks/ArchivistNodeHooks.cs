@@ -13,7 +13,7 @@ namespace ArchivistClient.Hooks
         void OnFileDownloaded(ByteSize size, ContentId cid);
         void OnStorageContractSubmitted(StoragePurchaseContract storagePurchaseContract);
         void OnStorageContractUpdated(StoragePurchase purchaseStatus);
-        void OnStorageAvailabilityCreated(StorageAvailability response);
+        void OnStorageAvailabilityCreated();
     }
 
     public class MuxingArchivistNodeHooks : IArchivistNodeHooks
@@ -60,9 +60,9 @@ namespace ArchivistClient.Hooks
             foreach (var h in backingHooks) h.OnNodeStopping();
         }
 
-        public void OnStorageAvailabilityCreated(StorageAvailability response)
+        public void OnStorageAvailabilityCreated()
         {
-            foreach (var h in backingHooks) h.OnStorageAvailabilityCreated(response);
+            foreach (var h in backingHooks) h.OnStorageAvailabilityCreated();
         }
 
         public void OnStorageContractSubmitted(StoragePurchaseContract storagePurchaseContract)
