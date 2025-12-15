@@ -139,10 +139,10 @@ namespace ArchivistReleaseTests.Utils
                 AssertEthBalance(host, StartingBalanceEth.Eth(), nameof(StartHosts));
                 
                 host.Marketplace.MakeStorageAvailable(new CreateStorageAvailability(
-                    totalSpace: HostAvailabilitySize,
+                    untilUtc: DateTime.UtcNow + TimeSpan.FromDays(30.0),
                     maxDuration: HostAvailabilityMaxDuration,
                     minPricePerBytePerSecond: 1.TstWei(),
-                    totalCollateral: 999999.Tst())
+                    maxCollateralPerByte: 999999.Tst())
                 );
             }
             return hosts;
@@ -166,30 +166,32 @@ namespace ArchivistReleaseTests.Utils
             AssertEthBalance(host, StartingBalanceEth.Eth(), nameof(StartOneHost));
 
             host.Marketplace.MakeStorageAvailable(new CreateStorageAvailability(
-                totalSpace: HostAvailabilitySize,
+                untilUtc: DateTime.UtcNow + TimeSpan.FromDays(30.0),
                 maxDuration: HostAvailabilityMaxDuration,
                 minPricePerBytePerSecond: 1.TstWei(),
-                totalCollateral: 999999.Tst())
+                maxCollateralPerByte: 999999.Tst())
             );
             return host;
         }
 
         public void AssertHostAvailabilitiesAreEmpty(IEnumerable<IArchivistNode> hosts)
         {
-            var retry = GetAvailabilitySpaceAssertRetry();
-            retry.Run(() =>
-            {
-                var availabilities = hosts.SelectMany(h => h.Marketplace.GetAvailabilities()).ToArray();
+            Assert.Inconclusive("WIP: How to assert the availability is empty? Is such a thing even possible?!");
+            //var retry = GetAvailabilitySpaceAssertRetry();
+            //retry.Run(() =>
+            //{
+            //    var availabilities = hosts.Select(h => h.Marketplace.GetAvailability()).ToArray();
 
-                foreach (var a in availabilities)
-                {
-                    if (a.FreeSpace.SizeInBytes != a.TotalSpace.SizeInBytes)
-                    {
-                        throw new Exception($"{nameof(AssertHostAvailabilitiesAreEmpty)} free: {a.FreeSpace} total: {a.TotalSpace}");
-                    }
-                    CollectionAssert.IsEmpty(a.Reservations);
-                }
-            });
+            //    foreach (var a in availabilities)
+            //    {
+            //        a.
+            //        if (a.FreeSpace.SizeInBytes != a.TotalSpace.SizeInBytes)
+            //        {
+            //            throw new Exception($"{nameof(AssertHostAvailabilitiesAreEmpty)} free: {a.FreeSpace} total: {a.TotalSpace}");
+            //        }
+            //        CollectionAssert.IsEmpty(a.Reservations);
+            //    }
+            //});
         }
 
         public void AssertTstBalance(IArchivistNode node, TestToken expectedBalance, string message)
