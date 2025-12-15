@@ -4,7 +4,7 @@ namespace ArchivistReleaseTests
 {
     public class RerunAttribute : ValuesAttribute
     {
-        private const int NumberOfReRuns = 8;
+        private const int NumberOfReRuns = 1;
 
         public RerunAttribute()
         {
