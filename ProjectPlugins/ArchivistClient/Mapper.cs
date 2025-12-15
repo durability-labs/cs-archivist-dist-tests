@@ -87,6 +87,20 @@ namespace ArchivistClient
             );
         }
 
+        public StorageSlot[] Map(ICollection<ArchivistOpenApi.Slot> slots)
+        {
+            return slots.Select(Map).ToArray(); 
+        }
+
+        public StorageSlot Map(ArchivistOpenApi.Slot slot)
+        {
+            return new StorageSlot(
+                id: slot.Id,
+                slotIndex: slot.SlotIndex,
+                request: Map(slot.Request)
+            );
+        }
+
         public StoragePurchase Map(ArchivistOpenApi.Purchase purchase)
         {
             return new StoragePurchase

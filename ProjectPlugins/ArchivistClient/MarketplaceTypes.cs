@@ -130,7 +130,29 @@ namespace ArchivistClient
                 $"maxDuration: {Time.FormatDuration(MaxDuration)}, " + 
                 $"minPricePerBytePerSecond: {MinPricePerBytePerSecond}, " +
                 $"maxCollateralPerByte: {MaxCollateralPerByte}, " +
-                $"untilUtc: {Time.FormatTimestamp(UntilUtc)}");
+                $"untilUtc: {Time.FormatTimestamp(UntilUtc)})");
+        }
+    }
+
+    public class StorageSlot
+    {
+        public StorageSlot(string id, StorageRequest request, long slotIndex)
+        {
+            Id = id;
+            Request = request;
+            SlotIndex = slotIndex;
+        }
+        
+        public string Id { get; }
+        public StorageRequest Request { get; }
+        public long SlotIndex { get; }
+
+        public void Log(ILog log)
+        {
+            log.Log($"Storage Slot: (" +
+                $"id: {Id}, " +
+                $"slotIndex: {SlotIndex}, " +
+                $"request: {Request.Id})");
         }
     }
 }

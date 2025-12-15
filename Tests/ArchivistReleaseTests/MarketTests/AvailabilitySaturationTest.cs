@@ -92,7 +92,7 @@ namespace ArchivistReleaseTests.MarketTests
             msg: "All purchases finished or cancelled.");
 
             Log("All purchases are finished or cancelled. All hosts should be empty...");
-            AssertHostAvailabilitiesAreEmpty(hosts);
+            AssertHostsAreEmpty(hosts);
         }
     }
 }

@@ -27,7 +27,7 @@ namespace ArchivistReleaseTests.MarketTests
             var (hosts, clients, validator) = JumpStart();
             var client = clients.Single();
 
-            AssertHostAvailabilitiesAreEmpty(hosts);
+            AssertHostsAreEmpty(hosts);
 
             var request = CreateStorageRequest(client);
 

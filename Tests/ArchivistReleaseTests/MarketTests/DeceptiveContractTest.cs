@@ -63,7 +63,7 @@ namespace ArchivistReleaseTests.MarketTests
 
             WaitAndCheckNodesStaysAlive(TimeSpan.FromMinutes(5), hosts);
 
-            AssertHostAvailabilitiesAreEmpty(hosts);
+            AssertHostsAreEmpty(hosts);
 
             Log("Now, we create a legit request. The hosts should pick it up and the request should start.");
 

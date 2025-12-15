@@ -172,6 +172,12 @@ namespace ArchivistClient
             return mapper.Map(collection);
         }
 
+        public StorageSlot[] GetSlots()
+        {
+            var collection = OnArchivist(api => api.GetActiveSlotsAsync());
+            return mapper.Map(collection);
+        }
+
         public string RequestStorage(StoragePurchaseRequest request)
         {
             var body = mapper.Map(request);

@@ -32,7 +32,7 @@ namespace ArchivistReleaseTests.MarketTests
             var (hosts, clients, validator) = JumpStart();
             var client = clients.Single();
 
-            AssertHostAvailabilitiesAreEmpty(hosts);
+            AssertHostsAreEmpty(hosts);
 
             var request = CreateStorageRequest(client);
 
@@ -47,7 +47,7 @@ namespace ArchivistReleaseTests.MarketTests
             AssertClientHasPaidForContract(pricePerBytePerSecond, client, request, hosts);
             AssertHostsWerePaidForContract(pricePerBytePerSecond, request, hosts);
             AssertHostsCollateralsAreUnchanged(hosts);
-            AssertHostAvailabilitiesAreEmpty(hosts);
+            AssertHostsAreEmpty(hosts);
         }
 
         private IStoragePurchaseContract CreateStorageRequest(IArchivistNode client)

@@ -174,24 +174,30 @@ namespace ArchivistReleaseTests.Utils
             return host;
         }
 
-        public void AssertHostAvailabilitiesAreEmpty(IEnumerable<IArchivistNode> hosts)
+        public void AssertHostsAreEmpty(IEnumerable<IArchivistNode> hosts)
         {
-            Assert.Inconclusive("WIP: How to assert the availability is empty? Is such a thing even possible?!");
-            //var retry = GetAvailabilitySpaceAssertRetry();
-            //retry.Run(() =>
-            //{
-            //    var availabilities = hosts.Select(h => h.Marketplace.GetAvailability()).ToArray();
+            AssertHostHasNoActiveSlots(hosts);
+            AssertQuotaIsEmpty(hosts);
+        }
 
-            //    foreach (var a in availabilities)
-            //    {
-            //        a.
-            //        if (a.FreeSpace.SizeInBytes != a.TotalSpace.SizeInBytes)
-            //        {
-            //            throw new Exception($"{nameof(AssertHostAvailabilitiesAreEmpty)} free: {a.FreeSpace} total: {a.TotalSpace}");
-            //        }
-            //        CollectionAssert.IsEmpty(a.Reservations);
-            //    }
-            //});
+        public void AssertHostHasNoActiveSlots(IEnumerable<IArchivistNode> hosts)
+        {
+            var retry = GetBlockTTLAssertRetry();
+            retry.Run(() =>
+            {
+                var slots = hosts.Select(h => h.Marketplace.GetSlots()).ToArray();
+                CollectionAssert.IsEmpty(slots);
+            });
+        }
+
+        public void AssertQuotaIsEmpty(IEnumerable<IArchivistNode> nodes)
+        {
+            var retry = GetBlockTTLAssertRetry();
+            retry.Run(() =>
+            {
+                var spaces = nodes.Select(h => h.Space()).ToArray();
+                Assert.That(spaces.All(s => s.QuotaUsedBytes == 0));
+            });
         }
 
         public void AssertTstBalance(IArchivistNode node, TestToken expectedBalance, string message)
@@ -398,9 +404,9 @@ namespace ArchivistReleaseTests.Utils
                 failFast: false);
         }
 
-        private Retry GetAvailabilitySpaceAssertRetry()
+        private Retry GetBlockTTLAssertRetry()
         {
-            return new Retry("AssertAvailabilitySpace",
+            return new Retry("AssertWithBlockTTLTimeout",
                 maxTimeout: HostBlockTTL * 3,
                 sleepAfterFail: TimeSpan.FromSeconds(10.0),
                 onFail: f => { },
