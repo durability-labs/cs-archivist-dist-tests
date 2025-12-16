@@ -166,9 +166,9 @@ namespace ArchivistClient
             });
         }
 
-        public StorageAvailability GetAvailabilities()
+        public StorageAvailability GetAvailability()
         {
-            var collection = OnArchivist(api => api.GetAvailabilitiesAsync());
+            var collection = OnArchivist(api => api.GetAvailabilityAsync());
             return mapper.Map(collection);
         }
 

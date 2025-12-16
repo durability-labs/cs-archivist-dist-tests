@@ -67,7 +67,7 @@ namespace ArchivistClient
 
         public StorageAvailability GetAvailability()
         {
-            var result = archivistAccess.GetAvailabilities();
+            var result = archivistAccess.GetAvailability();
             Log($"Got availability:");
             result.Log(log);
             return result;
