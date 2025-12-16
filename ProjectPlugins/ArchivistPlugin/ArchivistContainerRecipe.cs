@@ -90,6 +90,8 @@ namespace ArchivistPlugin
 
             if (config.MarketplaceConfig != null)
             {
+                AddEnvVar("ARCHIVIST_PERSISTENCE", "true");
+
                 var mconfig = config.MarketplaceConfig;
                 var gethStart = mconfig.GethNode.StartResult;
                 var wsAddress = gethStart.Container.GetInternalAddress(GethContainerRecipe.WsPortTag);
@@ -106,7 +108,10 @@ namespace ArchivistPlugin
                 AddEnvVar("ETH_PRIVATE_KEY", account.PrivateKey);
                 Additional(account);
 
-                SetCommandOverride(marketplaceSetup);
+                if (marketplaceSetup.IsStorageNode)
+                {
+                    AddEnvVar("ARCHIVIST_PROVER", "true");
+                }
                 if (marketplaceSetup.IsValidator)
                 {
                    AddEnvVar("ARCHIVIST_VALIDATOR", "true");
@@ -116,18 +121,6 @@ namespace ArchivistPlugin
             if (!string.IsNullOrEmpty(config.NameOverride))
             {
                 AddEnvVar("ARCHIVIST_NODENAME", config.NameOverride);
-            }
-        }
-
-        private void SetCommandOverride(MarketplaceSetup ms)
-        {
-            if (ms.IsStorageNode)
-            {
-                OverrideCommand("bash", "/docker-entrypoint.sh", "archivist", "persistence", "prover");
-            }
-            else
-            {
-                OverrideCommand("bash", "/docker-entrypoint.sh", "archivist", "persistence");
             }
         }
 
