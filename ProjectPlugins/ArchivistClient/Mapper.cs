@@ -51,7 +51,7 @@ namespace ArchivistClient
             return new ArchivistOpenApi.SalesAvailability
             {
                 MaximumDuration = ToLong(availability.MaxDuration.TotalSeconds),
-                AvailableUntil = 0,
+                AvailableUntil = Convert.ToInt32(Time.ToUnixTimeSeconds(availability.UntilUtc)),
                 MaximumCollateralPerByte = ToDecInt(availability.MaxCollateralPerByte),
                 MinimumPricePerBytePerSecond = ToDecInt(availability.MinPricePerBytePerSecond)
             };

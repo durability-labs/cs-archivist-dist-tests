@@ -21,7 +21,7 @@ namespace ArchivistReleaseTests.Utils
 
         public ChainMonitor(ILog log, IGethNode gethNode, IArchivistContracts contracts, IPeriodMonitorEventHandler periodMonitorEventHandler, DateTime startUtc, TimeSpan updateInterval, bool monitorProofPeriods)
         {
-            this.log = log;
+            this.log = new LogPrefixer(log, "(ChainMonitor) ");
             this.gethNode = gethNode;
             this.contracts = contracts;
             this.periodMonitorEventHandler = periodMonitorEventHandler;
@@ -33,14 +33,17 @@ namespace ArchivistReleaseTests.Utils
 
         public void Start(Action onFailure)
         {
+            log.Log("Starting");
             cts = new CancellationTokenSource();
             worker = Task.Run(() => Worker(onFailure));
         }
 
         public void Stop()
         {
+            log.Log("Stopping");
             cts.Cancel();
             worker.Wait();
+            log.Log("Slot Report:");
             LogSlotTrackerReports();
             if (worker.Exception != null) throw worker.Exception;
         }

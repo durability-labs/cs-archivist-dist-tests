@@ -749,8 +749,11 @@ namespace KubernetesWorkflow
                     $"Total number of pods: {allPods.Items.Count}. Their labels: {string.Join(Environment.NewLine, allLabels)}");
             }
             var pod = pods[0];
+            if (pod == null) throw new Exception("Pod not found");
             if (pod.Status == null) throw new Exception("Pod status unknown");
             if (string.IsNullOrEmpty(pod.Status.PodIP)) throw new Exception("Pod IP unknown");
+            if (pod.Metadata == null) throw new Exception("Pod.Metadata is null");
+            if (string.IsNullOrEmpty(pod.Metadata.Name)) throw new Exception("Pod.Metadata.Name is null or empty.");
             return pod;
         }
 

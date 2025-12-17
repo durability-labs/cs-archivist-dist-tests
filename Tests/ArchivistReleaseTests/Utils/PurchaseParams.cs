@@ -7,23 +7,39 @@ namespace ArchivistReleaseTests.Utils
     {
         private readonly ByteSize blockSize = 64.KB();
 
-        public PurchaseParams(int nodes, int tolerance, ByteSize uploadFilesize)
+        public PurchaseParams(
+            int nodes,
+            int tolerance,
+            TimeSpan duration,
+            ByteSize uploadFilesize,
+            TestToken pricePerByteSecond,
+            TestToken collateralPerByte
+        )
         {
             Nodes = nodes;
             Tolerance = tolerance;
+            Duration = duration;
             UploadFilesize = uploadFilesize;
-
+            PricePerByteSecond = pricePerByteSecond;
+            CollateralPerByte = collateralPerByte;
             EncodedDatasetSize = CalculateEncodedDatasetSize();
             SlotSize = CalculateSlotSize();
+            CollateralRequiredPerSlot = CalculateCollateralPerSlot();
+            PaymentPerSlot = CalculatePaymentPerSlot();
 
             Assert.That(IsPowerOfTwo(SlotSize));
         }
 
         public int Nodes { get; }
         public int Tolerance { get; }
+        public TimeSpan Duration { get; }
         public ByteSize UploadFilesize { get; }
+        public TestToken PricePerByteSecond { get; }
+        public TestToken CollateralPerByte { get; }
         public ByteSize EncodedDatasetSize { get; }
         public ByteSize SlotSize { get; }
+        public TestToken CollateralRequiredPerSlot { get; }
+        public TestToken PaymentPerSlot { get; }
 
         private ByteSize CalculateSlotSize()
         {
@@ -49,6 +65,16 @@ namespace ArchivistReleaseTests.Utils
             var totalBlocks = numBlocks + numParityBlocks;
 
             return new ByteSize(blockSize.SizeInBytes * totalBlocks);
+        }
+
+        private TestToken CalculateCollateralPerSlot()
+        {
+            return CollateralPerByte * SlotSize.SizeInBytes;
+        }
+
+        private TestToken CalculatePaymentPerSlot()
+        {
+            return PricePerByteSecond * SlotSize.SizeInBytes * Convert.ToInt64(Duration.TotalSeconds);
         }
 
         private int DivUp(int num, int over)

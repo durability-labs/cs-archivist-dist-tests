@@ -57,6 +57,11 @@ namespace Utils
             return new TestToken(a.TstWei * b);
         }
 
+        public static TestToken operator *(TestToken a, long b)
+        {
+            return new TestToken(a.TstWei * b);
+        }
+
         public static bool operator <(TestToken a, TestToken b)
         {
             return a.TstWei < b.TstWei;

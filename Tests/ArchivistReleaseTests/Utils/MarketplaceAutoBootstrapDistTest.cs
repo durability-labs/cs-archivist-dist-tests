@@ -182,22 +182,29 @@ namespace ArchivistReleaseTests.Utils
 
         public void AssertHostHasNoActiveSlots(IEnumerable<IArchivistNode> hosts)
         {
+            Log($"{nameof(AssertHostHasNoActiveSlots)}...");
             var retry = GetBlockTTLAssertRetry();
             retry.Run(() =>
             {
-                var slots = hosts.Select(h => h.Marketplace.GetSlots()).ToArray();
+                var slots = hosts.SelectMany(h => h.Marketplace.GetSlots()).ToArray();
                 CollectionAssert.IsEmpty(slots);
             });
+            Log($"{nameof(AssertHostHasNoActiveSlots)} OK");
         }
 
         public void AssertQuotaIsEmpty(IEnumerable<IArchivistNode> nodes)
         {
+            Log($"{nameof(AssertQuotaIsEmpty)}...");
             var retry = GetBlockTTLAssertRetry();
             retry.Run(() =>
             {
-                var spaces = nodes.Select(h => h.Space()).ToArray();
-                Assert.That(spaces.All(s => s.QuotaUsedBytes == 0));
+                foreach (var n in nodes)
+                {
+                    var space = n.Space();
+                    Assert.That(space.QuotaUsedBytes, Is.EqualTo(0), $"Expected quota-used to be empty for node {n.GetName()}");
+                }
             });
+            Log($"{nameof(AssertQuotaIsEmpty)} OK");
         }
 
         public void AssertTstBalance(IArchivistNode node, TestToken expectedBalance, string message)

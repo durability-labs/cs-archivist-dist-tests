@@ -55,6 +55,11 @@ namespace ArchivistClient
     public class LocalDatasetList
     {
         public LocalDataset[] Content { get; set; } = Array.Empty<LocalDataset>();
+
+        public override string ToString()
+        {
+            return JsonConvert.SerializeObject(this);
+        }
     } 
 
     public class LocalDataset
