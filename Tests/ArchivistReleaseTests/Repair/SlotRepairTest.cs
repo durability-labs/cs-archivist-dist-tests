@@ -14,20 +14,9 @@ namespace ArchivistReleaseTests.Repair
     {
         #region Setup
 
-        private readonly PurchaseParams purchaseParams = new PurchaseParams(
-            nodes: 4,
-            tolerance: 2,
-            uploadFilesize: 32.MB()
-        );
-
-        public SlotRepairTest()
-        {
-            Assert.That(purchaseParams.Nodes, Is.LessThan(NumberOfHosts));
-        }
-
         protected override int NumberOfHosts => 6;
         protected override int NumberOfClients => 1;
-        protected override ByteSize HostAvailabilitySize => purchaseParams.SlotSize.Multiply(1.1); // Each host can hold 1 slot.
+        protected override TestToken HostStartingBalance => DefaultPurchase.CollateralRequiredPerSlot * 1.1; // Each host can hold 1 slot.
         protected override TimeSpan HostAvailabilityMaxDuration => TimeSpan.FromDays(5.0);
         
         #endregion
@@ -219,13 +208,10 @@ namespace ArchivistReleaseTests.Repair
 
         private IStoragePurchaseContract CreateStorageRequest(IArchivistNode client)
         {
-            var cid = client.UploadFile(GenerateTestFile(purchaseParams.UploadFilesize));
-            var config = GetContracts().Deployment.Config;
+            var cid = client.UploadFile(GenerateTestFile(DefaultPurchase.UploadFilesize));
             return client.Marketplace.RequestStorage(new StoragePurchaseRequest(cid)
             {
                 Duration = HostAvailabilityMaxDuration / 2,
-                MinRequiredNumberOfNodes = (uint)purchaseParams.Nodes,
-                NodeFailureTolerance = (uint)purchaseParams.Tolerance,
                 ProofProbability = 1, // One proof every period. Free slot as quickly as possible.
             });
         }

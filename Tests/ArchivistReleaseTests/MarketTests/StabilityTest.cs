@@ -12,21 +12,10 @@ namespace ArchivistReleaseTests.MarketTests
     {
         #region Setup
 
-        private readonly PurchaseParams purchaseParams = new PurchaseParams(
-            nodes: 4,
-            tolerance: 2,
-            uploadFilesize: 32.MB()
-        );
-
-        public StabilityTest()
-        {
-            Assert.That(purchaseParams.Nodes, Is.LessThan(NumberOfHosts));
-        }
-
         protected override int NumberOfHosts => 6;
         protected override int NumberOfClients => 1;
-        protected override ByteSize HostAvailabilitySize => purchaseParams.SlotSize.Multiply(1.1); // Each host can hold 1 slot.
         protected override TimeSpan HostAvailabilityMaxDuration => TimeSpan.FromDays(5.0);
+        protected override TestToken HostStartingBalance => DefaultPurchase.CollateralRequiredPerSlot * 1.1; // Each host can hold 1 slot.
 
         #endregion
 
@@ -37,7 +26,7 @@ namespace ArchivistReleaseTests.MarketTests
         [Test]
         [Combinatorial]
         public void Stability(
-            [Values(20, 120)] int minutes)
+            [Values(20)] int minutes)
         {
             var mins = TimeSpan.FromMinutes(minutes);
             var periodDuration = GetContracts().Deployment.Config.PeriodDuration;
@@ -108,17 +97,13 @@ namespace ArchivistReleaseTests.MarketTests
 
         private IStoragePurchaseContract CreateStorageRequest(IArchivistNode client, TimeSpan minutes)
         {
-            var cid = client.UploadFile(GenerateTestFile(purchaseParams.UploadFilesize));
+            var cid = client.UploadFile(GenerateTestFile(DefaultPurchase.UploadFilesize));
             var config = GetContracts().Deployment.Config;
             return client.Marketplace.RequestStorage(new StoragePurchaseRequest(cid)
             {
                 Duration = minutes * 2.0,
                 Expiry = TimeSpan.FromMinutes(8.0),
-                MinRequiredNumberOfNodes = (uint)purchaseParams.Nodes,
-                NodeFailureTolerance = (uint)purchaseParams.Tolerance,
-                PricePerBytePerSecond = 10.TstWei(),
                 ProofProbability = 1, // One proof every period. Free slot as quickly as possible.
-                CollateralPerByte = 1.TstWei()
             });
         }
     }

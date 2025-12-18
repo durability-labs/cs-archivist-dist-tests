@@ -9,10 +9,8 @@ namespace ArchivistReleaseTests.MarketTests
     public class FailTest : MarketplaceAutoBootstrapDistTest
     {
         protected override int NumberOfHosts => 4;
-        private readonly int SlotTolerance;
         protected override int NumberOfClients => 1;
-        protected override ByteSize HostAvailabilitySize => 1.GB();
-        protected override TimeSpan HostAvailabilityMaxDuration => TimeSpan.FromDays(1.0);
+        private readonly int SlotTolerance;
 
         public FailTest()
         {

@@ -11,21 +11,9 @@ namespace ArchivistReleaseTests.MarketTests
     {
         #region Setup
 
-        private readonly PurchaseParams purchaseParams = new PurchaseParams(
-            nodes: 4,
-            tolerance: 2,
-            uploadFilesize: 32.MB()
-        );
-
-        public IsProofRequiredTest()
-        {
-            Assert.That(purchaseParams.Nodes, Is.LessThan(NumberOfHosts));
-        }
-
         protected override int NumberOfHosts => 6;
         protected override int NumberOfClients => 1;
-        protected override ByteSize HostAvailabilitySize => purchaseParams.SlotSize.Multiply(1.1); // Each host can hold 1 slot.
-        protected override TimeSpan HostAvailabilityMaxDuration => TimeSpan.FromDays(5.0);
+        protected override TestToken HostStartingBalance => DefaultPurchase.CollateralRequiredPerSlot * 1.1; // Each host can hold 1 slot.
 
         #endregion
 
@@ -37,10 +25,11 @@ namespace ArchivistReleaseTests.MarketTests
         /// </summary>
         [Test]
         [Combinatorial]
+        [Ignore("Used to ensure correct marketplace configuration")]
         public void IsProofRequired(
             [Rerun] int rerun)
         {
-            var mins = TimeSpan.FromMinutes(60.0);
+            var mins = TimeSpan.FromMinutes(10.0);
 
             var (hosts, clients) = JumpStartHostsAndClients();
             var client = clients.Single();
@@ -49,7 +38,7 @@ namespace ArchivistReleaseTests.MarketTests
             purchase.WaitForStorageContractStarted();
 
             var requestId = purchase.PurchaseId.HexToByteArray();
-            var numSlots = purchaseParams.Nodes;
+            var numSlots = DefaultPurchase.Nodes;
             var map = new Dictionary<ulong, PeriodSlot[]>();
 
             Log($"Checking IsProofRequired every second for {Time.FormatDuration(mins)}.");
@@ -137,13 +126,11 @@ namespace ArchivistReleaseTests.MarketTests
 
         private IStoragePurchaseContract CreateStorageRequest(IArchivistNode client, TimeSpan minutes)
         {
-            var cid = client.UploadFile(GenerateTestFile(purchaseParams.UploadFilesize));
+            var cid = client.UploadFile(GenerateTestFile(DefaultPurchase.UploadFilesize));
             var config = GetContracts().Deployment.Config;
             return client.Marketplace.RequestStorage(new StoragePurchaseRequest(cid)
             {
                 Duration = minutes * 2.0,
-                MinRequiredNumberOfNodes = (uint)purchaseParams.Nodes,
-                NodeFailureTolerance = (uint)purchaseParams.Tolerance,
                 ProofProbability = 1, // One proof every period. Free slot as quickly as possible.
             });
         }

@@ -24,21 +24,9 @@ namespace ArchivistReleaseTests.Repair
 
         #region Setup
 
-        private readonly PurchaseParams purchaseParams = new PurchaseParams(
-            nodes: 4,
-            tolerance: 2,
-            uploadFilesize: 32.MB()
-        );
-
-
-        public RetrievalTest()
-        {
-            Assert.That(purchaseParams.Nodes, Is.LessThan(NumberOfHosts));
-        }
-
         protected override int NumberOfHosts => 5;
         protected override int NumberOfClients => 1;
-        protected override ByteSize HostAvailabilitySize => purchaseParams.SlotSize.Multiply(1.1); // Each host can hold 1 slot.
+        protected override TestToken HostStartingBalance => DefaultPurchase.CollateralRequiredPerSlot * 1.1; // Each host can hold 1 slot.
         protected override TimeSpan HostAvailabilityMaxDuration => TimeSpan.FromDays(5.0);
         protected override bool MonitorProofPeriods => false;
 
@@ -81,7 +69,7 @@ namespace ArchivistReleaseTests.Repair
             {
                 var file = checker.DownloadContent(cid);
                 if (file == null) throw new Exception("Failed to download content");
-                Assert.That(file.GetFilesize(), Is.EqualTo(purchaseParams.UploadFilesize));
+                Assert.That(file.GetFilesize(), Is.EqualTo(DefaultPurchase.UploadFilesize));
             }
             catch (Exception ex)
             {
@@ -101,12 +89,8 @@ namespace ArchivistReleaseTests.Repair
 
         private IStoragePurchaseContract CreateStorageRequest(IArchivistNode client)
         {
-            var cid = client.UploadFile(GenerateTestFile(purchaseParams.UploadFilesize));
-            return client.Marketplace.RequestStorage(new StoragePurchaseRequest(cid)
-            {
-                MinRequiredNumberOfNodes = (uint)purchaseParams.Nodes,
-                NodeFailureTolerance = (uint)purchaseParams.Tolerance,
-            });
+            var cid = client.UploadFile(GenerateTestFile(DefaultPurchase.UploadFilesize));
+            return client.Marketplace.RequestStorage(new StoragePurchaseRequest(cid));
         }
     }
 }

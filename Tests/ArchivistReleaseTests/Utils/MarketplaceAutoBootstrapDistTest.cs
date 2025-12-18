@@ -61,11 +61,20 @@ namespace ArchivistReleaseTests.Utils
 
         protected abstract int NumberOfHosts { get; }
         protected abstract int NumberOfClients { get; }
-        protected abstract ByteSize HostAvailabilitySize { get; }
+        protected virtual TestToken HostStartingBalance => StartingBalanceTST.Tst();
         protected virtual TimeSpan HostAvailabilityMaxDuration => TimeSpan.FromHours(3.0);
         protected virtual bool MonitorChainState { get; } = true;
         protected virtual bool MonitorProofPeriods { get; } = true;
         protected virtual bool LogPeriodReports { get; } = false;
+
+        protected PurchaseParams DefaultPurchase { get; } = new PurchaseParams(
+            nodes: 4,
+            tolerance: 2,
+            duration: TimeSpan.FromMinutes(20.0),
+            uploadFilesize: 32.MB(),
+            pricePerByteSecond: 1000.TstWei(),
+            collateralPerByte: 10.TstWei()
+        );
 
         protected TimeSpan HostBlockTTL
         {
@@ -126,7 +135,7 @@ namespace ArchivistReleaseTests.Utils
                 .WithBlockMaintenanceNumber(1000)
                 .WithBlockMaintenanceInterval(HostBlockTTL / 2)
                 .EnableMarketplace(GetGeth(), GetContracts(), m => m
-                    .WithInitial(StartingBalanceEth.Eth(), StartingBalanceTST.Tst())
+                    .WithInitial(StartingBalanceEth.Eth(), HostStartingBalance)
                     .AsStorageNode()
                 );
                 additional(s);
@@ -135,7 +144,7 @@ namespace ArchivistReleaseTests.Utils
             var config = GetContracts().Deployment.Config;
             foreach (var host in hosts)
             {
-                AssertTstBalance(host, StartingBalanceTST.Tst(), nameof(StartHosts));
+                AssertTstBalance(host, HostStartingBalance, nameof(StartHosts));
                 AssertEthBalance(host, StartingBalanceEth.Eth(), nameof(StartHosts));
                 
                 host.Marketplace.MakeStorageAvailable(new CreateStorageAvailability(
@@ -156,13 +165,13 @@ namespace ArchivistReleaseTests.Utils
                 .WithBlockMaintenanceNumber(1000)
                 .WithBlockMaintenanceInterval(HostBlockTTL / 2)
                 .EnableMarketplace(GetGeth(), GetContracts(), m => m
-                    .WithInitial(StartingBalanceEth.Eth(), StartingBalanceTST.Tst())
+                    .WithInitial(StartingBalanceEth.Eth(), HostStartingBalance)
                     .AsStorageNode()
                 )
             );
 
             var config = GetContracts().Deployment.Config;
-            AssertTstBalance(host, StartingBalanceTST.Tst(), nameof(StartOneHost));
+            AssertTstBalance(host, HostStartingBalance, nameof(StartOneHost));
             AssertEthBalance(host, StartingBalanceEth.Eth(), nameof(StartOneHost));
 
             host.Marketplace.MakeStorageAvailable(new CreateStorageAvailability(
@@ -340,7 +349,7 @@ namespace ArchivistReleaseTests.Utils
             var slotSize = Convert.ToInt64(contract.GetStatus()!.Request.Ask.SlotSize).Bytes();
             var expectedBalances = new Dictionary<EthAddress, TestToken>();
 
-            foreach (var host in hosts) expectedBalances.Add(host.EthAddress, StartingBalanceTST.Tst());
+            foreach (var host in hosts) expectedBalances.Add(host.EthAddress, HostStartingBalance);
             foreach (var fill in fills)
             {
                 var slotDuration = finishUtc - fill.SlotFilledEvent.Block.Utc;
@@ -364,7 +373,7 @@ namespace ArchivistReleaseTests.Utils
                 var retry = GetBalanceAssertRetry();
                 retry.Run(() =>
                 {
-                    if (GetTstBalance(host) < StartingBalanceTST.Tst())
+                    if (GetTstBalance(host) < HostStartingBalance)
                     {
                         throw new Exception(nameof(AssertHostsCollateralsAreUnchanged));
                     }

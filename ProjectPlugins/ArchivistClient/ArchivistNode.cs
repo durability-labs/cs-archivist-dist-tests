@@ -64,7 +64,7 @@ namespace ArchivistClient
 
         public ArchivistNode(ILog log, ArchivistAccess archivistAccess, IFileManager fileManager, IMarketplaceAccess marketplaceAccess, IArchivistNodeHooks hooks)
         {
-            this.log = new LogPrefixer(log, $"({archivistAccess.GetName()}) ");
+            this.log = log;
             this.archivistAccess = archivistAccess;
             this.fileManager = fileManager;
             Marketplace = marketplaceAccess;

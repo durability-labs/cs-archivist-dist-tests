@@ -83,7 +83,7 @@ namespace ArchivistClient
 
         private void Log(string msg)
         {
-            log.Log($"{archivistAccess.GetName()} {msg}");
+            log.Log(msg);
         }
     }
 

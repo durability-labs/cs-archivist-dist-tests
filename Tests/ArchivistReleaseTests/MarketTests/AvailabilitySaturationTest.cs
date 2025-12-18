@@ -9,21 +9,9 @@ namespace ArchivistReleaseTests.MarketTests
     [TestFixture]
     public class AvailabilitySaturationTest : MarketplaceAutoBootstrapDistTest
     {
-        protected override int NumberOfHosts => purchaseParams.Nodes;
+        protected override int NumberOfHosts => DefaultPurchase.Nodes;
         protected override int NumberOfClients => 5;
         protected override bool MonitorProofPeriods => false;
-
-        // The host availablility is only slightly larger than the encoded dataset.
-        // And there are 5 datasets but only 4 hosts.
-        // Therefore, not everything can fit.
-        protected override ByteSize HostAvailabilitySize
-            => purchaseParams.EncodedDatasetSize.Multiply(1.1);
-
-        private readonly PurchaseParams purchaseParams = new PurchaseParams(
-            nodes: 4,
-            tolerance: 2,
-            uploadFilesize: 20.MB()
-        );
 
         [Test]
         [Combinatorial]
@@ -31,11 +19,8 @@ namespace ArchivistReleaseTests.MarketTests
             [Rerun] int rerun
         )
         {
-            // The host quota is only slightly larger than their availability.
-            // We won't interact with the node and use any of the out-of-availability-quota,
-            // but, if there's an issue with releasing bytes back to the availability,
-            // have a tight-fit quota makes it more likely to reveal this.
-            var hosts = StartHosts(s => s.WithStorageQuota(HostAvailabilitySize.Multiply(1.1)));
+            // The host quota is only slightly larger than the request's slotSize.
+            var hosts = StartHosts(s => s.WithStorageQuota(DefaultPurchase.SlotSize.Multiply(1.1)));
 
             StartValidator();
             var clients = StartClients();
@@ -43,10 +28,10 @@ namespace ArchivistReleaseTests.MarketTests
             // We want to create many concurrent purchase requests
             // to flood the host worker queues.
             // The requests are more than enough to fill
-            // the host availablilties. So, we don't mind
+            // the host quota. So, we don't mind
             // if some of them become cancelled.
-            // The idea is that concurrency issues in the availability
-            // managing system causes the accounting of used space
+            // The idea is that concurrency issues in the node
+            // causes the accounting of used space
             // to drift from the real used space, eventually
             // saturating the node with unused but locked up space.
 
@@ -65,7 +50,7 @@ namespace ArchivistReleaseTests.MarketTests
             Log("Uploading files...");
             var pairs = clients.Select(c =>
             {
-                var cid = c.UploadFile(GenerateTestFile(purchaseParams.UploadFilesize));
+                var cid = c.UploadFile(GenerateTestFile(DefaultPurchase.UploadFilesize));
                 return (c, cid);
             }
             ).ToArray();
