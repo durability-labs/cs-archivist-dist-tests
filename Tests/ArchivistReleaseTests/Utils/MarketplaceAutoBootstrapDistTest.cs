@@ -186,8 +186,14 @@ namespace ArchivistReleaseTests.Utils
             var retry = GetBlockTTLAssertRetry();
             retry.Run(() =>
             {
-                var slots = hosts.SelectMany(h => h.Marketplace.GetSlots()).ToArray();
-                CollectionAssert.IsEmpty(slots);
+                foreach (var n in hosts)
+                {
+                    var slots = n.Marketplace.GetSlots();
+                    if (slots.Length > 0)
+                    {
+                        throw new Exception($"Host {n.GetName()} has {slots.Length} slots. Expected 0.");
+                    }
+                }
             });
             Log($"{nameof(AssertHostHasNoActiveSlots)} OK");
         }
@@ -201,7 +207,10 @@ namespace ArchivistReleaseTests.Utils
                 foreach (var n in nodes)
                 {
                     var space = n.Space();
-                    Assert.That(space.QuotaUsedBytes, Is.EqualTo(0), $"Expected quota-used to be empty for node {n.GetName()}");
+                    if (space.QuotaUsedBytes > 0)
+                    {
+                        throw new Exception($"Host {n.GetName()} has {space.QuotaUsedBytes} quota-bytes-used. Expected 0.");
+                    }
                 }
             });
             Log($"{nameof(AssertQuotaIsEmpty)} OK");

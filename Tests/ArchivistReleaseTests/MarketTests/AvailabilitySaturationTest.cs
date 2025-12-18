@@ -50,6 +50,9 @@ namespace ArchivistReleaseTests.MarketTests
             // to drift from the real used space, eventually
             // saturating the node with unused but locked up space.
 
+            Log("All hosts are empty at the start...");
+            AssertHostsAreEmpty(hosts);
+
             for (int i = 0; i < 5; i++)
             {
                 Cycle(i, hosts, clients);
