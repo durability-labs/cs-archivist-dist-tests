@@ -73,7 +73,7 @@ namespace ArchivistReleaseTests.Utils
             duration: TimeSpan.FromMinutes(20.0),
             uploadFilesize: 32.MB(),
             pricePerByteSecond: 1000.TstWei(),
-            collateralPerByte: 10.TstWei()
+            collateralPerByte: 1.TstWei()
         );
 
         protected TimeSpan HostBlockTTL
@@ -438,12 +438,12 @@ namespace ArchivistReleaseTests.Utils
                 failFast: false);
         }
 
-        private TestToken GetTstBalance(IArchivistNode node)
+        protected TestToken GetTstBalance(IArchivistNode node)
         {
             return GetContracts().GetTestTokenBalance(node);
         }
 
-        private TestToken GetTstBalance(EthAddress address)
+        protected TestToken GetTstBalance(EthAddress address)
         {
             return GetContracts().GetTestTokenBalance(address);
         }

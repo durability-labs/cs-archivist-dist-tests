@@ -31,6 +31,8 @@ namespace ArchivistReleaseTests.Repair
         {
             Assert.That(numFailures, Is.GreaterThan(NumberOfHosts));
 
+            Log($"Required collateral per slot: {DefaultPurchase.CollateralRequiredPerSlot}");
+
             var (startHosts, clients, validator) = JumpStart();
             var hosts = startHosts.ToList();
             var client = clients.Single();
@@ -58,7 +60,7 @@ namespace ArchivistReleaseTests.Repair
                 var fills = GetOnChainSlotFills(hosts);
 
                 Log($"Failure step: {i}");
-                Log($"Running hosts: [{string.Join(", ", hosts.Select(h => h.GetName()))}]");
+                Log($"Running hosts: [{string.Join(", ", hosts.Select(GetNameAndBalance))}]");
                 Log($"Current fills: {string.Join(", ", fills.Select(f => f.ToString()))}");
 
                 // Start a new host. Add it to the back of the list:
@@ -77,6 +79,11 @@ namespace ArchivistReleaseTests.Repair
                 // One of the other hosts should pick up the free slot.
                 WaitForNewSlotFilledEvent(contract, fill.SlotFilledEvent.SlotIndex);
             }
+        }
+
+        private string GetNameAndBalance(IArchivistNode host)
+        {
+            return $"{host.GetName()} = {GetTstBalance(host)}";
         }
 
         protected override void OnPeriod(PeriodReport report)
@@ -202,7 +209,7 @@ namespace ArchivistReleaseTests.Repair
         private SlotFill? GetFillByHost(IArchivistNode host, SlotFill[] fills)
         {
             // If these is more than 1 fill by this host, the test is misconfigured.
-            // The availability size of the host should guarantee it can fill 1 slot maximum.
+            // The collateral balance of the host should guarantee it can fill 1 slot maximum.
             return fills.SingleOrDefault(f => f.Host.EthAddress == host.EthAddress);
         }
 
