@@ -3,6 +3,18 @@ using Utils;
 
 namespace ArchivistClient
 {
+    public static class DefaultStoragePurchase
+    {
+        public static ByteSize UploadFileSize => 32.MB();
+        public static TestToken PricePerBytePerSecond => 1000.TstWei();
+        public static TestToken CollateralPerByte => 1.TstWei();
+        public static int MinRequiredNumberOfNodes => 4;
+        public static int NodeFailureTolerance => 2;
+        public static int ProofProbability => 20;
+        public static TimeSpan Duration => TimeSpan.FromMinutes(20.0);
+        public static TimeSpan Expiry => TimeSpan.FromMinutes(10.0);
+    }
+
     public class StoragePurchaseRequest
     {
         public StoragePurchaseRequest(ContentId cid)
@@ -11,13 +23,13 @@ namespace ArchivistClient
         }
 
         public ContentId ContentId { get; }
-        public TestToken PricePerBytePerSecond { get; set; } = 1000.TstWei();
-        public TestToken CollateralPerByte { get; set; } = 1.TstWei();
-        public uint MinRequiredNumberOfNodes { get; set; } = 4;
-        public uint NodeFailureTolerance { get; set; } = 2;
-        public int ProofProbability { get; set; } = 20;
-        public TimeSpan Duration { get; set; } = TimeSpan.FromMinutes(20.0);
-        public TimeSpan Expiry { get; set; } = TimeSpan.FromMinutes(10.0);
+        public TestToken PricePerBytePerSecond { get; set; } = DefaultStoragePurchase.PricePerBytePerSecond;
+        public TestToken CollateralPerByte { get; set; } = DefaultStoragePurchase.CollateralPerByte;
+        public int MinRequiredNumberOfNodes { get; set; } = DefaultStoragePurchase.MinRequiredNumberOfNodes;
+        public int NodeFailureTolerance { get; set; } = DefaultStoragePurchase.NodeFailureTolerance;
+        public int ProofProbability { get; set; } = DefaultStoragePurchase.ProofProbability;
+        public TimeSpan Duration { get; set; } = DefaultStoragePurchase.Duration;
+        public TimeSpan Expiry { get; set; } = DefaultStoragePurchase.Expiry;
 
         public void Log(ILog log)
         {

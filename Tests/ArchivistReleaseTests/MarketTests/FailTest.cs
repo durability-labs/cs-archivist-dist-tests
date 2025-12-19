@@ -70,8 +70,8 @@ namespace ArchivistReleaseTests.MarketTests
             return client.Marketplace.RequestStorage(new StoragePurchaseRequest(cid)
             {
                 Duration = HostAvailabilityMaxDuration / 2,
-                MinRequiredNumberOfNodes = (uint)NumberOfHosts,
-                NodeFailureTolerance = (uint)SlotTolerance,
+                MinRequiredNumberOfNodes = NumberOfHosts,
+                NodeFailureTolerance = SlotTolerance,
                 ProofProbability = 1, // Require a proof every period
             });
         }

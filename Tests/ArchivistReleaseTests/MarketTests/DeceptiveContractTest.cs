@@ -17,15 +17,9 @@ namespace ArchivistReleaseTests.MarketTests
 
         public DeceptiveContractTest(int numberOfDeceptiveRequests)
         {
-            largePurchaseParams = new PurchaseParams(
-                nodes: DefaultPurchase.Nodes,
-                tolerance: DefaultPurchase.Tolerance,
-                duration: DefaultPurchase.Duration,
-                uploadFilesize: 100.MB(),
-                pricePerByteSecond: DefaultPurchase.PricePerByteSecond,
-                collateralPerByte: DefaultPurchase.CollateralPerByte
-            );
             this.numberOfDeceptiveRequests = numberOfDeceptiveRequests;
+
+            largePurchaseParams = DefaultPurchase.WithUploadFilesize(100.MB());
         }
 
         protected override int NumberOfHosts => 5;

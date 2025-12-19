@@ -68,12 +68,12 @@ namespace ArchivistReleaseTests.Utils
         protected virtual bool LogPeriodReports { get; } = false;
 
         protected PurchaseParams DefaultPurchase { get; } = new PurchaseParams(
-            nodes: 4,
-            tolerance: 2,
-            duration: TimeSpan.FromMinutes(20.0),
-            uploadFilesize: 32.MB(),
-            pricePerByteSecond: 1000.TstWei(),
-            collateralPerByte: 1.TstWei()
+            nodes: DefaultStoragePurchase.MinRequiredNumberOfNodes,
+            tolerance: DefaultStoragePurchase.NodeFailureTolerance,
+            duration: DefaultStoragePurchase.Duration,
+            uploadFilesize: DefaultStoragePurchase.UploadFileSize,
+            pricePerByteSecond: DefaultStoragePurchase.PricePerBytePerSecond,
+            collateralPerByte: DefaultStoragePurchase.CollateralPerByte
         );
 
         protected TimeSpan HostBlockTTL

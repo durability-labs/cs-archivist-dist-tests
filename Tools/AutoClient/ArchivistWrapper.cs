@@ -37,8 +37,8 @@ namespace AutoClient
                 CollateralPerByte = app.Config.CollateralPerByte.TstWei(),
                 Duration = GetDuration(),
                 Expiry = TimeSpan.FromMinutes(app.Config.ContractExpiryMinutes),
-                MinRequiredNumberOfNodes = Convert.ToUInt32(durability.Nodes),
-                NodeFailureTolerance = Convert.ToUInt32(durability.Tolerance),
+                MinRequiredNumberOfNodes = durability.Nodes,
+                NodeFailureTolerance = durability.Tolerance,
                 PricePerBytePerSecond = GetPricePerBytePerSecond(),
                 ProofProbability = durability.ProofProbability
             });

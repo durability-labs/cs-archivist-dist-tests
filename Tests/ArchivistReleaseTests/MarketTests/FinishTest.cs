@@ -14,14 +14,9 @@ namespace ArchivistReleaseTests.MarketTests
         public FinishTest(int hosts, int slots, int tolerance)
         {
             this.hosts = hosts;
-            purchaseParams = new PurchaseParams(
-                nodes: slots,
-                tolerance: tolerance,
-                duration: DefaultPurchase.Duration,
-                uploadFilesize: DefaultPurchase.UploadFilesize,
-                pricePerByteSecond: DefaultPurchase.PricePerByteSecond,
-                collateralPerByte: DefaultPurchase.CollateralPerByte
-            );
+            purchaseParams = DefaultPurchase
+                .WithNodes(slots)
+                .WithTolerance(tolerance);
         }
 
         protected override int NumberOfHosts => hosts;
@@ -59,8 +54,8 @@ namespace ArchivistReleaseTests.MarketTests
             var cid = client.UploadFile(GenerateTestFile(purchaseParams.UploadFilesize));
             return client.Marketplace.RequestStorage(new StoragePurchaseRequest(cid)
             {
-                MinRequiredNumberOfNodes = (uint)purchaseParams.Nodes,
-                NodeFailureTolerance = (uint)purchaseParams.Tolerance,
+                MinRequiredNumberOfNodes = purchaseParams.Nodes,
+                NodeFailureTolerance = purchaseParams.Tolerance,
                 PricePerBytePerSecond = DefaultPurchase.PricePerByteSecond,
             });
         }

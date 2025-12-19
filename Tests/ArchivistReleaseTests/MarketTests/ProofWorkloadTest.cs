@@ -34,7 +34,7 @@ namespace ArchivistReleaseTests.MarketTests
                 new StoragePurchaseRequest(client.UploadFile(GenerateTestFile(maxProofsPerPeriod.MB())))
                 {
                     ProofProbability = 1,
-                    MinRequiredNumberOfNodes = (uint)maxProofsPerPeriod,
+                    MinRequiredNumberOfNodes = maxProofsPerPeriod,
                     NodeFailureTolerance = 1
                 });
 

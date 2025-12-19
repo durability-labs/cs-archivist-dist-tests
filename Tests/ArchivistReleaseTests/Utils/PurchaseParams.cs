@@ -41,6 +41,36 @@ namespace ArchivistReleaseTests.Utils
         public TestToken CollateralRequiredPerSlot { get; }
         public TestToken PaymentPerSlot { get; }
 
+        public PurchaseParams WithNodes(int value)
+        {
+            return new PurchaseParams(value, Tolerance, Duration, UploadFilesize, PricePerByteSecond, CollateralPerByte);
+        }
+
+        public PurchaseParams WithTolerance(int value)
+        {
+            return new PurchaseParams(Nodes, value, Duration, UploadFilesize, PricePerByteSecond, CollateralPerByte);
+        }
+
+        public PurchaseParams WithDuration(TimeSpan value)
+        {
+            return new PurchaseParams(Nodes, Tolerance, value, UploadFilesize, PricePerByteSecond, CollateralPerByte);
+        }
+
+        public PurchaseParams WithUploadFilesize(ByteSize value)
+        {
+            return new PurchaseParams(Nodes, Tolerance, Duration, value, PricePerByteSecond, CollateralPerByte);
+        }
+
+        public PurchaseParams WithPricePerByteSecond(TestToken value)
+        {
+            return new PurchaseParams(Nodes, Tolerance, Duration, UploadFilesize, value, CollateralPerByte);
+        }
+
+        public PurchaseParams WithCollateralPerByte(TestToken value)
+        {
+            return new PurchaseParams(Nodes, Tolerance, Duration, UploadFilesize, PricePerByteSecond, value);
+        }
+
         private ByteSize CalculateSlotSize()
         {
             // encoded dataset is divided over the nodes.

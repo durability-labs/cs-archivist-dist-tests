@@ -12,14 +12,10 @@ namespace ArchivistReleaseTests.MarketTests
         public SequentialContracts(int hosts, int slots, int tolerance, int sizeMb)
         {
             this.hosts = hosts;
-            purchaseParams = new PurchaseParams(
-                nodes: slots,
-                tolerance: tolerance,
-                duration: DefaultPurchase.Duration,
-                uploadFilesize: sizeMb.MB(),
-                pricePerByteSecond: DefaultPurchase.PricePerByteSecond,
-                collateralPerByte: DefaultPurchase.CollateralPerByte
-            );
+            purchaseParams = DefaultPurchase
+                .WithUploadFilesize(sizeMb.MB())
+                .WithNodes(slots)
+                .WithTolerance(tolerance);
         }
 
         private readonly int hosts;
@@ -94,8 +90,8 @@ namespace ArchivistReleaseTests.MarketTests
             {
                 Duration = GetContractDuration(),
                 Expiry = GetContractExpiry(),
-                MinRequiredNumberOfNodes = (uint)purchaseParams.Nodes,
-                NodeFailureTolerance = (uint)purchaseParams.Tolerance,
+                MinRequiredNumberOfNodes = purchaseParams.Nodes,
+                NodeFailureTolerance = purchaseParams.Tolerance,
                 PricePerBytePerSecond = purchaseParams.PricePerByteSecond,
                 ProofProbability = 100000,
                 CollateralPerByte = 1.TstWei()
