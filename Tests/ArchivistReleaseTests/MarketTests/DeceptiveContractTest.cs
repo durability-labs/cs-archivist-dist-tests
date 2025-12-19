@@ -33,17 +33,18 @@ namespace ArchivistReleaseTests.MarketTests
             var clientRequest = client.Marketplace.RequestStorage(new StoragePurchaseRequest(
                 client.UploadFile(GenerateTestFile(largePurchaseParams.UploadFilesize)))
                 {
-                    // There are no hosts.
+                    // No host will pick up a request with this collateral requirement:
+                    CollateralPerByte = DefaultAvailabilityMaxCollateralPerByte + 10.Tst()
+
                     // The purpose of this call is to:
                     // A) Get the large dataset encoded/verifiable and available in the client node
                     // 2) Get the request from chain, so we can manipulate it and post malicious copies.
-                    Expiry = TimeSpan.FromSeconds(10)
                 }
             );
 
+            clientRequest.WaitForStorageContractSubmitted();
             // We break the test code abstraction here to get and post a request on-chain directly.
             var request = Time.Retry(() => GetRawRequest(clientRequest.PurchaseId), nameof(GetRawRequest));
-            clientRequest.WaitForStorageContractExpired();
             
             Log($"On-chain request has slotSize {request.Ask.SlotSize} ({new ByteSize(Convert.ToInt64(request.Ask.SlotSize))})");
             return (request, client);

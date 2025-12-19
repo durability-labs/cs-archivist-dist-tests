@@ -76,6 +76,8 @@ namespace ArchivistReleaseTests.Utils
             collateralPerByte: DefaultStoragePurchase.CollateralPerByte
         );
 
+        protected TestToken DefaultAvailabilityMaxCollateralPerByte => 999999.Tst();
+
         protected TimeSpan HostBlockTTL
         {
             get
@@ -151,7 +153,7 @@ namespace ArchivistReleaseTests.Utils
                     untilUtc: DateTime.UtcNow + TimeSpan.FromDays(30.0),
                     maxDuration: HostAvailabilityMaxDuration,
                     minPricePerBytePerSecond: 1.TstWei(),
-                    maxCollateralPerByte: 999999.Tst())
+                    maxCollateralPerByte: DefaultAvailabilityMaxCollateralPerByte)
                 );
             }
             return hosts;
@@ -433,7 +435,7 @@ namespace ArchivistReleaseTests.Utils
         {
             return new Retry("AssertWithBlockTTLTimeout",
                 maxTimeout: HostBlockTTL * 3,
-                sleepAfterFail: TimeSpan.FromSeconds(10.0),
+                sleepAfterFail: HostBlockTTL / 3,
                 onFail: f => { },
                 failFast: false);
         }
