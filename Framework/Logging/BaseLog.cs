@@ -19,7 +19,8 @@ namespace Logging
         public static bool EnableDebugLogging { get; set; } = false;
 
         private readonly NumberSource subfileNumberSource = new NumberSource(0);
-        private readonly List<BaseLogStringReplacement> replacements = new List<BaseLogStringReplacement>();
+        private readonly List<BaseLogStringReplacement> logReplacements = new List<BaseLogStringReplacement>();
+        private readonly Lock replacementsLock = new Lock();
         private LogFile? logFile;
 
         public BaseLog()
@@ -72,8 +73,11 @@ namespace Logging
         public virtual void AddStringReplace(string from, string to)
         {
             if (string.IsNullOrWhiteSpace(from)) return;
-            if (replacements.Any(r => string.Equals(r.From, from, StringComparison.InvariantCultureIgnoreCase))) return;
-            replacements.Add(new BaseLogStringReplacement(from, to));
+            lock (replacementsLock)
+            {
+                if (logReplacements.Any(r => string.Equals(r.From, from, StringComparison.InvariantCultureIgnoreCase))) return;
+                logReplacements.Add(new BaseLogStringReplacement(from, to));
+            }
         }
 
         public virtual string ApplyStringReplace(string str)
@@ -98,11 +102,20 @@ namespace Logging
         protected string ApplyReplacements(string str)
         {
             if (IsDebug) return str;
+            var replacements = GetReplacements();
             foreach (var replacement in replacements)
             {
                 str = replacement.Apply(str);
             }
             return str;
+        }
+
+        private BaseLogStringReplacement[] GetReplacements()
+        {
+            lock (replacementsLock)
+            {
+                return logReplacements.ToArray();
+            }
         }
 
         private string GetSubfileNumber()

@@ -12,6 +12,7 @@ namespace ArchivistReleaseTests.MarketTests
         protected override int NumberOfHosts => DefaultPurchase.Nodes;
         protected override int NumberOfClients => 5;
         protected override bool MonitorProofPeriods => false;
+        protected override TestToken HostStartingBalance => DefaultPurchase.CollateralRequiredPerSlot * 1.1; // Each host can hold 1 slot.
 
         [Test]
         [Combinatorial]
