@@ -68,7 +68,7 @@ namespace ArchivistReleaseTests.MarketTests
             Log("The slotSize in the request will trick the host into thinking it can store a full slot.");
             Log("But the real slotSize is too large for the host quota, so it can't. So it should discard this request.");
 
-            request.Ask.SlotSize = Convert.ToUInt64(deceptiveRequestSlotSize);
+            request.Ask.SlotSize = Convert.ToUInt64(deceptiveRequestSlotSize.SizeInBytes);
             PostRawRequests(numberOfDeceptiveRequests, request, client.EthAccount);
 
             AssertHostsIgnoreDeceptiveRequest(hosts);
@@ -96,7 +96,7 @@ namespace ArchivistReleaseTests.MarketTests
             Log("They will be paid for the deceptive, small slotSize, while storing and proving");
             Log("the large slotSizes. The hosts should not fall for such trickery! and reject the request.");
 
-            request.Ask.SlotSize = Convert.ToUInt64(deceptiveRequestSlotSize);
+            request.Ask.SlotSize = Convert.ToUInt64(deceptiveRequestSlotSize.SizeInBytes);
             PostRawRequests(numberOfDeceptiveRequests, request, client.EthAccount);
 
             AssertHostsIgnoreDeceptiveRequest(hosts);
