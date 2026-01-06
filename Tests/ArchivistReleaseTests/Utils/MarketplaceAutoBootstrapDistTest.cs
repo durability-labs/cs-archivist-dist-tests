@@ -78,7 +78,7 @@ namespace ArchivistReleaseTests.Utils
 
         protected TestToken DefaultAvailabilityMaxCollateralPerByte => 999999.Tst();
 
-        protected TimeSpan HostBlockTTL
+        protected virtual TimeSpan HostBlockTTL
         {
             get
             {
@@ -89,6 +89,8 @@ namespace ArchivistReleaseTests.Utils
                 return GetPeriodDuration() * 15;
             }
         }
+
+        protected virtual int HostBlockMaintenanceCount => 10000;
 
         protected virtual void OnPeriod(PeriodReport report)
         {
@@ -134,7 +136,7 @@ namespace ArchivistReleaseTests.Utils
                 s
                 .WithName("host")
                 .WithBlockTTL(HostBlockTTL)
-                .WithBlockMaintenanceNumber(1000)
+                .WithBlockMaintenanceNumber(HostBlockMaintenanceCount)
                 .WithBlockMaintenanceInterval(HostBlockTTL / 2)
                 .EnableMarketplace(GetGeth(), GetContracts(), m => m
                     .WithInitial(StartingBalanceEth.Eth(), HostStartingBalance)
@@ -164,7 +166,7 @@ namespace ArchivistReleaseTests.Utils
             var host = StartArchivist(s => s
                 .WithName("singlehost")
                 .WithBlockTTL(HostBlockTTL)
-                .WithBlockMaintenanceNumber(1000)
+                .WithBlockMaintenanceNumber(HostBlockMaintenanceCount)
                 .WithBlockMaintenanceInterval(HostBlockTTL / 2)
                 .EnableMarketplace(GetGeth(), GetContracts(), m => m
                     .WithInitial(StartingBalanceEth.Eth(), HostStartingBalance)
@@ -435,7 +437,7 @@ namespace ArchivistReleaseTests.Utils
         {
             return new Retry("AssertWithBlockTTLTimeout",
                 maxTimeout: HostBlockTTL * 3,
-                sleepAfterFail: HostBlockTTL / 3,
+                sleepAfterFail: TimeSpan.FromSeconds(30.0),
                 onFail: f => { },
                 failFast: false);
         }

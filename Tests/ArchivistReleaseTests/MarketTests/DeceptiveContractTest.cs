@@ -4,6 +4,7 @@ using ArchivistPlugin;
 using ArchivistReleaseTests.Utils;
 using GethPlugin;
 using Nethereum.Hex.HexConvertors.Extensions;
+using Newtonsoft.Json;
 using NUnit.Framework;
 using Utils;
 
@@ -14,6 +15,7 @@ namespace ArchivistReleaseTests.MarketTests
     {
         private readonly PurchaseParams largePurchaseParams;
         private readonly int numberOfDeceptiveRequests;
+        private readonly List<string> deceptiveRequestIds = new List<string>();
 
         public DeceptiveContractTest(int numberOfDeceptiveRequests)
         {
@@ -68,8 +70,7 @@ namespace ArchivistReleaseTests.MarketTests
             Log("The slotSize in the request will trick the host into thinking it can store a full slot.");
             Log("But the real slotSize is too large for the host quota, so it can't. So it should discard this request.");
 
-            request.Ask.SlotSize = Convert.ToUInt64(deceptiveRequestSlotSize.SizeInBytes);
-            PostRawRequests(numberOfDeceptiveRequests, request, client.EthAccount);
+            PostDeceptiveRequests(client, request, deceptiveRequestSlotSize);
 
             AssertHostsIgnoreDeceptiveRequest(hosts);
 
@@ -96,25 +97,76 @@ namespace ArchivistReleaseTests.MarketTests
             Log("They will be paid for the deceptive, small slotSize, while storing and proving");
             Log("the large slotSizes. The hosts should not fall for such trickery! and reject the request.");
 
-            request.Ask.SlotSize = Convert.ToUInt64(deceptiveRequestSlotSize.SizeInBytes);
-            PostRawRequests(numberOfDeceptiveRequests, request, client.EthAccount);
+            PostDeceptiveRequests(client, request, deceptiveRequestSlotSize);
 
             AssertHostsIgnoreDeceptiveRequest(hosts);
 
             CreateAndStartLegitRequest(client);
         }
 
+        private void PostDeceptiveRequests(IArchivistNode client, Request request, ByteSize deceptiveRequestSlotSize)
+        {
+            request.Ask.SlotSize = Convert.ToUInt64(deceptiveRequestSlotSize.SizeInBytes);
+            request.Ask.CollateralPerByte = 1;
+            request.Ask.Duration = Convert.ToUInt64(HostAvailabilityMaxDuration.TotalSeconds * 0.95);
+            PostRawRequests(numberOfDeceptiveRequests, request, client.EthAccount);
+
+            ReadDeceptiveRequestIdsFromChain(request);
+        }
+
+        private void ReadDeceptiveRequestIdsFromChain(Request request)
+        {
+            var timeout = DateTime.UtcNow + TimeSpan.FromMinutes(5.0);
+            while (deceptiveRequestIds.Count < numberOfDeceptiveRequests)
+            {
+                if (DateTime.UtcNow > timeout) Assert.Fail("Timed out waiting for deceptive requests to appear on-chain.");
+
+                var requests = GetChainMonitor().Requests.ToArray();
+                // we can recognize the deceptive ones by the slotSiz, collateral, and duration set above.
+                var matches = requests.Where(r =>
+                    Convert.ToUInt64(r.Ask.SlotSize.SizeInBytes) == request.Ask.SlotSize &&
+                    r.Ask.CollateralPerByte.TstWei == 1 &&
+                    Convert.ToUInt64(r.Ask.Duration.TotalSeconds) == request.Ask.Duration
+                ).ToArray();
+                foreach (var match in matches)
+                {
+                    if (!deceptiveRequestIds.Contains(match.Id)) deceptiveRequestIds.Add(match.Id);
+                }
+            }
+
+            Log("Deceptive request IDs:");
+            foreach (var id in deceptiveRequestIds) Log(id);
+        }
+
         private void AssertHostsIgnoreDeceptiveRequest(IArchivistNodeGroup hosts)
         {
-            Log("Hosts will attempt to fill the slots of the deceptive contract. " +
-                "When they download the manifest, they should know something's wrong and disregard the request. " +
-                "We check that they don't crash for the duration of the request expiry.");
+            Assert.That(deceptiveRequestIds.Count, Is.GreaterThan(0));
 
-            var defaultExpiry = TimeSpan.FromMinutes(10.0); // extract this from request type.
-            WaitAndCheckNodesStaysAlive(defaultExpiry, hosts);
+            Log("Hosts will detect the deceptive contracts. " +
+                "When they download the manifest, they should know something's wrong and disregard the request. " +
+                "We check that they don't fill any deceptive contract slots for the duration of the request expiry.");
+
+            WaitAndCheck(nameof(AssertHostsIgnoreDeceptiveRequest), DefaultStoragePurchase.Expiry, TimeSpan.FromSeconds(30), () =>
+            {
+                foreach (var id in deceptiveRequestIds)
+                {
+                    AssertNoSlotFills(hosts, id);
+                }
+            });
 
             Log("The hosts should be empty.");
             AssertHostsAreEmpty(hosts);
+        }
+
+        private void AssertNoSlotFills(IArchivistNodeGroup hosts, string id)
+        {
+            var fills = GetOnChainSlotFills(hosts, id);
+            if (fills.Length > 0)
+            {
+                Assert.Fail(
+                    $"Slot filled events for deceptive request detected: {string.Join(" ", fills.Select(f => f.ToString()).ToArray())}"
+                );
+            }
         }
 
         private void CreateAndStartLegitRequest(IArchivistNode client)
@@ -142,6 +194,8 @@ namespace ArchivistReleaseTests.MarketTests
             {
                 if (DateTime.UtcNow > timeout) Assert.Fail("Failed to post requests within 10 minutes");
 
+                Log(JsonConvert.SerializeObject(request));
+
                 Time.Retry(() =>
                 {
                     CreateRequest(geth, marketplaceAddress, request);
@@ -158,7 +212,7 @@ namespace ArchivistReleaseTests.MarketTests
                 Request = request
             };
 
-            geth.SendTransaction<RequestStorageFunction>(marketplaceAddress, func);
+            geth.SendTransaction(marketplaceAddress, func);
         }
 
         private Request GetRawRequest(string purchaseId)

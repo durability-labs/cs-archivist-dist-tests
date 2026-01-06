@@ -43,6 +43,14 @@ namespace ArchivistReleaseTests.MarketTests
             {
                 Cycle(i, hosts, clients);
             }
+
+            Log("Now we create one purchase, and expect it to start.");
+            var client = clients.First();
+            var purchase = client.Marketplace
+                .RequestStorage(new StoragePurchaseRequest(
+                client.UploadFile(GenerateTestFile(DefaultPurchase.UploadFilesize))
+            ));
+            purchase.WaitForStorageContractStarted();
         }
 
         private void Cycle(int i, IArchivistNodeGroup hosts, IArchivistNodeGroup clients)
