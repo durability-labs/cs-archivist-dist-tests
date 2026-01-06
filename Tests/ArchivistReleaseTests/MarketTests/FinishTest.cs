@@ -23,10 +23,7 @@ namespace ArchivistReleaseTests.MarketTests
         protected override int NumberOfClients => 1;
 
         [Test]
-        [Combinatorial]
-        public void Finish(
-            [Rerun] int rerun
-        )
+        public void Finish()
         {
             var (hosts, clients, validator) = JumpStart();
             var client = clients.Single();

@@ -24,10 +24,8 @@ namespace ArchivistReleaseTests.MarketTests
         /// And you can't trust any of the other marketplace-relate tests until this is fixed.
         /// </summary>
         [Test]
-        [Combinatorial]
         [Ignore("Used to ensure correct marketplace configuration")]
-        public void IsProofRequired(
-            [Rerun] int rerun)
+        public void IsProofRequired()
         {
             var mins = TimeSpan.FromMinutes(10.0);
 

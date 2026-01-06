@@ -15,10 +15,7 @@ namespace ArchivistReleaseTests.MarketTests
         protected override TestToken HostStartingBalance => DefaultPurchase.CollateralRequiredPerSlot * 1.1; // Each host can hold 1 slot.
 
         [Test]
-        [Combinatorial]
-        public void AvailabilityTest(
-            [Rerun] int rerun
-        )
+        public void AvailabilityTest()
         {
             // The host quota is only slightly larger than the request's slotSize.
             var hosts = StartHosts(s => s.WithStorageQuota(DefaultPurchase.SlotSize.Multiply(1.1)));

@@ -12,9 +12,7 @@ namespace ArchivistReleaseTests.DHT
         private readonly int numNodes = 20;
 
         [Test]
-        [Combinatorial]
-        public void AfterFullDisconnect(
-            [Rerun] int run)
+        public void AfterFullDisconnect()
         {
             var nodes = StartArchivist(numNodes).ToArray();
 

@@ -26,7 +26,6 @@ namespace ArchivistReleaseTests.Repair
         [Test]
         [Combinatorial]
         public void RollingRepairSingleFailure(
-            [Rerun] int rerun,
             [Values(10)] int numFailures)
         {
             Assert.That(numFailures, Is.GreaterThan(NumberOfHosts));

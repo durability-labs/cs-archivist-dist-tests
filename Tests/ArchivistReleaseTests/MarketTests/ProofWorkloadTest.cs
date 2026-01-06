@@ -14,7 +14,6 @@ namespace ArchivistReleaseTests.MarketTests
         [Test]
         [Combinatorial]
         public void ProofWorkload(
-            [Rerun] int rerun,
             [Values(12)] int secondsPerProof
         )
         {

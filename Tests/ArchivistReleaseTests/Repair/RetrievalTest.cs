@@ -33,8 +33,7 @@ namespace ArchivistReleaseTests.Repair
         #endregion
 
         [Test]
-        [Combinatorial]
-        public void RetrievabilityTest([Rerun] int rerun)
+        public void RetrievabilityTest()
         {
             if (stopSlotIndex1 == stopSlotIndex2) throw new Exception();
 

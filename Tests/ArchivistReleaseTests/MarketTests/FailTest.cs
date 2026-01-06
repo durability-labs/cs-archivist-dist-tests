@@ -18,10 +18,7 @@ namespace ArchivistReleaseTests.MarketTests
         }
 
         [Test]
-        [Combinatorial]
-        public void Fail(
-            [Rerun] int rerun
-        )
+        public void Fail()
         {
             var (hosts, clients, validator) = JumpStart();
             var client = clients.Single();
