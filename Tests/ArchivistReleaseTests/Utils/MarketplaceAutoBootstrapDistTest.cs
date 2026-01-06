@@ -90,7 +90,15 @@ namespace ArchivistReleaseTests.Utils
             }
         }
 
-        protected virtual int HostBlockMaintenanceCount => 10000;
+        protected virtual int HostBlockMaintenanceCount => 1000;
+
+        protected virtual TimeSpan HostBlockMaintenanceInterval
+        {
+            get
+            {
+                return HostBlockTTL / 10;
+            }
+        }
 
         protected virtual void OnPeriod(PeriodReport report)
         {
@@ -137,7 +145,7 @@ namespace ArchivistReleaseTests.Utils
                 .WithName("host")
                 .WithBlockTTL(HostBlockTTL)
                 .WithBlockMaintenanceNumber(HostBlockMaintenanceCount)
-                .WithBlockMaintenanceInterval(HostBlockTTL / 2)
+                .WithBlockMaintenanceInterval(HostBlockMaintenanceInterval)
                 .EnableMarketplace(GetGeth(), GetContracts(), m => m
                     .WithInitial(StartingBalanceEth.Eth(), HostStartingBalance)
                     .AsStorageNode()
@@ -167,7 +175,7 @@ namespace ArchivistReleaseTests.Utils
                 .WithName("singlehost")
                 .WithBlockTTL(HostBlockTTL)
                 .WithBlockMaintenanceNumber(HostBlockMaintenanceCount)
-                .WithBlockMaintenanceInterval(HostBlockTTL / 2)
+                .WithBlockMaintenanceInterval(HostBlockMaintenanceInterval)
                 .EnableMarketplace(GetGeth(), GetContracts(), m => m
                     .WithInitial(StartingBalanceEth.Eth(), HostStartingBalance)
                     .AsStorageNode()
