@@ -95,10 +95,11 @@ namespace ArchivistReleaseTests.Repair
             var selectedFills = SelectOldestSlotFills(hosts, numHostsPerFailure);
             var selectedSlots = selectedFills.Select(f => f.SlotFilledEvent.SlotIndex).ToArray();
 
+            var eventStartUtc = DateTime.UtcNow;
             StopHostsOfSlotFills(hosts, selectedFills);
 
-            WaitForSlotFreedEvents(contract, selectedSlots);
-            WaitForNewSlotFilledEvents(contract, selectedSlots);
+            WaitForSlotFreedEvents(eventStartUtc, contract, selectedSlots);
+            WaitForNewSlotFilledEvents(eventStartUtc, contract, selectedSlots);
         }
 
         private SlotFill[] SelectOldestSlotFills(List<IArchivistNode> hosts, int numHostsPerFailure)
@@ -160,7 +161,7 @@ namespace ArchivistReleaseTests.Repair
             }
         }
 
-        private void WaitForSlotFreedEvents(IStoragePurchaseContract contract, ulong[] slotIndices)
+        private void WaitForSlotFreedEvents(DateTime startUtc, IStoragePurchaseContract contract, ulong[] slotIndices)
         {
             var remaining = slotIndices.ToList();
             var timeout = CalculateContractFailTimespan();
@@ -168,6 +169,7 @@ namespace ArchivistReleaseTests.Repair
             Log($"{context} Timeout: {Time.FormatDuration(timeout)}");
 
             WaitForNewEventWithTimeout(
+                startUtc: startUtc,
                 timeout: timeout,
                 waiter: () => GetContracts().WaitUntilNextPeriod(),
                 checker: events =>
@@ -197,7 +199,7 @@ namespace ArchivistReleaseTests.Repair
                 });
         }
 
-        private void WaitForNewSlotFilledEvents(IStoragePurchaseContract contract, ulong[] slotIndices)
+        private void WaitForNewSlotFilledEvents(DateTime startUtc, IStoragePurchaseContract contract, ulong[] slotIndices)
         {
             var remaining = slotIndices.ToList();
             var timeout = contract.Purchase.Expiry;
@@ -205,6 +207,7 @@ namespace ArchivistReleaseTests.Repair
             Log($"{context} Timeout: {Time.FormatDuration(timeout)}");
 
             WaitForNewEventWithTimeout(
+                startUtc: startUtc,
                 timeout: timeout,
                 waiter: () => Thread.Sleep(TimeSpan.FromSeconds(15)),
                 checker: events =>
@@ -231,13 +234,12 @@ namespace ArchivistReleaseTests.Repair
                 });
         }
 
-        private void WaitForNewEventWithTimeout(TimeSpan timeout, Action waiter, Func<IArchivistContractsEvents, bool> checker)
+        private void WaitForNewEventWithTimeout(DateTime startUtc, TimeSpan timeout, Action waiter, Func<IArchivistContractsEvents, bool> checker)
         {
-            var start = DateTime.UtcNow;
-            var loopEnd = start;
+            var loopEnd = startUtc;
             Thread.Sleep(TimeSpan.FromSeconds(3.0));
 
-            while (DateTime.UtcNow < start + timeout)
+            while (DateTime.UtcNow < startUtc + timeout)
             {
                 var loopStart = loopEnd;
                 loopEnd = DateTime.UtcNow;
