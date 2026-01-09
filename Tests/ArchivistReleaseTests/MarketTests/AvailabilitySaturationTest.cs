@@ -17,12 +17,8 @@ namespace ArchivistReleaseTests.MarketTests
         [Test]
         public void AvailabilityTest()
         {
-            // The host quota is only slightly larger than the request's slotSize.
-            var hosts = StartHosts(s => s.WithStorageQuota(DefaultPurchase.SlotSize.Multiply(1.1)));
-
-            StartValidator();
-            var clients = StartClients();
-
+            var (hosts, clients, validator) = JumpStart();
+            
             // We want to create many concurrent purchase requests
             // to flood the host worker queues.
             // The requests are more than enough to fill
