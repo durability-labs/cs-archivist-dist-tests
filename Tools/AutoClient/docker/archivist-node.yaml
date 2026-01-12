@@ -3,9 +3,6 @@ services:
     image: durabilitylabs/archivist-node:sha-80ebcd7-dist-tests
     pull_policy: always
     restart: always
-    command:
-      - archivist
-      - persistence
     environment:
       - NETWORK=devnet
       - ARCHIVIST_DATA_DIR=/data
@@ -14,6 +11,7 @@ services:
       - ARCHIVIST_API_CORS_ORIGIN=*
       - ARCHIVIST_STORAGE_QUOTA=20gb
       - NAT_PUBLIC_IP_AUTO=https://ip.archivist.storage
+      - ARCHIVIST_PERSISTENCE=true
       - ARCHIVIST_ETH_PROVIDER=https://rpc.devnet.archivist.storage
       - MARKETPLACE_ADDRESS_FROM_URL=https://config.archivist.storage/devnet/marketplace
       # Fast cleanup:
