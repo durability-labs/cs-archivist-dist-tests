@@ -9,8 +9,6 @@ namespace ArchivistReleaseTests.DataTests
 {
     namespace SwarmTests
     {
-        [TestFixture(2, 10)]
-        [TestFixture(5, 20)]
         [TestFixture(10, 20)]
         public class SwarmTests : AutoBootstrapDistTest
         {

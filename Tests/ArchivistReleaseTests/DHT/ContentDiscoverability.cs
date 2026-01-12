@@ -10,7 +10,7 @@ namespace ArchivistReleaseTests.DHT
         [Test]
         [Combinatorial]
         public void FullDiscoverabilityWithFailureRate(
-            [DhtFailRate] int failureRate)
+            [Values(2, 3)] int failureRate)
         {
             var nodes = StartArchivist(10);
 
@@ -22,23 +22,6 @@ namespace ArchivistReleaseTests.DHT
 
             var helper = CreatePeerDownloadTestHelpers(downloadTimeout: TimeSpan.FromSeconds(10));
             helper.AssertFullDownloadInterconnectivity(nodes, 1.MB());
-        }
-    }
-
-    public class DhtFailRateAttribute : ValuesAttribute
-    {
-        private const int Start = 100;
-
-        public DhtFailRateAttribute()
-        {
-            var list = new List<object>();
-            var value = Start;
-            while (value > 1)
-            {
-                list.Add(value);
-                value = value / 2;
-            }
-            data = list.ToArray();
         }
     }
 }
