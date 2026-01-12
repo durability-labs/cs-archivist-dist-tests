@@ -57,6 +57,19 @@ namespace Utils
             return new TestToken(a.TstWei * b);
         }
 
+        public static TestToken operator *(TestToken a, long b)
+        {
+            return new TestToken(a.TstWei * b);
+        }
+
+        public static TestToken operator *(TestToken a, double d)
+        {
+            var mult = new BigInteger(d * 10000.0);
+            var div = new BigInteger(10000);
+
+            return new TestToken((a.TstWei * mult) / div);
+        }
+
         public static bool operator <(TestToken a, TestToken b)
         {
             return a.TstWei < b.TstWei;

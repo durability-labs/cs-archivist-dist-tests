@@ -12,7 +12,6 @@ namespace ArchivistReleaseTests.MarketTests
     {
         protected override int NumberOfHosts => 5;
         protected override int NumberOfClients => 1;
-        protected override ByteSize HostAvailabilitySize => 1.GB();
 
         protected override bool MonitorChainState => false;
 

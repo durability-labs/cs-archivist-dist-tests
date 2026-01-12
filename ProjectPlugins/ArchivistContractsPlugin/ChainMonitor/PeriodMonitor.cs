@@ -25,7 +25,7 @@ namespace ArchivistContractsPlugin.ChainMonitor
 
         public PeriodMonitor(ILog log, IArchivistContracts contracts, IGethNode geth, IPeriodMonitorEventHandler eventHandler)
         {
-            this.log = new LogPrefixer(log, "(PeriodMonitor)");
+            this.log = new LogPrefixer(log, "(PeriodMonitor) ");
             this.contracts = contracts;
             this.geth = geth;
             this.eventHandler = eventHandler;

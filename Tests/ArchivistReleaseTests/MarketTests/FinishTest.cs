@@ -1,38 +1,34 @@
 using ArchivistClient;
 using ArchivistReleaseTests.Utils;
 using NUnit.Framework;
-using Utils;
 
 namespace ArchivistReleaseTests.MarketTests
 {
     [TestFixture(5, 3, 1)]
-    //[TestFixture(10, 8, 4)]
+    [TestFixture(10, 8, 4)]
     public class FinishTest : MarketplaceAutoBootstrapDistTest
     {
-        public FinishTest(int hosts, int slots, int tolerance)
-        {
-            this.hosts = hosts;
-            purchaseParams = new PurchaseParams(slots, tolerance, uploadFilesize: 3.MB());
-        }
-
-        private readonly TestToken pricePerBytePerSecond = 10.TstWei();
         private readonly int hosts;
         private readonly PurchaseParams purchaseParams;
 
+        public FinishTest(int hosts, int slots, int tolerance)
+        {
+            this.hosts = hosts;
+            purchaseParams = DefaultPurchase
+                .WithNodes(slots)
+                .WithTolerance(tolerance);
+        }
+
         protected override int NumberOfHosts => hosts;
         protected override int NumberOfClients => 1;
-        protected override ByteSize HostAvailabilitySize => purchaseParams.SlotSize.Multiply(5.1);
 
         [Test]
-        [Combinatorial]
-        public void Finish(
-            [Rerun] int rerun
-        )
+        public void Finish()
         {
             var (hosts, clients, validator) = JumpStart();
             var client = clients.Single();
 
-            AssertHostAvailabilitiesAreEmpty(hosts);
+            AssertHostsAreEmpty(hosts);
 
             var request = CreateStorageRequest(client);
 
@@ -44,10 +40,10 @@ namespace ArchivistReleaseTests.MarketTests
 
             request.WaitForStorageContractFinished();
 
-            AssertClientHasPaidForContract(pricePerBytePerSecond, client, request, hosts);
-            AssertHostsWerePaidForContract(pricePerBytePerSecond, request, hosts);
+            AssertClientHasPaidForContract(DefaultPurchase.PricePerByteSecond, client, request, hosts);
+            AssertHostsWerePaidForContract(DefaultPurchase.PricePerByteSecond, request, hosts);
             AssertHostsCollateralsAreUnchanged(hosts);
-            AssertHostAvailabilitiesAreEmpty(hosts);
+            AssertHostsAreEmpty(hosts);
         }
 
         private IStoragePurchaseContract CreateStorageRequest(IArchivistNode client)
@@ -55,9 +51,9 @@ namespace ArchivistReleaseTests.MarketTests
             var cid = client.UploadFile(GenerateTestFile(purchaseParams.UploadFilesize));
             return client.Marketplace.RequestStorage(new StoragePurchaseRequest(cid)
             {
-                MinRequiredNumberOfNodes = (uint)purchaseParams.Nodes,
-                NodeFailureTolerance = (uint)purchaseParams.Tolerance,
-                PricePerBytePerSecond = pricePerBytePerSecond,
+                MinRequiredNumberOfNodes = purchaseParams.Nodes,
+                NodeFailureTolerance = purchaseParams.Tolerance,
+                PricePerBytePerSecond = DefaultPurchase.PricePerByteSecond,
             });
         }
     }

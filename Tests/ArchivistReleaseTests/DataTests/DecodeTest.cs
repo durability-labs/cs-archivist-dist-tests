@@ -9,7 +9,6 @@ namespace ArchivistReleaseTests.DataTests
     {
         protected override int NumberOfHosts => 0;
         protected override int NumberOfClients => 2;
-        protected override ByteSize HostAvailabilitySize => 0.Bytes();
         protected override TimeSpan HostAvailabilityMaxDuration => TimeSpan.FromSeconds(0.0);
 
         [Test]

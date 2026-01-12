@@ -6,23 +6,24 @@ using Utils;
 
 namespace ArchivistReleaseTests.MarketTests
 {
-    [TestFixture(10, 20, 5)]
+    [TestFixture(5, 10, 5, 10)]
     public class SequentialContracts : MarketplaceAutoBootstrapDistTest
     {
-        public SequentialContracts(int hosts, int slots, int tolerance)
+        public SequentialContracts(int hosts, int slots, int tolerance, int sizeMb)
         {
             this.hosts = hosts;
-            purchaseParams = new PurchaseParams(slots, tolerance, 10.MB());
+            purchaseParams = DefaultPurchase
+                .WithUploadFilesize(sizeMb.MB())
+                .WithNodes(slots)
+                .WithTolerance(tolerance);
         }
 
         private readonly int hosts;
         private readonly PurchaseParams purchaseParams;
 
         protected override int NumberOfHosts => hosts;
-        protected override int NumberOfClients => 6;
-        protected override ByteSize HostAvailabilitySize => purchaseParams.SlotSize.Multiply(100.0);
+        protected override int NumberOfClients => 4;
         protected override TimeSpan HostAvailabilityMaxDuration => GetContractDuration() * 2;
-        private readonly TestToken pricePerBytePerSecond = 10.TstWei();
 
         [Test]
         [Combinatorial]
@@ -89,9 +90,9 @@ namespace ArchivistReleaseTests.MarketTests
             {
                 Duration = GetContractDuration(),
                 Expiry = GetContractExpiry(),
-                MinRequiredNumberOfNodes = (uint)purchaseParams.Nodes,
-                NodeFailureTolerance = (uint)purchaseParams.Tolerance,
-                PricePerBytePerSecond = pricePerBytePerSecond,
+                MinRequiredNumberOfNodes = purchaseParams.Nodes,
+                NodeFailureTolerance = purchaseParams.Tolerance,
+                PricePerBytePerSecond = purchaseParams.PricePerByteSecond,
                 ProofProbability = 100000,
                 CollateralPerByte = 1.TstWei()
             });

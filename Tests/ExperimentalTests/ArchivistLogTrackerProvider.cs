@@ -57,7 +57,7 @@ namespace ArchivistTests
             {
             }
 
-            public void OnStorageAvailabilityCreated(StorageAvailability response)
+            public void OnStorageAvailabilityCreated()
             {
             }
 

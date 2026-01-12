@@ -50,10 +50,10 @@ namespace ArchivistClient
         {
             return new ArchivistOpenApi.SalesAvailability
             {
-                Duration = ToLong(availability.MaxDuration.TotalSeconds),
-                MinPricePerBytePerSecond = ToDecInt(availability.MinPricePerBytePerSecond),
-                TotalCollateral = ToDecInt(availability.TotalCollateral),
-                TotalSize = availability.TotalSpace.SizeInBytes
+                MaximumDuration = ToLong(availability.MaxDuration.TotalSeconds),
+                AvailableUntil = Convert.ToInt32(Time.ToUnixTimeSeconds(availability.UntilUtc)),
+                MaximumCollateralPerByte = ToDecInt(availability.MaxCollateralPerByte),
+                MinimumPricePerBytePerSecond = ToDecInt(availability.MinPricePerBytePerSecond)
             };
         }
 
@@ -71,42 +71,33 @@ namespace ArchivistClient
             };
         }
 
-        public StorageAvailability[] Map(ICollection<ArchivistOpenApi.SalesAvailabilityREAD> availabilities,
-            Func<string, ICollection<ArchivistOpenApi.Reservation>> getReservations)
+        public StorageAvailability[] Map(ICollection<ArchivistOpenApi.SalesAvailability> availabilities)
         {
-            return availabilities.Select(a => Map(a, getReservations)).ToArray();
+            return availabilities.Select(Map).ToArray();
         }
 
-        public StorageAvailability Map(ArchivistOpenApi.SalesAvailabilityREAD availability,
-            Func<string, ICollection<ArchivistOpenApi.Reservation>> getReservations)
+        public StorageAvailability Map(ArchivistOpenApi.SalesAvailability availability)
         {
             return new StorageAvailability
             (
-                availability.Id,
-                ToByteSize(availability.TotalSize),
-                ToTimespan(availability.Duration),
-                new TestToken(ToBigInt(availability.MinPricePerBytePerSecond)),
-                new TestToken(ToBigInt(availability.TotalCollateral)),
-                ToByteSize(availability.FreeSize),
-                Map(getReservations(availability.Id))
+                maxDuration: ToTimespan(availability.MaximumDuration),
+                untilUtc: ToUtc(availability.AvailableUntil),
+                minPricePerBytePerSecond: new TestToken(ToBigInt(availability.MinimumPricePerBytePerSecond)),
+                maxCollateralPerByte: new TestToken(ToBigInt(availability.MaximumCollateralPerByte))
             );
         }
 
-        public AvailabilityReservation[] Map(ICollection<ArchivistOpenApi.Reservation> reservations)
+        public StorageSlot[] Map(ICollection<ArchivistOpenApi.Slot> slots)
         {
-            return reservations.Select(r => Map(r)).ToArray();
+            return slots.Select(Map).ToArray(); 
         }
 
-        public AvailabilityReservation Map(ArchivistOpenApi.Reservation r)
+        public StorageSlot Map(ArchivistOpenApi.Slot slot)
         {
-            return new AvailabilityReservation
-            (
-                r.Id,
-                r.AvailabilityId,
-                r.Size,
-                r.RequestId,
-                r.SlotIndex,
-                r.ValidUntil
+            return new StorageSlot(
+                id: slot.Id,
+                slotIndex: slot.SlotIndex,
+                request: Map(slot.Request)
             );
         }
 
@@ -305,6 +296,11 @@ namespace ArchivistClient
         private TimeSpan ToTimespan(long duration)
         {
             return TimeSpan.FromSeconds(duration);
+        }
+
+        private DateTime ToUtc(int utc)
+        {
+            return Time.ToUtcDateTime(utc);
         }
 
         private ByteSize ToByteSize(long size)

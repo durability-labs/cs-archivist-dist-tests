@@ -131,13 +131,12 @@ namespace ArchivistPlugin.OverwatchSupport
             });
         }
 
-        public void OnStorageAvailabilityCreated(StorageAvailability response)
+        public void OnStorageAvailabilityCreated()
         {
             WriteArchivistEvent(e =>
             {
                 e.StorageAvailabilityCreated = new StorageAvailabilityCreatedEvent
                 {
-                    StorageAvailability = response
                 };
             });
         }

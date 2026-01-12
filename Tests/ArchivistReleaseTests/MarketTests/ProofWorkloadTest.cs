@@ -10,12 +10,10 @@ namespace ArchivistReleaseTests.MarketTests
     {
         protected override int NumberOfHosts => 1;
         protected override int NumberOfClients => 1;
-        protected override ByteSize HostAvailabilitySize => 1.GB();
 
         [Test]
         [Combinatorial]
         public void ProofWorkload(
-            [Rerun] int rerun,
             [Values(12)] int secondsPerProof
         )
         {
@@ -35,7 +33,7 @@ namespace ArchivistReleaseTests.MarketTests
                 new StoragePurchaseRequest(client.UploadFile(GenerateTestFile(maxProofsPerPeriod.MB())))
                 {
                     ProofProbability = 1,
-                    MinRequiredNumberOfNodes = (uint)maxProofsPerPeriod,
+                    MinRequiredNumberOfNodes = maxProofsPerPeriod,
                     NodeFailureTolerance = 1
                 });
 

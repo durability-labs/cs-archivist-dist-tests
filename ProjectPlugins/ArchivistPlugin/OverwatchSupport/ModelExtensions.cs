@@ -122,7 +122,6 @@ namespace ArchivistPlugin.OverwatchSupport
     [Serializable]
     public class StorageAvailabilityCreatedEvent
     {
-        public StorageAvailability StorageAvailability { get; set; } = null!;
     }
 
     [Serializable]

@@ -105,10 +105,10 @@ namespace ArchivistReleaseTests.DataTests
                 .EnableMarketplace(geth, contracts, m => m.AsStorageNode().WithInitial(100.Eth(), 100.Tst()))
             );
             foreach (var host in hosts) host.Marketplace.MakeStorageAvailable(new ArchivistClient.CreateStorageAvailability(
-                totalSpace: 2.GB(),
                 maxDuration: TimeSpan.FromDays(2.0),
+                untilUtc: DateTime.UtcNow + TimeSpan.FromDays(30.0),
                 minPricePerBytePerSecond: 1.TstWei(),
-                totalCollateral: 10.Tst()));
+                maxCollateralPerByte: 10.Tst()));
 
             var uploadCid = client.UploadFile(GenerateTestFile(5.MB()));
             var request = client.Marketplace.RequestStorage(new ArchivistClient.StoragePurchaseRequest(uploadCid)

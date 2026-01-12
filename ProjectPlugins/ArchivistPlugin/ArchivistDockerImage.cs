@@ -2,7 +2,8 @@ namespace ArchivistPlugin
 {
     public class ArchivistDockerImage
     {
-        private const string DefaultDockerImage = "durabilitylabs/archivist-node:latest-dist-tests";
+        private const string DefaultDockerImage =
+            "durabilitylabs/archivist-node:0.2.0-dist-tests";
 
         public string GetArchivistDockerImage()
         {

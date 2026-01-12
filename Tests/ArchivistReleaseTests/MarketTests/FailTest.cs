@@ -9,10 +9,8 @@ namespace ArchivistReleaseTests.MarketTests
     public class FailTest : MarketplaceAutoBootstrapDistTest
     {
         protected override int NumberOfHosts => 4;
-        private readonly int SlotTolerance;
         protected override int NumberOfClients => 1;
-        protected override ByteSize HostAvailabilitySize => 1.GB();
-        protected override TimeSpan HostAvailabilityMaxDuration => TimeSpan.FromDays(1.0);
+        private readonly int SlotTolerance;
 
         public FailTest()
         {
@@ -20,10 +18,7 @@ namespace ArchivistReleaseTests.MarketTests
         }
 
         [Test]
-        [Combinatorial]
-        public void Fail(
-            [Rerun] int rerun
-        )
+        public void Fail()
         {
             var (hosts, clients, validator) = JumpStart();
             var client = clients.Single();
@@ -72,8 +67,8 @@ namespace ArchivistReleaseTests.MarketTests
             return client.Marketplace.RequestStorage(new StoragePurchaseRequest(cid)
             {
                 Duration = HostAvailabilityMaxDuration / 2,
-                MinRequiredNumberOfNodes = (uint)NumberOfHosts,
-                NodeFailureTolerance = (uint)SlotTolerance,
+                MinRequiredNumberOfNodes = NumberOfHosts,
+                NodeFailureTolerance = SlotTolerance,
                 ProofProbability = 1, // Require a proof every period
             });
         }

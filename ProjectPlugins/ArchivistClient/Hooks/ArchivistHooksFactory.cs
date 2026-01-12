@@ -58,7 +58,7 @@ namespace ArchivistClient.Hooks
         {
         }
 
-        public void OnStorageAvailabilityCreated(StorageAvailability response)
+        public void OnStorageAvailabilityCreated()
         {
         }
 

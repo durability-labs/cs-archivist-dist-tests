@@ -34,20 +34,20 @@ namespace ArchivistClient
 
         public IArchivistNode CreateArchivistNode(IArchivistInstance instance)
         {
-            var nodeLog = new LogPrefixer(log, $"({instance.Name})");
+            var nodeLog = new LogPrefixer(log, $"({instance.Name}) ");
             var processControl = processControlFactory.CreateProcessControl(instance);
             var access = new ArchivistAccess(nodeLog, httpFactory, processControl, instance);
             var hooks = hooksFactory.CreateHooks(access.GetName());
-            var marketplaceAccess = CreateMarketplaceAccess(instance, access, hooks);
+            var marketplaceAccess = CreateMarketplaceAccess(instance, nodeLog, access, hooks);
             var node =  new ArchivistNode(nodeLog, access, fileManager, marketplaceAccess, hooks);
             node.Initialize();
             return node;
         }
 
-        private IMarketplaceAccess CreateMarketplaceAccess(IArchivistInstance instance, ArchivistAccess access, IArchivistNodeHooks hooks)
+        private IMarketplaceAccess CreateMarketplaceAccess(IArchivistInstance instance, ILog nodeLog, ArchivistAccess access, IArchivistNodeHooks hooks)
         {
             if (instance.EthAccount == null) return new MarketplaceUnavailable();
-            return new MarketplaceAccess(log, access, hooks);
+            return new MarketplaceAccess(nodeLog, access, hooks);
         }
     }
 }

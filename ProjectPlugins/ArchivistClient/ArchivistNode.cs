@@ -252,12 +252,16 @@ namespace ArchivistClient
 
         public LocalDatasetList LocalFiles()
         {
-            return archivistAccess.LocalFiles();
+            var files = archivistAccess.LocalFiles();
+            Log($"Files: {files}");
+            return files;
         }
 
         public ArchivistSpace Space()
         {
-            return archivistAccess.Space();
+            var space = archivistAccess.Space();
+            Log($"Space: {space}");
+            return space;
         }
 
         public void ConnectToPeer(IArchivistNode node)

@@ -513,7 +513,8 @@ namespace KubernetesWorkflow
             {
                 Name = recipe.Name,
                 Image = recipe.Image,
-                ImagePullPolicy = "Always",
+                //ImagePullPolicy = "Always", Not sure it's necessary to pull always.
+                ImagePullPolicy = "IfNotPresent",
                 Ports = CreateContainerPorts(recipe),
                 Env = CreateEnv(recipe),
                 VolumeMounts = CreateContainerVolumeMounts(recipe),
@@ -749,8 +750,11 @@ namespace KubernetesWorkflow
                     $"Total number of pods: {allPods.Items.Count}. Their labels: {string.Join(Environment.NewLine, allLabels)}");
             }
             var pod = pods[0];
+            if (pod == null) throw new Exception("Pod not found");
             if (pod.Status == null) throw new Exception("Pod status unknown");
             if (string.IsNullOrEmpty(pod.Status.PodIP)) throw new Exception("Pod IP unknown");
+            if (pod.Metadata == null) throw new Exception("Pod.Metadata is null");
+            if (string.IsNullOrEmpty(pod.Metadata.Name)) throw new Exception("Pod.Metadata.Name is null or empty.");
             return pod;
         }
 
@@ -897,7 +901,7 @@ namespace KubernetesWorkflow
 
         private void WaitUntilDeploymentOnline(RunningContainer container)
         {
-            WaitUntil(() =>
+            WaitUntilFast(() =>
             {
                 CheckForCrash(container);
 
@@ -953,6 +957,19 @@ namespace KubernetesWorkflow
             try
             {
                 Time.WaitUntil(predicate, cluster.K8sOperationTimeout(), cluster.K8sOperationRetryDelay(), msg);
+            }
+            finally
+            {
+                sw.End(msg, 1);
+            }
+        }
+
+        private void WaitUntilFast(Func<bool> predicate, string msg)
+        {
+            var sw = Stopwatch.Begin(log, true);
+            try
+            {
+                Time.WaitUntil(predicate, cluster.K8sOperationTimeout(), TimeSpan.FromSeconds(1.0), msg);
             }
             finally
             {

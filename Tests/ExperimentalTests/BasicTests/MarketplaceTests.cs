@@ -51,10 +51,10 @@ namespace ExperimentalTests.BasicTests
                 AssertBalance(contracts, host, Is.EqualTo(hostInitialBalance), "Host initial balance");
 
                 var availability = new CreateStorageAvailability(
-                    totalSpace: 10.GB(),
+                    untilUtc: DateTime.UtcNow + TimeSpan.FromDays(30.0),
                     maxDuration: TimeSpan.FromMinutes(30),
                     minPricePerBytePerSecond: 1.TstWei(),
-                    totalCollateral: 20.TstWei()
+                    maxCollateralPerByte: 20.TstWei()
                 );
                 host.Marketplace.MakeStorageAvailable(availability);
             }
@@ -99,25 +99,11 @@ namespace ExperimentalTests.BasicTests
 
             purchaseContract.WaitForStorageContractStarted();
 
-            var availabilities = hosts.Select(h => h.Marketplace.GetAvailabilities()).ToArray();
-            if (availabilities.All(h => h.All(a => a.FreeSpace.SizeInBytes == a.TotalSpace.SizeInBytes)))
-            {
-                Assert.Fail("Host availabilities were not used.");
-            }
-
             var request = GetOnChainStorageRequest(contracts, geth);
             AssertStorageRequest(request, purchase, contracts, client);
             AssertContractSlot(contracts, request, 0);
 
             purchaseContract.WaitForStorageContractFinished();
-
-            // todo: removed from archivistclient:
-            //contracts.WaitUntilNextPeriod();
-            //contracts.WaitUntilNextPeriod();
-
-            //var blocks = 3;
-            //Log($"Waiting {blocks} blocks for nodes to process payouts...");
-            //Thread.Sleep(GethContainerRecipe.BlockInterval * blocks);
 
             AssertBalance(contracts, client, Is.LessThan(clientInitialBalance), "Buyer was not charged for storage.");
             Assert.That(contracts.GetRequestState(request.RequestId), Is.EqualTo(RequestState.Finished));

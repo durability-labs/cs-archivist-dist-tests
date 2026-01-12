@@ -14,20 +14,10 @@ namespace ArchivistReleaseTests.Repair
     {
         #region Setup
 
-        private readonly PurchaseParams purchaseParams = new PurchaseParams(
-            nodes: 4,
-            tolerance: 2,
-            uploadFilesize: 32.MB()
-        );
-
-        public SlotRepairTest()
-        {
-            Assert.That(purchaseParams.Nodes, Is.LessThan(NumberOfHosts));
-        }
-
+        private const int NumberOfFailures = 10;
         protected override int NumberOfHosts => 6;
         protected override int NumberOfClients => 1;
-        protected override ByteSize HostAvailabilitySize => purchaseParams.SlotSize.Multiply(1.1); // Each host can hold 1 slot.
+        protected override TestToken HostStartingBalance => DefaultPurchase.CollateralRequiredPerSlot * 1.1; // Each host can hold 1 slot.
         protected override TimeSpan HostAvailabilityMaxDuration => TimeSpan.FromDays(5.0);
         
         #endregion
@@ -35,12 +25,37 @@ namespace ArchivistReleaseTests.Repair
         private int proofsMissed = 0;
 
         [Test]
-        [Combinatorial]
-        public void RollingRepairSingleFailure(
-            [Rerun] int rerun,
-            [Values(10)] int numFailures)
+        public void SingleFailure()
         {
-            Assert.That(numFailures, Is.GreaterThan(NumberOfHosts));
+            RollingRepairTest(
+                numHostsPerFailure: 1
+            );
+        }
+
+        [Test]
+        public void DoubleFailure()
+        {
+            RollingRepairTest(
+                numHostsPerFailure: 2
+            );
+        }
+
+        private void RollingRepairTest(int numHostsPerFailure)
+        {
+            // Ensure all hosts will eventually be replaced:
+            var totalReplacedHosts = NumberOfFailures * numHostsPerFailure;
+            Assert.That(totalReplacedHosts, Is.GreaterThan(NumberOfHosts),
+                "Test misconfigured: Not all original hosts will be replaced.");
+
+            // Ensure enough hosts will survive each failure:
+            var survivingHosts = NumberOfHosts - numHostsPerFailure;
+            var minRequiredHosts = DefaultStoragePurchase.MinRequiredNumberOfNodes - DefaultStoragePurchase.NodeFailureTolerance;
+            Assert.That(survivingHosts, Is.GreaterThanOrEqualTo(minRequiredHosts),
+                "Test misconfigured: Not enough hosts will survive failure to reconstruct dataset.");
+
+            Log($"Using {NumberOfHosts} hosts.");
+            Log($"{numHostsPerFailure} hosts will fail per failure step.");
+            Log($"{survivingHosts} hosts will remain.");
 
             var (startHosts, clients, validator) = JumpStart();
             var hosts = startHosts.ToList();
@@ -64,30 +79,72 @@ namespace ArchivistReleaseTests.Repair
             var requestState = GetContracts().GetRequestState(contract.PurchaseId.HexToByteArray());
             Assert.That(requestState, Is.Not.EqualTo(RequestState.Failed));
 
-            for (var i = 0; i < numFailures; i++)
+            for (var i = 0; i < NumberOfFailures; i++)
             {
-                var fills = GetOnChainSlotFills(hosts);
+                PerformFailureStep(i, numHostsPerFailure, hosts, contract);
+            }
+        }
 
-                Log($"Failure step: {i}");
-                Log($"Running hosts: [{string.Join(", ", hosts.Select(h => h.GetName()))}]");
-                Log($"Current fills: {string.Join(", ", fills.Select(f => f.ToString()))}");
+        private void PerformFailureStep(int i, int numHostsPerFailure, List<IArchivistNode> hosts, IStoragePurchaseContract contract)
+        {
+            Log($"Failure step: {i}");
+            Log($"Running hosts: [{string.Join(", ", hosts.Select(GetNameAndBalance))}]");
 
-                // Start a new host. Add it to the back of the list:
-                hosts.Add(StartOneHost());
+            StartNewHosts(hosts, numHostsPerFailure);
 
-                // Pick a filled slot by a host at or near the front of the list.
-                var fill = GetSlotFillByOldestHost(fills, hosts);
+            var selectedFills = SelectOldestSlotFills(hosts, numHostsPerFailure);
+            var selectedSlots = selectedFills.Select(f => f.SlotFilledEvent.SlotIndex).ToArray();
 
+            var eventStartUtc = DateTime.UtcNow;
+            StopHostsOfSlotFills(hosts, selectedFills);
+
+            WaitForSlotFreedEvents(eventStartUtc, contract, selectedSlots);
+            WaitForNewSlotFilledEvents(eventStartUtc, contract, selectedSlots);
+        }
+
+        private SlotFill[] SelectOldestSlotFills(List<IArchivistNode> hosts, int numHostsPerFailure)
+        {
+            var allFills = GetOnChainSlotFills(hosts);
+            Log($"Current fills: {string.Join(", ", allFills.Select(f => f.ToString()))}");
+            return GetSlotFillsByOldestHost(numHostsPerFailure, allFills, hosts);
+        }
+
+        private void StopHostsOfSlotFills(List<IArchivistNode> hosts, SlotFill[] selectedFills)
+        {
+            foreach (var fill in selectedFills)
+            {
                 Log($"Causing failure for host: {fill.Host.GetName()} slotIndex: {fill.SlotFilledEvent.SlotIndex}");
                 hosts.Remove(fill.Host);
-                fill.Host.Stop(waitTillStopped: true);
-
-                // The slot should become free.
-                WaitForSlotFreedEvent(contract, fill.SlotFilledEvent.SlotIndex);
-
-                // One of the other hosts should pick up the free slot.
-                WaitForNewSlotFilledEvent(contract, fill.SlotFilledEvent.SlotIndex);
             }
+            Parallel(selectedFills, f => f.Host.Stop(waitTillStopped: true));
+        }
+
+        private void StartNewHosts(List<IArchivistNode> hosts, int numHostsPerFailure)
+        {
+            var newHosts = Parallel(numHostsPerFailure, StartOneHost);
+            hosts.AddRange(newHosts);
+        }
+
+        private string GetNameAndBalance(IArchivistNode host)
+        {
+            return $"{host.GetName()} = {GetTstBalance(host)}";
+        }
+
+        private void Parallel<T>(T[] source, Action<T> action)
+        {
+            var tasks = source.Select(s => Task.Run(() => action(s))).ToArray();
+            Task.WaitAll(tasks);
+        }
+
+        private T[] Parallel<T>(int count, Func<T> task)
+        {
+            var tasks = new List<Task<T>>();
+            for (var i = 0; i < count; i++)
+            {
+                tasks.Add(Task.Run(task));
+            }
+            Task.WaitAll(tasks);
+            return tasks.Select(t => t.Result).ToArray();
         }
 
         protected override void OnPeriod(PeriodReport report)
@@ -104,19 +161,20 @@ namespace ArchivistReleaseTests.Repair
             }
         }
 
-        private void WaitForSlotFreedEvent(IStoragePurchaseContract contract, ulong slotIndex)
+        private void WaitForSlotFreedEvents(DateTime startUtc, IStoragePurchaseContract contract, ulong[] slotIndices)
         {
+            var remaining = slotIndices.ToList();
             var timeout = CalculateContractFailTimespan();
-            var context = $"(requestId: '{contract.PurchaseId.ToLowerInvariant()}' slotIndex: {slotIndex}) - ";
+            var context = GetLogContext(contract, slotIndices);
             Log($"{context} Timeout: {Time.FormatDuration(timeout)}");
 
             WaitForNewEventWithTimeout(
+                startUtc: startUtc,
                 timeout: timeout,
                 waiter: () => GetContracts().WaitUntilNextPeriod(),
                 checker: events =>
                 {
                     var slotsFreed = events.GetEvents<SlotFreedEventDTO>();
-                    Log($"{context} Slots freed this period: {slotsFreed.Length}");
 
                     foreach (var free in slotsFreed)
                     {
@@ -125,10 +183,15 @@ namespace ArchivistReleaseTests.Repair
 
                         if (freedId.Equals(contract.PurchaseId, StringComparison.InvariantCultureIgnoreCase))
                         {
-                            if (free.SlotIndex == slotIndex)
+                            if (remaining.Contains(free.SlotIndex))
                             {
-                                Log($"{context} {free.Block} Done: found the correct slotFree event.");
-                                return true;
+                                Log($"{context} {free.Block} Found correct slotFree event. slotIndex: {free.SlotIndex}");
+                                remaining.Remove(free.SlotIndex);
+                                if (remaining.Count == 0)
+                                {
+                                    Log($"{context} Done! Found all required slotFree events.");
+                                    return true;
+                                }
                             }
                         }
                     }
@@ -136,52 +199,51 @@ namespace ArchivistReleaseTests.Repair
                 });
         }
 
-        private void WaitForNewSlotFilledEvent(IStoragePurchaseContract contract, ulong slotIndex)
+        private void WaitForNewSlotFilledEvents(DateTime startUtc, IStoragePurchaseContract contract, ulong[] slotIndices)
         {
+            var remaining = slotIndices.ToList();
             var timeout = contract.Purchase.Expiry;
-            var context = $"(requestId: '{contract.PurchaseId.ToLowerInvariant()}' slotIndex: {slotIndex}) - ";
+            var context = GetLogContext(contract, slotIndices);
             Log($"{context} Timeout: {Time.FormatDuration(timeout)}");
 
             WaitForNewEventWithTimeout(
+                startUtc: startUtc,
                 timeout: timeout,
                 waiter: () => Thread.Sleep(TimeSpan.FromSeconds(15)),
                 checker: events =>
                 {
                     var slotFillEvents = events.GetEvents<SlotFilledEventDTO>();
-                    Log($"{context} Slots filled in last 15 seconds: {slotFillEvents.Length}");
-
                     var matches = slotFillEvents.Where(f =>
                     {
                         return
                             f.RequestId.ToHex().ToLowerInvariant() == contract.PurchaseId.ToLowerInvariant() &&
-                            f.SlotIndex == slotIndex;
+                            remaining.Contains(f.SlotIndex);
                     }).ToArray();
 
-                    if (matches.Length > 1)
+                    foreach (var match in matches)
                     {
-                        var msg = string.Join(",", matches.Select(f => f.ToString()));
-                        Assert.Fail($"{context} Somehow, the slot got filled multiple times: {msg}");
+                        Log($"{context} Found correct new slotFilled event. slotIndex: {match.SlotIndex}");
+                        remaining.Remove(match.SlotIndex);
                     }
-                    if (matches.Length == 1)
+                    if (remaining.Count == 0)
                     {
-                        Log($"{context} Found the correct new slotFilled event: {matches[0].ToString()}");
+                        Log($"{context} Done! Found all required slotFilled events.");
                         return true;
                     }
                     return false;
                 });
         }
 
-        private void WaitForNewEventWithTimeout(TimeSpan timeout, Action waiter, Func<IArchivistContractsEvents, bool> checker)
+        private void WaitForNewEventWithTimeout(DateTime startUtc, TimeSpan timeout, Action waiter, Func<IArchivistContractsEvents, bool> checker)
         {
-            var start = DateTime.UtcNow;
-            var loop = start;
+            var loopEnd = startUtc;
             Thread.Sleep(TimeSpan.FromSeconds(3.0));
 
-            while (DateTime.UtcNow < start + timeout)
+            while (DateTime.UtcNow < startUtc + timeout)
             {
-                var loopStart = loop;
-                loop = DateTime.UtcNow;
-                var events = GetContracts().GetEvents(new TimeRange(loopStart, loop));
+                var loopStart = loopEnd;
+                loopEnd = DateTime.UtcNow;
+                var events = GetContracts().GetEvents(new TimeRange(loopStart, loopEnd));
 
                 if (checker(events)) return;
                 waiter();
@@ -189,9 +251,15 @@ namespace ArchivistReleaseTests.Repair
             Assert.Fail($"{nameof(WaitForNewEventWithTimeout)} Failed after {Time.FormatDuration(timeout)}");
         }
 
-        private SlotFill GetSlotFillByOldestHost(SlotFill[] fills, List<IArchivistNode> hosts)
+        private string GetLogContext(IStoragePurchaseContract contract, ulong[] slotIndices)
+        {
+            return $"(requestId: '{contract.PurchaseId.ToLowerInvariant()}' slotIndices: {string.Join(",", slotIndices.Select(i => i.ToString()))}) - ";
+        }
+
+        private SlotFill[] GetSlotFillsByOldestHost(int number, SlotFill[] fills, List<IArchivistNode> hosts)
         {
             var copy = hosts.ToArray();
+            var result = new List<SlotFill>();
             foreach (var host in copy)
             {
                 var fill = GetFillByHost(host, fills);
@@ -204,28 +272,26 @@ namespace ArchivistReleaseTests.Repair
                 }
                 else
                 {
-                    return fill;
+                    result.Add(fill);
+                    if (result.Count == number) return result.ToArray();
                 }
             }
-            throw new Exception("None of the hosts seem to have filled a slot.");
+            throw new Exception($"Could not find {number} hosts that have filled a slot.");
         }
 
         private SlotFill? GetFillByHost(IArchivistNode host, SlotFill[] fills)
         {
             // If these is more than 1 fill by this host, the test is misconfigured.
-            // The availability size of the host should guarantee it can fill 1 slot maximum.
+            // The collateral balance of the host should guarantee it can fill 1 slot maximum.
             return fills.SingleOrDefault(f => f.Host.EthAddress == host.EthAddress);
         }
 
         private IStoragePurchaseContract CreateStorageRequest(IArchivistNode client)
         {
-            var cid = client.UploadFile(GenerateTestFile(purchaseParams.UploadFilesize));
-            var config = GetContracts().Deployment.Config;
+            var cid = client.UploadFile(GenerateTestFile(DefaultPurchase.UploadFilesize));
             return client.Marketplace.RequestStorage(new StoragePurchaseRequest(cid)
             {
                 Duration = HostAvailabilityMaxDuration / 2,
-                MinRequiredNumberOfNodes = (uint)purchaseParams.Nodes,
-                NodeFailureTolerance = (uint)purchaseParams.Tolerance,
                 ProofProbability = 1, // One proof every period. Free slot as quickly as possible.
             });
         }
