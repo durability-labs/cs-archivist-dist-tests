@@ -62,6 +62,7 @@ namespace ArchivistReleaseTests.Utils
         protected abstract int NumberOfHosts { get; }
         protected abstract int NumberOfClients { get; }
         protected virtual TestToken HostStartingBalance => StartingBalanceTST.Tst();
+        protected virtual ByteSize HostQuota => 2.GB();
         protected virtual TimeSpan HostAvailabilityMaxDuration => TimeSpan.FromHours(3.0);
         protected virtual bool MonitorChainState { get; } = true;
         protected virtual bool MonitorProofPeriods { get; } = true;
@@ -143,6 +144,7 @@ namespace ArchivistReleaseTests.Utils
             {
                 s
                 .WithName("host")
+                .WithStorageQuota(HostQuota)
                 .WithBlockTTL(HostBlockTTL)
                 .WithBlockMaintenanceNumber(HostBlockMaintenanceCount)
                 .WithBlockMaintenanceInterval(HostBlockMaintenanceInterval)
@@ -173,6 +175,7 @@ namespace ArchivistReleaseTests.Utils
         {
             var host = StartArchivist(s => s
                 .WithName("singlehost")
+                .WithStorageQuota(HostQuota)
                 .WithBlockTTL(HostBlockTTL)
                 .WithBlockMaintenanceNumber(HostBlockMaintenanceCount)
                 .WithBlockMaintenanceInterval(HostBlockMaintenanceInterval)

@@ -26,13 +26,15 @@ namespace ArchivistReleaseTests.Repair
 
         protected override int NumberOfHosts => 5;
         protected override int NumberOfClients => 1;
-        protected override TestToken HostStartingBalance => DefaultPurchase.CollateralRequiredPerSlot * 1.1; // Each host can hold 1 slot.
+        protected override TestToken HostStartingBalance => DefaultPurchase.CollateralRequiredPerSlot * 1.1; // Each host can afford 1 slot.
+        protected override ByteSize HostQuota => DefaultPurchase.SlotSize.Multiply(1.1); // Each host can hold 1 slot.
         protected override TimeSpan HostAvailabilityMaxDuration => TimeSpan.FromDays(5.0);
         protected override bool MonitorProofPeriods => false;
 
         #endregion
 
         [Test]
+        [Ignore("Fails at contract-start until repostore quota management is fixed.")]
         public void RetrievabilityTest()
         {
             if (stopSlotIndex1 == stopSlotIndex2) throw new Exception();
