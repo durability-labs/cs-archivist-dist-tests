@@ -77,7 +77,7 @@ namespace TestNetRewarder
 
         public string NewRequest => "🌱";
         public string Started => "🌳";
-        public string SlotFilled => "🟢";
+        public string SlotFilled => "🟣";
         public string SlotRepaired => "♻";
         public string SlotFreed => "⭕";
         public string SlotReservationsFull => "☑️";
