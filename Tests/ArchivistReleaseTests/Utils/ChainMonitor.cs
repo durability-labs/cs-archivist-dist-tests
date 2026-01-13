@@ -28,7 +28,7 @@ namespace ArchivistReleaseTests.Utils
             this.startUtc = startUtc;
             this.updateInterval = updateInterval;
             this.monitorProofPeriods = monitorProofPeriods;
-            this.slotTracker = new SlotTrackerChainStateChangeHandler(contracts);
+            slotTracker = new SlotTrackerChainStateChangeHandler(this.log, contracts);
         }
 
         public void Start(Action onFailure)
@@ -75,6 +75,7 @@ namespace ArchivistReleaseTests.Utils
 
         private void LogSlotTrackerReports()
         {
+            slotTracker.FinalizeReports();
             var reports = slotTracker.GetSlotReports();
             foreach (var r in reports)
             {

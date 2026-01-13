@@ -74,7 +74,7 @@ namespace ArchivistReleaseTests.MarketTests
 
             AssertHostsIgnoreDeceptiveRequest(hosts);
 
-            CreateAndStartLegitRequest(client);
+            CreateAndStartLegitRequest(client, hostQuotaSize);
         }
 
         [Test]
@@ -101,7 +101,7 @@ namespace ArchivistReleaseTests.MarketTests
 
             AssertHostsIgnoreDeceptiveRequest(hosts);
 
-            CreateAndStartLegitRequest(client);
+            CreateAndStartLegitRequest(client, hostQuotaSize);
         }
 
         private void PostDeceptiveRequests(IArchivistNode client, Request request, ByteSize deceptiveRequestSlotSize)
@@ -151,11 +151,35 @@ namespace ArchivistReleaseTests.MarketTests
                 foreach (var id in deceptiveRequestIds)
                 {
                     AssertNoSlotFills(hosts, id);
+                    AssertHostsDidntDownloadDataset(hosts);
                 }
             });
 
             Log("The hosts should be empty.");
             AssertHostsAreEmpty(hosts);
+        }
+
+        private void AssertHostsDidntDownloadDataset(IArchivistNodeGroup hosts)
+        {
+            foreach (var host in hosts)
+            {
+                AssertHostDidntDownloadDataset(host);
+            }
+        }
+
+        private void AssertHostDidntDownloadDataset(IArchivistNode host)
+        {
+            // We expect the host to download a manifest blocks, and we expect
+            // some clutter from the previous request.
+            var numberOfManifestBlocks = numberOfDeceptiveRequests;
+            var tolerance = 2 + numberOfDeceptiveRequests;
+
+            var storedBlocks = host.Space().TotalBlocks;
+            Assert.That(storedBlocks, Is.LessThan(numberOfManifestBlocks + tolerance),
+                $"Host {host.GetName()} is storing more blocks than expected. " +
+                $"Expected number of manifest blocks: {numberOfManifestBlocks} " +
+                $"Tolerance: {tolerance} " +
+                $"Stored blocks: {storedBlocks}");
         }
 
         private void AssertNoSlotFills(IArchivistNodeGroup hosts, string id)
@@ -169,12 +193,12 @@ namespace ArchivistReleaseTests.MarketTests
             }
         }
 
-        private void CreateAndStartLegitRequest(IArchivistNode client)
+        private void CreateAndStartLegitRequest(IArchivistNode client, ByteSize hostQuotaSize)
         {
             Log("Now we create a legit request. The hosts should pick it up and the request should start.");
             var legitRequest = client.Marketplace
                 .RequestStorage(new StoragePurchaseRequest(
-                    client.UploadFile(GenerateTestFile(DefaultPurchase.UploadFilesize))
+                    client.UploadFile(GenerateTestFile(hostQuotaSize.Multiply(0.5)))
                 ));
 
             legitRequest.WaitForStorageContractStarted();

@@ -10,12 +10,19 @@ namespace ArchivistContractsPlugin.ChainMonitor
     {
         private readonly string[] requestIdsToTrack;
         private readonly Dictionary<string, Dictionary<ulong, SlotReport>> reports = new Dictionary<string, Dictionary<ulong, SlotReport>>();
+        private readonly ILog log;
         private readonly IArchivistContracts contracts;
 
-        public SlotTrackerChainStateChangeHandler(IArchivistContracts contracts, params string[] requestIdsToTrack)
+        public SlotTrackerChainStateChangeHandler(ILog log, IArchivistContracts contracts, params string[] requestIdsToTrack)
         {
             this.requestIdsToTrack = requestIdsToTrack.Select(r => r.ToLowerInvariant()).ToArray();
+            this.log = log;
             this.contracts = contracts;
+        }
+
+        public void FinalizeReports()
+        {
+            FindSlotReserveCalls(DateTime.UtcNow);
         }
 
         public SlotReport[] GetSlotReports()
@@ -34,7 +41,6 @@ namespace ArchivistContractsPlugin.ChainMonitor
             if (!IsMyRequest(requestEvent)) return;
             var d = GetMap(requestEvent);
             foreach (var pair in d) pair.Value.RequestCancelled(requestEvent.Block);
-            FindSlotReserveCalls(d, requestEvent.Block);
         }
 
         public void OnRequestFailed(RequestEvent requestEvent)
@@ -42,7 +48,6 @@ namespace ArchivistContractsPlugin.ChainMonitor
             if (!IsMyRequest(requestEvent)) return;
             var d = GetMap(requestEvent);
             foreach (var pair in d) pair.Value.RequestFailed(requestEvent.Block);
-            FindSlotReserveCalls(d, requestEvent.Block);
         }
 
         public void OnRequestFinished(RequestEvent requestEvent)
@@ -50,7 +55,6 @@ namespace ArchivistContractsPlugin.ChainMonitor
             if (!IsMyRequest(requestEvent)) return;
             var d = GetMap(requestEvent);
             foreach (var pair in d) pair.Value.RequestFinished(requestEvent.Block);
-            FindSlotReserveCalls(d, requestEvent.Block);
         }
 
         public void OnRequestFulfilled(RequestEvent requestEvent)
@@ -58,7 +62,6 @@ namespace ArchivistContractsPlugin.ChainMonitor
             if (!IsMyRequest(requestEvent)) return;
             var d = GetMap(requestEvent);
             foreach (var pair in d) pair.Value.RequestStarted(requestEvent.Block);
-            FindSlotReserveCalls(d, requestEvent.Block);
         }
 
         public void OnSlotFilled(RequestEvent requestEvent, EthAddress host, BigInteger slotIndex, bool isRepair)
@@ -77,7 +80,9 @@ namespace ArchivistContractsPlugin.ChainMonitor
 
         public void OnSlotReservationsFull(RequestEvent requestEvent, BigInteger slotIndex)
         {
-            // We'll log the calls to reserveSlot when the contract is started/expired/finished/failed.
+            if (!IsMyRequest(requestEvent)) return;
+            var d = GetMap(requestEvent);
+            d[(ulong)slotIndex].SlotReservationsFull(requestEvent.Block);
         }
 
         public void OnError(string msg)
@@ -104,33 +109,42 @@ namespace ArchivistContractsPlugin.ChainMonitor
             return d;
         }
 
-        private void FindSlotReserveCalls(Dictionary<ulong, SlotReport> slots, BlockTimeEntry end)
+        private void FindSlotReserveCalls(DateTime endUtc)
         {
-            foreach (var pair in slots)
-            {
-                FindSlotReserveCalls(pair.Value, end);
-            }
-        }
-
-        private void FindSlotReserveCalls(SlotReport slot, BlockTimeEntry end)
-        {
-            var timeInterval = new TimeRange(slot.CreationBlock.Utc, end.Utc);
-            var interval = new BlockInterval(timeInterval, slot.CreationBlock.BlockNumber, end.BlockNumber);
-            var events = contracts.GetEvents(interval);
+            var earliestCreationUtc = FindEarliestCreationUtc();
+            var timeInterval = new TimeRange(earliestCreationUtc, endUtc);
+            Log($"Collecting ReserveSlot calls in range {timeInterval}");
+            var events = contracts.GetEvents(timeInterval);
             events.GetReserveSlotCalls(call =>
             {
                 var requestId = call.RequestId.ToHex().ToLowerInvariant();
-                if (requestId == slot.RequestId && call.SlotIndex == slot.SlotIndex)
+                if (reports.TryGetValue(requestId, out var map))
                 {
-                    slot.SlotReserved(call.FromAddress, call.Block);
+                    map[call.SlotIndex].SlotReserved(call.FromAddress, call.Block);
                 }
             });
+        }
+
+        private DateTime FindEarliestCreationUtc()
+        {
+            var result = DateTime.MaxValue;
+            foreach (var pair in reports)
+            {
+                var creationUtc = pair.Value.First().Value.CreationBlock.Utc;
+                if (creationUtc < result) result = creationUtc;
+            }
+            return result;
         }
 
         private bool IsMyRequest(RequestEvent requestEvent)
         {
             if (requestIdsToTrack.Length == 0) return true;
             return requestIdsToTrack.Any(id => id == requestEvent.Request.Id);
+        }
+
+        private void Log(string msg)
+        {
+            log.Log(msg);
         }
     }
 
@@ -194,6 +208,11 @@ namespace ArchivistContractsPlugin.ChainMonitor
         public void SlotFreed(BlockTimeEntry block)
         {
             entries.Add((block, "Slot freed"));
+        }
+
+        public void SlotReservationsFull(BlockTimeEntry block)
+        {
+            entries.Add((block, "Slot reservations full"));
         }
 
         public void SlotReserved(string host, BlockTimeEntry block)
