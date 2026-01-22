@@ -5,13 +5,13 @@ namespace AutoClient.Modes
     public class FolderStoreMode
     {
         private readonly App app;
+        private readonly NodeDispatcher nodeDispatcher;
         private Task checkTask = Task.CompletedTask;
-        private readonly LoadBalancer loadBalancer;
 
-        public FolderStoreMode(App app, LoadBalancer loadBalancer)
+        public FolderStoreMode(App app, NodeDispatcher nodeDispatcher)
         {
             this.app = app;
-            this.loadBalancer = loadBalancer;
+            this.nodeDispatcher = nodeDispatcher;
         }
 
         public void Start()
@@ -20,10 +20,15 @@ namespace AutoClient.Modes
             {
                 try
                 {
-                    var saver = new FolderSaver(app, loadBalancer);
+                    todo: this won't work: we need recoverability from the stored data
+                    var folderStatus = new FolderStatus(app);
+                    var nodeOperator = new NodeOperator(app.Log, nodeDispatcher);
+                    var fileProcessor = new FileProcessor(app, folderStatus, nodeOperator);
+                    var folderIterator = new FolderIterator(app, fileProcessor);
+
                     while (!app.Cts.IsCancellationRequested)
                     {
-                        saver.Run();
+                        folderIterator.Run();
                         Thread.Sleep(TimeSpan.FromHours(1.0));
                     }
                 }

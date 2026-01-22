@@ -4,7 +4,7 @@ using MetricsServer;
 
 namespace AutoClient
 {
-    public class AppMetrics : IFileSaverResultHandler
+    public class AppMetrics : IAppEventHandler
     {
         private readonly MetricsServer.MetricsServer server;
         private readonly MetricsEvent processStart;
@@ -12,6 +12,7 @@ namespace AutoClient
         private readonly MetricsEvent purchaseFailed;
         private readonly MetricsEvent uploadSuccess;
         private readonly MetricsEvent uploadFailed;
+        todo: purchase extended metric event
 
         public AppMetrics(ILog log, Configuration config)
         {
@@ -25,7 +26,7 @@ namespace AutoClient
             uploadFailed = server.CreateEvent("upload_failed", "failed to upload a file");
         }
 
-        public void OnProcessStart()
+        public void OnFileProcessStarted()
         {
             processStart.Now();
         }

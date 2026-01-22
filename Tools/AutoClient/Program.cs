@@ -32,18 +32,15 @@ public class Program
     {
         Log("Setting up instances...");
         var archivistNodes = CreateArchivistWrappers();
-        var loadBalancer = new LoadBalancer(app, archivistNodes);
-        Log("Starting load-balancer...");
-        loadBalancer.Start();
+        var nodeDispatcher = new NodeDispatcher(app.Log, archivistNodes);
 
-        var folderStore = new FolderStoreMode(app, loadBalancer);
+        var folderStore = new FolderStoreMode(app, nodeDispatcher);
         Log("Starting folder-store mode...");
         folderStore.Start();
 
         app.Cts.Token.WaitHandle.WaitOne();
 
         folderStore.Stop();
-        loadBalancer.Stop();
 
         Log("Done");
     }

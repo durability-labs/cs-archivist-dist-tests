@@ -4,20 +4,6 @@ using Utils;
 
 namespace AutoClient.Modes.FolderStore
 {
-    public interface IFileSaverEventHandler
-    {
-        void SaveChanges();
-    }
-
-    public interface IFileSaverResultHandler
-    {
-        void OnProcessStart();
-        void OnUploadSuccess();
-        void OnUploadFailure();
-        void OnPurchaseSuccess();
-        void OnPurchaseFailure();
-    }
-
     public class FileSaver
     {
         private readonly ILog log;
@@ -26,9 +12,9 @@ namespace AutoClient.Modes.FolderStore
         private readonly string folderFile;
         private readonly FileStatus entry;
         private readonly IFileSaverEventHandler saveHandler;
-        private readonly IFileSaverResultHandler resultHandler;
+        private readonly IAppEventHandler resultHandler;
 
-        public FileSaver(ILog log, LoadBalancer loadBalancer, Stats stats, string folderFile, FileStatus entry, IFileSaverEventHandler saveHandler, IFileSaverResultHandler resultHandler)
+        public FileSaver(ILog log, LoadBalancer loadBalancer, Stats stats, string folderFile, FileStatus entry, IFileSaverEventHandler saveHandler, IAppEventHandler resultHandler)
         {
             this.log = log;
             this.loadBalancer = loadBalancer;
@@ -41,7 +27,7 @@ namespace AutoClient.Modes.FolderStore
 
         public void Process()
         {
-            resultHandler.OnProcessStart();
+            resultHandler.OnFileProcessStarted();
             if (string.IsNullOrEmpty(entry.ArchivistNodeId))
             {
                 DispatchToAny();
@@ -82,10 +68,10 @@ namespace AutoClient.Modes.FolderStore
         private readonly string folderFile;
         private readonly FileStatus entry;
         private readonly IFileSaverEventHandler saveHandler;
-        private readonly IFileSaverResultHandler resultHandler;
+        private readonly IAppEventHandler resultHandler;
         private readonly QuotaCheck quotaCheck;
 
-        public FileSaverRun(ILog log, ArchivistWrapper instance, Stats stats, string folderFile, FileStatus entry, IFileSaverEventHandler saveHandler, IFileSaverResultHandler resultHandler)
+        public FileSaverRun(ILog log, ArchivistWrapper instance, Stats stats, string folderFile, FileStatus entry, IFileSaverEventHandler saveHandler, IAppEventHandler resultHandler)
         {
             this.log = log;
             this.instance = instance;
