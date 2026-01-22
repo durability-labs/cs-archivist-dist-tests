@@ -47,20 +47,6 @@ namespace TraceContract
                 new TimeRange(startBlock.Utc, contractEnd.Utc),
                 startBlock.BlockNumber, contractEnd.BlockNumber);
 
-            var events = contracts.GetEvents(blockRange);
-
-            Stopwatch.Measure(log, nameof(events.GetReserveSlotCalls), () =>
-            {
-                events.GetReserveSlotCalls(call =>
-                {
-                    if (IsThisRequest(call.RequestId))
-                    {
-                        output.LogReserveSlotCall(call);
-                        log.Log("Found reserve-slot call for slotIndex " + call.SlotIndex);
-                    }
-                });
-            });
-
             log.Log("Writing blockchain output...");
             output.WriteContractEvents();
 
@@ -81,7 +67,7 @@ namespace TraceContract
         private BlockTimeEntry RunToContractEnd(DateTime utc)
         {
             var tracker = new ChainRequestTracker(output, input.PurchaseId);
-            var slotTracker = new SlotTrackerChainStateChangeHandler(contracts, input.PurchaseId);
+            var slotTracker = new SlotTrackerChainStateChangeHandler(log, contracts, input.PurchaseId);
             output.AddSlotTracker(slotTracker);
             var mux = new ChainStateChangeHandlerMux(tracker, slotTracker);
             var chainState = new ChainState(baseLog, geth, contracts, mux, utc, false, new DoNothingPeriodMonitorEventHandler(false));

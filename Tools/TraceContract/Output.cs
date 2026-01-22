@@ -135,6 +135,7 @@ namespace TraceContract
 
         private void WriteSlotTracker(SlotTrackerChainStateChangeHandler slotTracker)
         {
+            slotTracker.FinalizeReports();
             var slotReports = slotTracker.GetSlotReports();
             foreach (var report in slotReports)
             {
@@ -146,11 +147,6 @@ namespace TraceContract
         private void Write(Entry e)
         {
             log.Log($"[{Time.FormatTimestamp(e.Utc)}] {e.Msg}");
-        }
-
-        public void LogReserveSlotCall(ReserveSlotFunction call)
-        {
-            Add(call.Block, $"Reserve-slot called. Block: {call.Block.BlockNumber} Index: {call.SlotIndex} Host: '{call.FromAddress}'");
         }
 
         private void Add(DateTime utc, string msg)
