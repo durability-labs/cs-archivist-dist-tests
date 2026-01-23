@@ -20,10 +20,9 @@ namespace AutoClient.Modes
             {
                 try
                 {
-                    todo: this won't work: we need recoverability from the stored data
                     var folderStatus = new FolderStatus(app);
-                    var nodeOperator = new NodeOperator(app.Log, nodeDispatcher);
-                    var fileProcessor = new FileProcessor(app, folderStatus, nodeOperator);
+                    var nodeOperator = new NodeOperator(app.Log, folderStatus, nodeDispatcher, app.Muxer);
+                    var fileProcessor = new FileProcessor(app, folderStatus, nodeOperator, app.Muxer);
                     var folderIterator = new FolderIterator(app, fileProcessor);
 
                     while (!app.Cts.IsCancellationRequested)

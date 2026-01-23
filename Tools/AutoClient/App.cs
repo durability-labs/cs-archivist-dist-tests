@@ -1,3 +1,4 @@
+using AutoClient.Modes.FolderStore;
 using Logging;
 using WebUtils;
 
@@ -17,12 +18,14 @@ namespace AutoClient
             );
 
             Metrics = new AppMetrics(Log, config);
+            Muxer = new AppEventMuxer()add;
         }
 
         public Configuration Config { get; }
         public ILog Log { get; }
         public CancellationTokenSource Cts { get; } = new CancellationTokenSource();
         public AppMetrics Metrics { get; }
+        public AppEventMuxer Muxer { get; }
     }
 
     public class AutoClientWebTimeSet : IWebCallTimeSet

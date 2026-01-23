@@ -11,6 +11,8 @@ namespace AutoClient.Modes.FolderStore
     {
         private readonly App app;
         private readonly IFilePathHandler handler;
+        private readonly List<string> folderFiles = new List<string>();
+        private readonly object _lock = new object();
 
         public FolderIterator(App app, IFilePathHandler handler)
         {
@@ -18,13 +20,36 @@ namespace AutoClient.Modes.FolderStore
             this.handler = handler;
         }
 
-        public void Run()
+        public void Initialize()
         {
-            Log("Running FolderIterator...");
+            Log("Starting FolderIterator...");
 
             if (!Directory.Exists(app.Config.FolderToStore)) throw new Exception("Path does not exist: " + app.Config.FolderToStore);
-            var folderFiles = Directory.GetFiles(app.Config.FolderToStore);
-            if (!folderFiles.Any()) throw new Exception("No files found in " + app.Config.FolderToStore);
+            var files = Directory.GetFiles(app.Config.FolderToStore);
+            if (!files.Any()) throw new Exception("No files found in " + app.Config.FolderToStore);
+
+            lock (_lock)
+            {
+                folderFiles.AddRange(files);
+            }
+        }
+
+        public bool IsFinished
+        {
+            get
+            {
+                lock (_lock) return !folderFiles.Any();
+            }
+        }
+
+        public void Step()
+        {
+            var folderFile = string.Empty;
+            lock (_lock)
+            {
+
+            }
+
 
             foreach (var folderFile in folderFiles)
             {

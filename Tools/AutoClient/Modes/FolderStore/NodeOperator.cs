@@ -64,18 +64,32 @@ namespace AutoClient.Modes.FolderStore
                 CreatePurchase(cid);
             }
 
+            public void ExtendPurchase()
+            {
+                Log("Extending existing purchase...");
+                try
+                {
+                    var request = node.ExtendStorage(
+                        new ContentId(entry.EncodedCid),
+                        entry.PurchaseNodes,
+                        entry.PurchaseTolerance
+                    );
+                    HandleNewRequest(request);
+                }
+                catch (Exception exc)
+                {
+                    log.Error("Failed to start new purchase: " + exc);
+                    throw;
+                }
+            }
+
             private void CreatePurchase(string cid)
             {
                 Log("Creating new purchase...");
                 try
                 {
-                    var request = CreateNewStorageRequest(cid);
-
-                    WaitForSubmitted(request);
-                    WaitForStarted(request);
-
-                    appEventHandler.OnPurchaseSuccess();
-                    Log($"Successfully started new purchase: '{request.PurchaseId}'");
+                    var request = node.RequestStorage(new ContentId(cid));
+                    HandleNewRequest(request);
                 }
                 catch (Exception exc)
                 {
@@ -102,16 +116,20 @@ namespace AutoClient.Modes.FolderStore
                 }
             }
 
-            private IStoragePurchaseContract CreateNewStorageRequest(string cid)
+            private void HandleNewRequest(IStoragePurchaseContract request)
             {
                 try
                 {
-                    var request = node.RequestStorage(new ContentId(cid));
                     entry.EncodedCid = request.ContentId.Id;
                     entry.PurchaseNodes = request.Purchase.MinRequiredNumberOfNodes;
                     entry.PurchaseTolerance = request.Purchase.NodeFailureTolerance;
                     entry.PurchaseFinishedUtc = DateTime.UtcNow + request.Purchase.Duration;
-                    return request;
+
+                    WaitForSubmitted(request);
+                    WaitForStarted(request);
+
+                    appEventHandler.OnPurchaseSuccess();
+                    Log($"Successfully started new purchase: '{request.PurchaseId}'");
                 }
                 catch
                 {
@@ -192,10 +210,6 @@ namespace AutoClient.Modes.FolderStore
             private void Log(string v)
             {
                 throw new NotImplementedException();
-            }
-
-            public void ExtendPurchase()
-            {
             }
         }
     }
