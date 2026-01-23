@@ -11,15 +11,12 @@ namespace ArchivistReleaseTests.MarketTests
         protected override int NumberOfClients => 1;
 
         [Test]
-        public void RenewStorageContract()
+        public void RenewMyOwnStorageContract()
         {
             var (hosts, clients) = JumpStartHostsAndClients();
             var client = clients.Single();
 
-            var cid = client.UploadFile(GenerateTestFile(DefaultPurchase.UploadFilesize));
-            var firstContract = client.Marketplace.RequestStorage(new StoragePurchaseRequest(cid));
-
-            firstContract.WaitForStorageContractStarted();
+            var firstContract = StartFirstContract(client);
 
             // Using the CID of the contract, we can create another one.
             var secondContract = client.Marketplace.RequestStorage(new StoragePurchaseRequest(firstContract.ContentId));
@@ -28,6 +25,40 @@ namespace ArchivistReleaseTests.MarketTests
 
             secondContract.WaitForStorageContractStarted();
 
+            AssertTwoSimilarRequestsOnChain();
+        }
+
+        [Test]
+        public void RenewSomeoneElsesStorageContract()
+        {
+            var (hosts, clients) = JumpStartHostsAndClients();
+            var client = clients.Single();
+            var otherClient = StartClients().Single();
+
+            var firstContract = StartFirstContract(client);
+
+            // We use a different client node to renew the first contract.
+            var secondContract = otherClient.Marketplace.RequestStorage(new StoragePurchaseRequest(firstContract.ContentId));
+
+            Assert.That(firstContract.PurchaseId, Is.Not.EqualTo(secondContract.PurchaseId));
+
+            secondContract.WaitForStorageContractStarted();
+
+            AssertTwoSimilarRequestsOnChain();
+        }
+
+        private IStoragePurchaseContract StartFirstContract(IArchivistNode client)
+        {
+            var cid = client.UploadFile(GenerateTestFile(DefaultPurchase.UploadFilesize));
+            var firstContract = client.Marketplace.RequestStorage(new StoragePurchaseRequest(cid));
+
+            firstContract.WaitForStorageContractStarted();
+
+            return firstContract;
+        }
+
+        private void AssertTwoSimilarRequestsOnChain()
+        {
             var onChainRequests = GetChainMonitor().Requests.ToArray();
 
             Assert.That(onChainRequests.Length, Is.EqualTo(2));
