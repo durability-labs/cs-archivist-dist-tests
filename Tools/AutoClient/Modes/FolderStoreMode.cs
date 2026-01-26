@@ -42,6 +42,8 @@ namespace AutoClient.Modes
                 {
                     folderIterator.Step();
                     purchaseRenewer.Step();
+
+                    app.FailureDelay.ApplyDelay();
                 }
                 Log("Loop finished.");
             }

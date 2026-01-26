@@ -23,11 +23,14 @@ namespace AutoClient
                 try
                 {
                     action(node);
-                    whenDone();
                 }
                 catch (Exception ex)
                 {
                     log.Error(ex.ToString());
+                }
+                finally
+                {
+                    whenDone();
                 }
 
                 ReleaseNode(node);

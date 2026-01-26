@@ -46,7 +46,7 @@ namespace AutoClient.Modes.FolderStore
         {
             dispatcher.OnNode(node =>
             {
-                var nodeAction = new NodeAction(log, folderStatus, node, entry, appEventHandler);
+                var nodeAction = new NodeAction(log, node, entry, appEventHandler);
                 action(nodeAction);
             },
             whenDone: folderStatus.SaveChanges);
@@ -55,15 +55,13 @@ namespace AutoClient.Modes.FolderStore
         public class NodeAction
         {
             private readonly ILog log;
-            private readonly FolderStatus folderStatus;
             private readonly ArchivistWrapper node;
             private readonly FileStatus entry;
             private readonly IAppEventHandler appEventHandler;
 
-            public NodeAction(ILog log, FolderStatus folderStatus, ArchivistWrapper node, FileStatus entry, IAppEventHandler appEventHandler)
+            public NodeAction(ILog log, ArchivistWrapper node, FileStatus entry, IAppEventHandler appEventHandler)
             {
                 this.log = log;
-                this.folderStatus = folderStatus;
                 this.node = node;
                 this.entry = entry;
                 this.appEventHandler = appEventHandler;
@@ -71,6 +69,7 @@ namespace AutoClient.Modes.FolderStore
 
             public void CreateNewPurchase(string filePath)
             {
+                PerformQuotaCheck(filePath);
                 var cid = UploadFile(filePath);
                 CreatePurchase(cid);
             }
@@ -113,6 +112,16 @@ namespace AutoClient.Modes.FolderStore
                 }
             }
 
+            private void PerformQuotaCheck(string filePath)
+            {
+                var quotaCheck = new QuotaCheck(log, filePath, node);
+                if (!quotaCheck.IsLocalQuotaAvailable())
+                {
+                    log.Error("Quota check failed: Node does not have enough space to upload this file at this time.");
+                    throw new InvalidOperationException("Quota check failed");
+                }
+            }
+
             private string UploadFile(string filePath)
             {
                 Log("Uploading file...");
@@ -143,7 +152,6 @@ namespace AutoClient.Modes.FolderStore
                     request.WaitForStorageContractSubmitted();
                     request.WaitForStorageContractStarted();
 
-                    folderStatus.SaveChanges();
                     Log($"Successfully started new purchase: '{request.PurchaseId}'");
                 }
                 catch
@@ -151,7 +159,6 @@ namespace AutoClient.Modes.FolderStore
                     entry.EncodedCid = string.Empty;
                     entry.PurchaseNodes = 0;
                     entry.PurchaseTolerance = 0;
-                    folderStatus.SaveChanges();
                     appEventHandler.OnPurchaseFailure();
                     throw;
                 }

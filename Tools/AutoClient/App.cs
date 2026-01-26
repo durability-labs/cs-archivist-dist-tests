@@ -18,13 +18,15 @@ namespace AutoClient
             );
 
             Metrics = new AppMetrics(Log, config);
-            AppEvents = Metrics;
+            FailureDelay = new FailureDelay();
+            AppEvents = new AppEventMuxer(Metrics, FailureDelay);
         }
 
         public Configuration Config { get; }
         public ILog Log { get; }
         public CancellationTokenSource Cts { get; } = new CancellationTokenSource();
         public AppMetrics Metrics { get; }
+        public FailureDelay FailureDelay { get; }
         public IAppEventHandler AppEvents { get; }
     }
 
