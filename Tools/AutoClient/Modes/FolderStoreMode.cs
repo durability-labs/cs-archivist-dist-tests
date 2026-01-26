@@ -18,31 +18,49 @@ namespace AutoClient.Modes
         {
             checkTask = Task.Run(() =>
             {
-                try
+                while (!app.Cts.IsCancellationRequested)
                 {
-                    var folderStatus = new FolderStatus(app);
-                    var nodeOperator = new NodeOperator(app.Log, folderStatus, nodeDispatcher, app.Muxer);
-                    var fileProcessor = new FileProcessor(app, folderStatus, nodeOperator, app.Muxer);
-                    var folderIterator = new FolderIterator(app, fileProcessor);
-
-                    while (!app.Cts.IsCancellationRequested)
-                    {
-                        folderIterator.Run();
-                        Thread.Sleep(TimeSpan.FromHours(1.0));
-                    }
-                }
-                catch (Exception ex)
-                {
-                    app.Log.Error("Exception in FolderStoreMode: " + ex);
-                    Environment.Exit(1);
+                    RunLoop();
+                    Thread.Sleep(TimeSpan.FromHours(1.0));
                 }
             });
+        }
+
+        private void RunLoop()
+        {
+            try
+            {
+                var folderStatus = new FolderStatus(app);
+                var nodeOperator = new NodeOperator(app.Log, folderStatus, nodeDispatcher, app.Muxer);
+                var fileProcessor = new FileProcessor(app, folderStatus, nodeOperator, app.Muxer);
+                var purchaseRenewer = new PurchaseRenewer(app, folderStatus, nodeOperator, app.Muxer);
+                var folderIterator = new FolderIterator(app, fileProcessor);
+
+                folderIterator.Initialize();
+
+                while (!folderIterator.IsFinished && !app.Cts.IsCancellationRequested)
+                {
+                    folderIterator.Step();
+                    purchaseRenewer.Step();
+                }
+                Log("Loop finished.");
+            }
+            catch (Exception ex)
+            {
+                app.Log.Error("Exception in FolderStoreMode: " + ex);
+                Environment.Exit(1);
+            }
         }
 
         public void Stop()
         {
             app.Cts.Cancel();
             checkTask.Wait();
+        }
+
+        private void Log(string v)
+        {
+            app.Log.Log(v);
         }
     }
 }

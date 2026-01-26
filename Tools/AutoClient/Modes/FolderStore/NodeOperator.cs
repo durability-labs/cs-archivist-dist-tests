@@ -1,9 +1,16 @@
 ﻿using ArchivistClient;
 using Logging;
+using Utils;
 
 namespace AutoClient.Modes.FolderStore
 {
-    public class NodeOperator : INodeProcessHandler
+    public interface INodeOperations
+    {
+        void CreateNewPurchase(string filePath);
+        void ExtendPurchase(FileStatus fileStatus);
+    }
+
+    public class NodeOperator : INodeOperations
     {
         private readonly ILog log;
         private readonly FolderStatus folderStatus;
@@ -20,12 +27,12 @@ namespace AutoClient.Modes.FolderStore
 
         public void CreateNewPurchase(string filePath)
         {
-            OnNodeAction(filePath, a => a.CreateNewPurchase());
+            OnNodeAction(filePath, a => a.CreateNewPurchase(filePath));
         }
 
-        public void ExtendPurchase(string filePath)
+        public void ExtendPurchase(FileStatus fileStatus)
         {
-            OnNodeAction(filePath, a => a.ExtendPurchase());
+            OnNodeAction(fileStatus, a => a.ExtendPurchase());
         }
 
         private void OnNodeAction(string filePath, Action<NodeAction> action)
@@ -33,9 +40,14 @@ namespace AutoClient.Modes.FolderStore
             var localFilename = Path.GetFileName(filePath);
             var entry = folderStatus.GetEntry(localFilename);
 
+            OnNodeAction(entry, action);
+        }
+
+        private void OnNodeAction(FileStatus entry, Action<NodeAction> action)
+        {
             dispatcher.OnNode(node =>
             {
-                var nodeAction = new NodeAction(log, filePath, node, entry, appEventHandler);
+                var nodeAction = new NodeAction(log, node, entry, appEventHandler);
                 action(nodeAction);
             },
             whenDone: folderStatus.SaveChanges);
@@ -44,23 +56,23 @@ namespace AutoClient.Modes.FolderStore
         public class NodeAction
         {
             private readonly ILog log;
-            private readonly string filePath;
+            private readonly FolderStatus folderStatus;
             private readonly ArchivistWrapper node;
             private readonly FileStatus entry;
             private readonly IAppEventHandler appEventHandler;
 
-            public NodeAction(ILog log, string filePath, ArchivistWrapper node, FileStatus entry, IAppEventHandler appEventHandler)
+            public NodeAction(ILog log, FolderStatus folderStatus, ArchivistWrapper node, FileStatus entry, IAppEventHandler appEventHandler)
             {
                 this.log = log;
-                this.filePath = filePath;
+                this.folderStatus = folderStatus;
                 this.node = node;
                 this.entry = entry;
                 this.appEventHandler = appEventHandler;
             }
 
-            public void CreateNewPurchase()
+            public void CreateNewPurchase(string filePath)
             {
-                var cid = UploadFile();
+                var cid = UploadFile(filePath);
                 CreatePurchase(cid);
             }
 
@@ -75,6 +87,7 @@ namespace AutoClient.Modes.FolderStore
                         entry.PurchaseTolerance
                     );
                     HandleNewRequest(request);
+                    appEventHandler.OnPurchaseExtended();
                 }
                 catch (Exception exc)
                 {
@@ -90,6 +103,7 @@ namespace AutoClient.Modes.FolderStore
                 {
                     var request = node.RequestStorage(new ContentId(cid));
                     HandleNewRequest(request);
+                    appEventHandler.OnPurchaseSuccess();
                 }
                 catch (Exception exc)
                 {
@@ -98,7 +112,7 @@ namespace AutoClient.Modes.FolderStore
                 }
             }
 
-            private string UploadFile()
+            private string UploadFile(string filePath)
             {
                 Log("Uploading file...");
                 try
@@ -128,12 +142,15 @@ namespace AutoClient.Modes.FolderStore
                     WaitForSubmitted(request);
                     WaitForStarted(request);
 
-                    appEventHandler.OnPurchaseSuccess();
+                    folderStatus.SaveChanges();
                     Log($"Successfully started new purchase: '{request.PurchaseId}'");
                 }
                 catch
                 {
                     entry.EncodedCid = string.Empty;
+                    entry.PurchaseNodes = 0;
+                    entry.PurchaseTolerance = 0;
+                    folderStatus.SaveChanges();
                     appEventHandler.OnPurchaseFailure();
                     throw;
                 }

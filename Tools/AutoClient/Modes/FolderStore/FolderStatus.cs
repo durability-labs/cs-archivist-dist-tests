@@ -1,3 +1,5 @@
+using Utils;
+
 namespace AutoClient.Modes.FolderStore
 {
     public class FolderStatus
@@ -27,6 +29,18 @@ namespace AutoClient.Modes.FolderStore
             {
                 return GetEntryInternal(localFilename);
             }
+        }
+
+        public FileStatus? Get(Func<FileStatus, bool> selector)
+        {
+            FileStatus? result = null;
+            lock (statusLock)
+            {
+                var matches = status.Files.Where(selector).ToArray();
+                if (matches.Length > 0) result = matches.GetOneRandom();
+            }
+
+            return result;
         }
 
         private FileStatus GetEntryInternal(string localFilename)

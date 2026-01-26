@@ -31,6 +31,7 @@ namespace AutoClient.Modes.FolderStore
             lock (_lock)
             {
                 folderFiles.AddRange(files);
+                Log($"Queued {folderFiles.Count} files");
             }
         }
 
@@ -45,30 +46,25 @@ namespace AutoClient.Modes.FolderStore
         public void Step()
         {
             var folderFile = string.Empty;
+            if (app.Cts.IsCancellationRequested) return;
             lock (_lock)
             {
-
+                if (folderFile.Length == 0) return;
+                folderFile = folderFiles[0];
+                folderFiles.RemoveAt(0);
             }
 
+            ProcessFile(folderFile);
+        }
 
-            foreach (var folderFile in folderFiles)
-            {
-                if (app.Cts.IsCancellationRequested)
-                {
-                    Log("Iteration cancelled.");
-                    return;
-                }
-
-                if (!folderFile.ToLowerInvariant().EndsWith(FolderStatus.FolderSaverFilename))
-                {
-                    var fileSize = (new FileInfo(folderFile)).Length;
-                    if (fileSize > 1.MB().SizeInBytes)
-                    {
-                        handler.OnFile(folderFile);
-                    }
-                }
-            }
-            Log("All files processed.");
+        private void ProcessFile(string folderFile)
+        {
+            if (folderFile.ToLowerInvariant().EndsWith(FolderStatus.FolderSaverFilename)) return;
+            if (!File.Exists(folderFile)) return;
+            var fileSize = new FileInfo(folderFile).Length;
+            if (fileSize < 1.MB().SizeInBytes) return;
+            
+            handler.OnFile(folderFile);
         }
 
         private void Log(string v)

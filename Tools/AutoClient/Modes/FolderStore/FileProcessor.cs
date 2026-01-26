@@ -1,22 +1,15 @@
 ﻿using Logging;
-using Utils;
 
 namespace AutoClient.Modes.FolderStore
 {
-    public interface INodeProcessHandler
-    {
-        void ExtendPurchase(string filePath);
-        void CreateNewPurchase(string filePath);
-    }
-
     public class FileProcessor : IFilePathHandler
     {
         private readonly App app;
         private readonly FolderStatus folderStatus;
-        private readonly INodeProcessHandler handler;
+        private readonly INodeOperations handler;
         private readonly IAppEventHandler appEventHandler;
 
-        public FileProcessor(App app, FolderStatus folderStatus, INodeProcessHandler handler, IAppEventHandler appEventHandler)
+        public FileProcessor(App app, FolderStatus folderStatus, INodeOperations handler, IAppEventHandler appEventHandler)
         {
             this.app = app;
             this.folderStatus = folderStatus;
@@ -39,9 +32,9 @@ namespace AutoClient.Modes.FolderStore
             private readonly ILog log;
             private readonly string filePath;
             private readonly FileStatus entry;
-            private readonly INodeProcessHandler handler;
+            private readonly INodeOperations handler;
 
-            public FileProcess(ILog log, string filePath, FileStatus entry, INodeProcessHandler handler)
+            public FileProcess(ILog log, string filePath, FileStatus entry, INodeOperations handler)
             {
                 this.log = log;
                 this.filePath = filePath;
@@ -64,27 +57,8 @@ namespace AutoClient.Modes.FolderStore
                     return;
                 }
 
-                if (CanExtendPurchase())
-                {
-                    Log("Purchase can be extended...");
-                    handler.ExtendPurchase(filePath);
-                    return;
-                }
-
-                Log("Creating new purchase...");
+                Log("Previous purchase has finished. Creating new purchase...");
                 handler.CreateNewPurchase(filePath);
-            }
-
-            private bool CanExtendPurchase()
-            {
-                var extendInterval = new TimeRange(
-                    from: DateTime.UtcNow,
-                    to: DateTime.UtcNow + TimeSpan.FromHours(8)
-                );
-
-                var finishUtc = EffectivePurchaseFinishedUtc();
-
-                return extendInterval.Includes(finishUtc);
             }
 
             private bool IsPurchaseRunning()
