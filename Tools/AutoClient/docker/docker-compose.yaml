@@ -17,10 +17,10 @@ services:
           # http://archivist-9:8088
       - DATAPATH=/data
       # 5 days, 6.5 days, expressed in minutes:
-      - CONTRACTDURATION=7200,9360
+      - CONTRACTDURATION=14400,16560
       - CONTRACTEXPIRY=40
       # (slots, tolerance, proof-probability) "real" proof-prob: 288 = 1x / 24h in network with 5min period
-      - DURABILITYVALUES=(4,2,500);(8,4,500);(5,1,500);(8,4,288);(4,1,288);(8,1,288);(5,1,288)
+      - DURABILITYVALUES=(4,2,500);(5,1,500);(4,1,288);(5,1,288)
       - PRICE=1000
       - COLLATERAL=1
       - FOLDERTOSTORE=/target

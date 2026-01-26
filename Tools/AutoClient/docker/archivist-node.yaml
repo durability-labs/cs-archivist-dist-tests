@@ -1,6 +1,6 @@
 services:
   archivist-base:
-    image: durabilitylabs/archivist-node:sha-80ebcd7-dist-tests
+    image: durabilitylabs/archivist-node:sha-3bb8c93-dist-tests
     pull_policy: always
     restart: always
     environment:
