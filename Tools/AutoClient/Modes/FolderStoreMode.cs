@@ -23,6 +23,7 @@ namespace AutoClient.Modes
                     RunLoop();
                     Thread.Sleep(TimeSpan.FromHours(1.0));
                 }
+                Log("Cancellation requested.");
             });
         }
 

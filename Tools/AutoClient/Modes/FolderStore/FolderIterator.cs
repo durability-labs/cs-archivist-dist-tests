@@ -52,7 +52,7 @@ namespace AutoClient.Modes.FolderStore
             if (app.Cts.IsCancellationRequested) return;
             lock (_lock)
             {
-                if (folderFile.Length == 0) return;
+                if (folderFiles.Count == 0) return;
                 folderFile = folderFiles[0];
                 folderFiles.RemoveAt(0);
             }
