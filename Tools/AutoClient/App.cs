@@ -18,7 +18,7 @@ namespace AutoClient
             );
 
             Metrics = new AppMetrics(Log, config);
-            FailureDelay = new FailureDelay();
+            FailureDelay = new FailureDelay(Log);
             AppEvents = new AppEventMuxer(Metrics, FailureDelay);
         }
 

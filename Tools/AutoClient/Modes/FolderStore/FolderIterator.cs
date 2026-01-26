@@ -42,7 +42,7 @@ namespace AutoClient.Modes.FolderStore
         {
             get
             {
-                lock (_lock) return !folderFiles.Any();
+                return !folderFiles.Any();
             }
         }
 
@@ -57,6 +57,7 @@ namespace AutoClient.Modes.FolderStore
                 folderFiles.RemoveAt(0);
             }
 
+            Log($"File: '{folderFile}'");
             ProcessFile(folderFile);
         }
 

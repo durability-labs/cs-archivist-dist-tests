@@ -1,4 +1,6 @@
 ﻿using AutoClient.Modes.FolderStore;
+using Logging;
+using Utils;
 
 namespace AutoClient
 {
@@ -6,15 +8,18 @@ namespace AutoClient
     {
         private readonly TimeSpan max = TimeSpan.FromMinutes(15);
         private readonly TimeSpan min = TimeSpan.FromSeconds(10);
+        private readonly ILog log;
         private TimeSpan delay;
 
-        public FailureDelay()
+        public FailureDelay(ILog log)
         {
             delay = min;
+            this.log = log;
         }
 
         public void ApplyDelay()
         {
+            if (delay > TimeSpan.FromSeconds(30)) log.Log($"Delay: {Time.FormatDuration(delay)}");
             Thread.Sleep(delay);
         }
 
