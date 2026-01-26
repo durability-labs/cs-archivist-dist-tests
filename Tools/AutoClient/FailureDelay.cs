@@ -7,7 +7,7 @@ namespace AutoClient
     public class FailureDelay : IAppEventHandler
     {
         private readonly TimeSpan max = TimeSpan.FromMinutes(15);
-        private readonly TimeSpan min = TimeSpan.FromSeconds(10);
+        private readonly TimeSpan min = TimeSpan.FromSeconds(1);
         private readonly ILog log;
         private TimeSpan delay;
 
