@@ -45,6 +45,22 @@ namespace AutoClient
             return result;
         }
 
+        public IStoragePurchaseContract ExtendStorage(ContentId cid, int nodes, int tolerance)
+        {
+            var durability = GetDurabilityValues();
+            var result = Node.Marketplace.RequestStorage(new StoragePurchaseRequest(cid)
+            {
+                CollateralPerByte = app.Config.CollateralPerByte.TstWei(),
+                Duration = GetDuration(),
+                Expiry = TimeSpan.FromMinutes(app.Config.ContractExpiryMinutes),
+                MinRequiredNumberOfNodes = nodes,
+                NodeFailureTolerance = tolerance,
+                PricePerBytePerSecond = GetPricePerBytePerSecond(),
+                ProofProbability = durability.ProofProbability
+            });
+            return result;
+        }
+
         private DurabilityValues GetDurabilityValues()
         {
             return RandomUtils.GetOneRandom(app.Config.DurabilityValues);

@@ -32,18 +32,15 @@ public class Program
     {
         Log("Setting up instances...");
         var archivistNodes = CreateArchivistWrappers();
-        var loadBalancer = new LoadBalancer(app, archivistNodes);
-        Log("Starting load-balancer...");
-        loadBalancer.Start();
+        var nodeDispatcher = new NodeDispatcher(app.Log, archivistNodes);
 
-        var folderStore = new FolderStoreMode(app, loadBalancer);
+        var folderStore = new FolderStoreMode(app, nodeDispatcher);
         Log("Starting folder-store mode...");
         folderStore.Start();
 
         app.Cts.Token.WaitHandle.WaitOne();
 
         folderStore.Stop();
-        loadBalancer.Stop();
 
         Log("Done");
     }
@@ -83,7 +80,7 @@ public class Program
         app.Log.Log($"'{address}': Creating wrapper...");
 
         var numberStr = number.ToString().PadLeft(3, '0');
-        var log = new LogPrefixer(app.Log, $"[{numberStr}] ");
+        var log = new LogPrefixer(app.Log, $"[{numberStr}]");
         var httpFactory = new HttpFactory(log, new AutoClientWebTimeSet());
         var archivistNodeFactory = new ArchivistNodeFactory(log: log, httpFactory: httpFactory, dataDir: app.Config.DataPath);
         var instance = ArchivistInstance.CreateFromApiEndpoint($"[AC-{numberStr}]", address, EthAccountGenerator.GenerateNew());

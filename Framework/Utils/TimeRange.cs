@@ -21,6 +21,11 @@ namespace Utils
         public DateTime To { get; }
         public TimeSpan Duration { get; }
 
+        public bool Includes(DateTime utc)
+        {
+            return From <= utc && utc <= To;
+        }
+
         public override string ToString()
         {
             return $"{Time.FormatTimestamp(From)} -> {Time.FormatTimestamp(To)} ({Time.FormatDuration(Duration)})";

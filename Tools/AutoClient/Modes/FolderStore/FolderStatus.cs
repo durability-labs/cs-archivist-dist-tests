@@ -1,45 +1,57 @@
+using Utils;
+
 namespace AutoClient.Modes.FolderStore
 {
-    [Serializable]
     public class FolderStatus
     {
-        public List<FileStatus> Files { get; set; } = new List<FileStatus>();
-        public Stats Stats { get; set; } = new Stats();
-        public string Padding { get; set; } = string.Empty;
-    }
+        public const string FolderSaverFilename = "foldersaver.json";
+        private readonly JsonFile<FolderStatusModel> statusFile;
+        private readonly FolderStatusModel status;
+        private readonly object statusLock = new object();
 
-    [Serializable]
-    public class FileStatus
-    {
-        public string ArchivistNodeId { get; set; } = string.Empty;
-        public string Filename { get; set; } = string.Empty;
-        public string BasicCid { get; set; } = string.Empty;
-        public string EncodedCid { get; set; } = string.Empty;
-        public string PurchaseId { get; set; } = string.Empty;
-        public DateTime PurchaseFinishedUtc { get; set; } = DateTime.MinValue;
-
-        public void ClearPurchase()
+        public FolderStatus(App app)
         {
-            EncodedCid = string.Empty;
-            PurchaseId = string.Empty;
-            PurchaseFinishedUtc = DateTime.MinValue;
+            statusFile = new JsonFile<FolderStatusModel>(app, Path.Combine(app.Config.FolderToStore, FolderSaverFilename));
+            status = statusFile.Load();
         }
-    }
 
-    [Serializable]
-    public class Stats
-    {
-        public int SuccessfulUploads { get; set; }
-        public int FailedUploads { get; set; }
-        public StorageRequestStats StorageRequestStats { get; set; } = new StorageRequestStats();
-    }
+        public void SaveChanges()
+        {
+            lock (statusLock)
+            {
+                statusFile.Save(status);
+            }
+        }
 
-    [Serializable]
-    public class StorageRequestStats
-    {
-        public int FailedToCreate { get; set; }
-        public int FailedToSubmit { get; set; }
-        public int FailedToStart { get; set; }
-        public int SuccessfullyStarted { get; set; }
+        public FileStatus GetEntry(string localFilename)
+        {
+            lock (statusLock)
+            {
+                return GetEntryInternal(localFilename);
+            }
+        }
+
+        public FileStatus? Get(Func<FileStatus, bool> selector)
+        {
+            lock (statusLock)
+            {
+                var matches = status.Files.Where(selector).ToArray();
+                if (matches.Length > 0) return matches.GetOneRandom();
+            }
+
+            return null;
+        }
+
+        private FileStatus GetEntryInternal(string localFilename)
+        {
+            var entry = status.Files.SingleOrDefault(f => f.Filename == localFilename);
+            if (entry != null) return entry;
+            var newEntry = new FileStatus
+            {
+                Filename = localFilename
+            };
+            status.Files.Add(newEntry);
+            return newEntry;
+        }
     }
 }
