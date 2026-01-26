@@ -144,21 +144,18 @@ namespace AutoClient.Modes.FolderStore
             {
                 try
                 {
+                    request.WaitForStorageContractSubmitted();
+                    request.WaitForStorageContractStarted();
+
                     entry.EncodedCid = request.ContentId.Id;
                     entry.PurchaseNodes = request.Purchase.MinRequiredNumberOfNodes;
                     entry.PurchaseTolerance = request.Purchase.NodeFailureTolerance;
                     entry.PurchaseFinishedUtc = DateTime.UtcNow + request.Purchase.Duration;
 
-                    request.WaitForStorageContractSubmitted();
-                    request.WaitForStorageContractStarted();
-
                     Log($"Successfully started new purchase: '{request.PurchaseId}'");
                 }
                 catch
                 {
-                    entry.EncodedCid = string.Empty;
-                    entry.PurchaseNodes = 0;
-                    entry.PurchaseTolerance = 0;
                     appEventHandler.OnPurchaseFailure();
                     throw;
                 }
