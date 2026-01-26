@@ -18,7 +18,7 @@ namespace AutoClient.Modes.FolderStore
 
         public NodeOperator(ILog log, FolderStatus folderStatus, NodeDispatcher dispatcher, IAppEventHandler appEventHandler)
         {
-            this.log = log;
+            this.log = new LogPrefixer(log, "(Node)");
             this.folderStatus = folderStatus;
             this.dispatcher = dispatcher;
             this.appEventHandler = appEventHandler;

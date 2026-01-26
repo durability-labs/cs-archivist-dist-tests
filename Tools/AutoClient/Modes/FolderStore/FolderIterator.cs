@@ -1,4 +1,5 @@
-﻿using Utils;
+﻿using Logging;
+using Utils;
 
 namespace AutoClient.Modes.FolderStore
 {
@@ -10,6 +11,7 @@ namespace AutoClient.Modes.FolderStore
     public class FolderIterator
     {
         private readonly App app;
+        private readonly ILog log;
         private readonly IFilePathHandler handler;
         private readonly List<string> folderFiles = new List<string>();
         private readonly object _lock = new object();
@@ -17,12 +19,13 @@ namespace AutoClient.Modes.FolderStore
         public FolderIterator(App app, IFilePathHandler handler)
         {
             this.app = app;
+            log = new LogPrefixer(app.Log, "(FolderIter)");
             this.handler = handler;
         }
 
         public void Initialize()
         {
-            Log("Starting FolderIterator...");
+            Log("Starting...");
 
             if (!Directory.Exists(app.Config.FolderToStore)) throw new Exception("Path does not exist: " + app.Config.FolderToStore);
             var files = Directory.GetFiles(app.Config.FolderToStore);
@@ -69,7 +72,7 @@ namespace AutoClient.Modes.FolderStore
 
         private void Log(string v)
         {
-            app.Log.Log(v);
+            log.Log(v);
         }
     }
 }

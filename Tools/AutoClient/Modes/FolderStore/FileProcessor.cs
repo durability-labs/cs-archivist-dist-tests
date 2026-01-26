@@ -36,7 +36,7 @@ namespace AutoClient.Modes.FolderStore
 
             public FileProcess(ILog log, string filePath, FileStatus entry, INodeOperations handler)
             {
-                this.log = log;
+                this.log = new LogPrefixer(log, "(FileProcess)");
                 this.filePath = filePath;
                 this.entry = entry;
                 this.handler = handler;

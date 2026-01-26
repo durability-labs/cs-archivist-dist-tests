@@ -80,7 +80,7 @@ public class Program
         app.Log.Log($"'{address}': Creating wrapper...");
 
         var numberStr = number.ToString().PadLeft(3, '0');
-        var log = new LogPrefixer(app.Log, $"[{numberStr}] ");
+        var log = new LogPrefixer(app.Log, $"[{numberStr}]");
         var httpFactory = new HttpFactory(log, new AutoClientWebTimeSet());
         var archivistNodeFactory = new ArchivistNodeFactory(log: log, httpFactory: httpFactory, dataDir: app.Config.DataPath);
         var instance = ArchivistInstance.CreateFromApiEndpoint($"[AC-{numberStr}]", address, EthAccountGenerator.GenerateNew());

@@ -10,7 +10,7 @@ namespace AutoClient
 
         public NodeDispatcher(ILog log, ArchivistWrapper[] nodes)
         {
-            this.log = log;
+            this.log = new LogPrefixer(log, "(Dispatch)");
             this.nodes = nodes.ToList();
         }
 
