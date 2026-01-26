@@ -31,9 +31,9 @@ namespace AutoClient.Modes
             try
             {
                 var folderStatus = new FolderStatus(app);
-                var nodeOperator = new NodeOperator(app.Log, folderStatus, nodeDispatcher, app.Muxer);
-                var fileProcessor = new FileProcessor(app, folderStatus, nodeOperator, app.Muxer);
-                var purchaseRenewer = new PurchaseRenewer(app, folderStatus, nodeOperator, app.Muxer);
+                var nodeOperator = new NodeOperator(app.Log, folderStatus, nodeDispatcher, app.AppEvents);
+                var fileProcessor = new FileProcessor(app, folderStatus, nodeOperator, app.AppEvents);
+                var purchaseRenewer = new PurchaseRenewer(app, folderStatus, nodeOperator);
                 var folderIterator = new FolderIterator(app, fileProcessor);
 
                 folderIterator.Initialize();

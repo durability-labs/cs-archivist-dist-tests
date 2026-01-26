@@ -1,6 +1,5 @@
 ﻿using ArchivistClient;
 using Logging;
-using Utils;
 
 namespace AutoClient.Modes.FolderStore
 {
@@ -47,7 +46,7 @@ namespace AutoClient.Modes.FolderStore
         {
             dispatcher.OnNode(node =>
             {
-                var nodeAction = new NodeAction(log, node, entry, appEventHandler);
+                var nodeAction = new NodeAction(log, folderStatus, node, entry, appEventHandler);
                 action(nodeAction);
             },
             whenDone: folderStatus.SaveChanges);
@@ -91,7 +90,8 @@ namespace AutoClient.Modes.FolderStore
                 }
                 catch (Exception exc)
                 {
-                    log.Error("Failed to start new purchase: " + exc);
+                    log.Error("Failed to extend purchase: " + exc);
+                    appEventHandler.OnPurchaseFailure();
                     throw;
                 }
             }
@@ -108,6 +108,7 @@ namespace AutoClient.Modes.FolderStore
                 catch (Exception exc)
                 {
                     log.Error("Failed to start new purchase: " + exc);
+                    appEventHandler.OnPurchaseFailure();
                     throw;
                 }
             }
@@ -139,8 +140,8 @@ namespace AutoClient.Modes.FolderStore
                     entry.PurchaseTolerance = request.Purchase.NodeFailureTolerance;
                     entry.PurchaseFinishedUtc = DateTime.UtcNow + request.Purchase.Duration;
 
-                    WaitForSubmitted(request);
-                    WaitForStarted(request);
+                    request.WaitForStorageContractSubmitted();
+                    request.WaitForStorageContractStarted();
 
                     folderStatus.SaveChanges();
                     Log($"Successfully started new purchase: '{request.PurchaseId}'");
@@ -156,77 +157,9 @@ namespace AutoClient.Modes.FolderStore
                 }
             }
 
-            private void WaitForSubmittedToStarted(StoragePurchase purchase)
-            {
-                try
-                {
-                    if (purchase.IsStarted) return;
-
-                    var expirySeconds = Convert.ToInt64(purchase.Request.Expiry);
-                    var expiry = TimeSpan.FromSeconds(expirySeconds);
-                    Log($"Request was submitted but not started yet. Waiting {Time.FormatDuration(expiry)} to start or expire...");
-
-                    var limit = DateTime.UtcNow + expiry;
-                    while (DateTime.UtcNow < limit)
-                    {
-                        Thread.Sleep(TimeSpan.FromSeconds(10));
-                        var update = GetPurchase(purchase.Request.Id);
-                        if (update != null)
-                        {
-                            if (update.IsStarted)
-                            {
-                                Log("Request successfully started.");
-                                return;
-                            }
-                            else if (!update.IsSubmitted)
-                            {
-                                Log("Request failed to start. State: " + update.State);
-                                entry.EncodedCid = string.Empty;
-                                entry.PurchaseId = string.Empty;
-                                stats.StorageRequestStats.FailedToStart++;
-                                saveHandler.SaveChanges();
-                                return;
-                            }
-                        }
-                    }
-                }
-                catch (Exception exc)
-                {
-                    resultHandler.OnPurchaseFailure();
-                    Log($"Exception in {nameof(WaitForSubmittedToStarted)}: {exc}");
-                    throw;
-                }
-            }
-
-            private void WaitForSubmitted(IStoragePurchaseContract request)
-            {
-                try
-                {
-                    request.WaitForStorageContractSubmitted();
-                }
-                catch
-                {
-                    stats.StorageRequestStats.FailedToSubmit++;
-                    throw;
-                }
-            }
-
-            private void WaitForStarted(IStoragePurchaseContract request)
-            {
-                try
-                {
-                    request.WaitForStorageContractStarted();
-                }
-                catch
-                {
-                    stats.StorageRequestStats.FailedToStart++;
-                    throw;
-                }
-            }
-
             private void Log(string v)
             {
-                throw new NotImplementedException();
+                log.Log(v);
             }
         }
     }

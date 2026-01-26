@@ -33,14 +33,13 @@ namespace AutoClient.Modes.FolderStore
 
         public FileStatus? Get(Func<FileStatus, bool> selector)
         {
-            FileStatus? result = null;
             lock (statusLock)
             {
                 var matches = status.Files.Where(selector).ToArray();
-                if (matches.Length > 0) result = matches.GetOneRandom();
+                if (matches.Length > 0) return matches.GetOneRandom();
             }
 
-            return result;
+            return null;
         }
 
         private FileStatus GetEntryInternal(string localFilename)
@@ -54,54 +53,5 @@ namespace AutoClient.Modes.FolderStore
             status.Files.Add(newEntry);
             return newEntry;
         }
-
-        //    private void SaveFolderSaverJsonFile()
-        //    {
-        //        app.Log.Log($"Saving {FolderSaverFilename}...");
-        //        var entry = new FileStatus
-        //        {
-        //            Filename = FolderSaverFilename
-        //        };
-        //        var folderFile = Path.Combine(app.Config.FolderToStore, FolderSaverFilename);
-        //        ApplyPadding(folderFile);
-        //        var fileSaver = CreateFileSaver(folderFile, entry, new FolderSaveResultHandler(app, entry));
-        //        fileSaver.Process();
-        //    }
-
-        //    private const int MinArchivistStorageFilesize = 262144;
-        //    private readonly string paddingMessage = $"Archivist currently requires a minimum filesize of {MinArchivistStorageFilesize} bytes for datasets used in storage contracts. " +
-        //        $"Anything smaller, and the erasure-coding algorithms used for data durability won't function. Therefore, we apply this padding field to make sure this " +
-        //        $"file is larger than the minimal size. The following is pseudo-random: ";
-
-        //    private void ApplyPadding(string folderFile)
-        //    {
-        //        var info = new FileInfo(folderFile);
-        //        var min = MinArchivistStorageFilesize * 2;
-        //        if (info.Length < min)
-        //        {
-        //            var required = Math.Max(1024, min - info.Length);
-        //            lock (statusLock)
-        //            {
-        //                status.Padding = paddingMessage + RandomUtils.GenerateRandomString(required);
-        //                statusFile.Save(status);
-        //            }
-        //        }
-        //    }
-
-        //    private FileSaver CreateFileSaver(string folderFile, FileStatus entry)
-        //    {
-        //        return CreateFileSaver(folderFile, entry, slowModeHandler);
-        //    }
-
-        //    private FileSaver CreateFileSaver(string folderFile, FileStatus entry, IFileSaverResultHandler resultHandler)
-        //    {
-        //        var fixedLength = entry.Filename.PadRight(35);
-        //        var prefix = $"[{fixedLength}] ";
-        //        var handleMux = new MuxingFileSaverResultHandler(
-        //            app.Metrics,
-        //            resultHandler
-        //        );
-        //        return new FileSaver(new LogPrefixer(app.Log, prefix), loadBalancer, status.Stats, folderFile, entry, this, handleMux);
-        //    }
     }
 }

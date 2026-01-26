@@ -9,10 +9,10 @@ namespace AutoClient
         private readonly MetricsServer.MetricsServer server;
         private readonly MetricsEvent processStart;
         private readonly MetricsEvent purchaseSuccess;
+        private readonly MetricsEvent purchaseExtended;
         private readonly MetricsEvent purchaseFailed;
         private readonly MetricsEvent uploadSuccess;
         private readonly MetricsEvent uploadFailed;
-        todo: purchase extended metric event
 
         public AppMetrics(ILog log, Configuration config)
         {
@@ -21,6 +21,7 @@ namespace AutoClient
 
             processStart = server.CreateEvent("start", "start processing a file");
             purchaseSuccess = server.CreateEvent("purchase_success", "successfully created and started a new purchase");
+            purchaseExtended = server.CreateEvent("purchase_extended", "successfully renewed an existing purchase");
             purchaseFailed = server.CreateEvent("purchase_failed", "failed to create and/or start a new purchase");
             uploadSuccess = server.CreateEvent("upload_success", "successfully uploaded a file");
             uploadFailed = server.CreateEvent("upload_failed", "failed to upload a file");
@@ -39,6 +40,11 @@ namespace AutoClient
         public void OnPurchaseSuccess()
         {
             purchaseSuccess.Now();
+        }
+
+        public void OnPurchaseExtended()
+        {
+            purchaseExtended.Now();
         }
 
         public void OnUploadFailure()

@@ -18,14 +18,14 @@ namespace AutoClient
             );
 
             Metrics = new AppMetrics(Log, config);
-            Muxer = new AppEventMuxer()add;
+            AppEvents = Metrics;
         }
 
         public Configuration Config { get; }
         public ILog Log { get; }
         public CancellationTokenSource Cts { get; } = new CancellationTokenSource();
         public AppMetrics Metrics { get; }
-        public AppEventMuxer Muxer { get; }
+        public IAppEventHandler AppEvents { get; }
     }
 
     public class AutoClientWebTimeSet : IWebCallTimeSet

@@ -7,15 +7,13 @@ namespace AutoClient.Modes.FolderStore
         private readonly App app;
         private readonly FolderStatus folderStatus;
         private readonly INodeOperations handler;
-        private readonly IAppEventHandler appEventHandler;
         private DateTime timeoutUntil;
 
-        public PurchaseRenewer(App app, FolderStatus folderStatus, INodeOperations handler, IAppEventHandler appEventHandler)
+        public PurchaseRenewer(App app, FolderStatus folderStatus, INodeOperations handler)
         {
             this.app = app;
             this.folderStatus = folderStatus;
             this.handler = handler;
-            this.appEventHandler = appEventHandler;
 
             timeoutUntil = DateTime.UtcNow;
         }
