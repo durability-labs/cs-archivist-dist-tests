@@ -49,6 +49,14 @@ namespace ArchivistTests
                 addNode(node);
             }
 
+            public void OnNodeRestarting()
+            {
+            }
+
+            public void OnNodeRestarted()
+            {
+            }
+
             public void OnNodeStarting(DateTime startUtc, string image, EthAccount? ethAccount)
             {
             }

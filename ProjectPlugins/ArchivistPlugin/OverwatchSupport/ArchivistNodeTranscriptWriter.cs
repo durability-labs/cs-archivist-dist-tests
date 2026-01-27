@@ -60,6 +60,16 @@ namespace ArchivistPlugin.OverwatchSupport
             });
         }
 
+        public void OnNodeRestarting()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void OnNodeRestarted()
+        {
+            throw new NotImplementedException();
+        }
+
         public void OnFileDownloading(ContentId cid)
         {
             WriteArchivistEvent(e =>

@@ -7,6 +7,8 @@ namespace ArchivistClient.Hooks
         void OnNodeStarting(DateTime startUtc, string image, EthAccount? ethAccount);
         void OnNodeStarted(IArchivistNode node, string peerId, string nodeId);
         void OnNodeStopping();
+        void OnNodeRestarting();
+        void OnNodeRestarted();
         void OnFileUploading(string uid, ByteSize size);
         void OnFileUploaded(string uid, ByteSize size, ContentId cid);
         void OnFileDownloading(ContentId cid);
@@ -53,6 +55,16 @@ namespace ArchivistClient.Hooks
         public void OnNodeStarting(DateTime startUtc, string image, EthAccount? ethAccount)
         {
             foreach (var h in backingHooks) h.OnNodeStarting(startUtc, image, ethAccount);
+        }
+
+        public void OnNodeRestarting()
+        {
+            foreach (var h in backingHooks) h.OnNodeRestarting();
+        }
+
+        public void OnNodeRestarted()
+        {
+            foreach (var h in backingHooks) h.OnNodeRestarted();
         }
 
         public void OnNodeStopping()

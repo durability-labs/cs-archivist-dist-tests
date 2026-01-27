@@ -10,6 +10,7 @@ namespace ArchivistClient
     public interface IProcessControl
     {
         void Stop(bool waitTillStopped);
+        void Restart();
         IDownloadedLog DownloadLog(LogFile file);
         void DeleteDataDirFolder();
         bool HasCrashed();
@@ -40,6 +41,10 @@ namespace ArchivistClient
         }
 
         public void Stop(bool waitTillStopped)
+        {
+        }
+
+        public void Restart()
         {
         }
     }

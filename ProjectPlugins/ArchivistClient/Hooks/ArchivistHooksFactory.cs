@@ -54,6 +54,14 @@ namespace ArchivistClient.Hooks
         {
         }
 
+        public void OnNodeRestarting()
+        {
+        }
+
+        public void OnNodeRestarted()
+        {
+        }
+
         public void OnNodeStopping()
         {
         }

@@ -65,6 +65,19 @@ namespace KubernetesWorkflow
             if (waitTillStopped) WaitUntilPodsForDeploymentAreOffline(startResult.Deployment);
         }
 
+        public void Restart(RunningContainer container)
+        {
+            log.Debug();
+
+            PatchReplicas(container.RunningPod.StartResult.Deployment, 0);
+            WaitUntilReplicas(container, 0);
+            Thread.Sleep(1000);
+
+            PatchReplicas(container.RunningPod.StartResult.Deployment, 1);
+            WaitUntilReplicas(container, 1);
+            Thread.Sleep(1000);
+        }
+
         public void DownloadPodLog(RunningContainer container, ILogHandler logHandler, int? tailLines, bool? previous)
         {
             log.Debug();
@@ -758,6 +771,14 @@ namespace KubernetesWorkflow
             return pod;
         }
 
+        private void PatchReplicas(RunningDeployment deployment, int replicas)
+        {
+            var patchString = $"[ {{ \"path\": \"/spec/replicas\", \"op\": \"replace\", \"value\": {replicas} }} ]";
+            var patch = new V1Patch(patchString, V1Patch.PatchType.JsonPatch);
+
+            client.Run(c => c.PatchNamespacedDeployment(patch, deployment.Name, K8sNamespace));
+        }
+
         #endregion
 
         #region Service management
@@ -949,6 +970,17 @@ namespace KubernetesWorkflow
                 var pods = FindPodsByLabel(deployment.PodLabel);
                 return !pods.Any();
             }, nameof(WaitUntilPodsForDeploymentAreOffline));
+        }
+
+        private void WaitUntilReplicas(RunningContainer container, int expected)
+        {
+            WaitUntilFast(() =>
+            {
+                CheckForCrash(container);
+
+                var deployment = client.Run(c => c.ReadNamespacedDeployment(container.Recipe.Name, K8sNamespace));
+                return deployment?.Status.AvailableReplicas != null && deployment.Status.AvailableReplicas == expected;
+            }, nameof(WaitUntilDeploymentOnline));
         }
 
         private void WaitUntil(Func<bool> predicate, string msg)

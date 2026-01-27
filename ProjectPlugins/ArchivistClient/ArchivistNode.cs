@@ -45,6 +45,7 @@ namespace ArchivistClient
         /// </summary>
         void DeleteDataDirFolder();
         void Stop(bool waitTillStopped);
+        void InPlaceRestart();
         IDownloadedLog DownloadLog(string additionalName = "");
         bool HasCrashed();
 
@@ -285,6 +286,14 @@ namespace ArchivistClient
             Log("Stopping...");
             hooks.OnNodeStopping();
             archivistAccess.Stop(waitTillStopped);
+        }
+
+        public void InPlaceRestart()
+        {
+            Log("In-place restart...");
+            hooks.OnNodeRestarting();
+            archivistAccess.Restart();
+            hooks.OnNodeRestarted();
         }
 
         public IDownloadedLog DownloadLog(string additionalName = "")

@@ -89,5 +89,10 @@ namespace ArchivistPlugin
 
             DeleteDataDirFolder();
         }
+
+        public void Restart()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

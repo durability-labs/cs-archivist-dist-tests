@@ -33,6 +33,13 @@ namespace ArchivistPlugin
             Log("Stopped.");
         }
 
+
+        public void Restart()
+        {
+            var workflow = tools.CreateWorkflow();
+            workflow.Restart(pod.Containers.Single());
+        }
+
         public IDownloadedLog DownloadLog(LogFile file)
         {
             var workflow = tools.CreateWorkflow();

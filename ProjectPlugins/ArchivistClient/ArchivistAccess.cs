@@ -28,6 +28,11 @@ namespace ArchivistClient
             processControl.Stop(waitTillStopped);
         }
 
+        public void Restart()
+        {
+            processControl.Restart();
+        }
+
         public IDownloadedLog DownloadLog(string additionalName = "")
         {
             var file = log.CreateSubfile(GetName() + additionalName);
