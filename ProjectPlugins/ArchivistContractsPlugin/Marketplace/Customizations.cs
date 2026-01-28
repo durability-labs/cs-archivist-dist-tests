@@ -1,8 +1,9 @@
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+using ArchivistClient;
+using ArchivistContractsPlugin.ChainMonitor;
 using BlockchainUtils;
 using Nethereum.Hex.HexConvertors.Extensions;
 using Newtonsoft.Json;
-using ArchivistClient;
 using Utils;
 
 namespace ArchivistContractsPlugin.Marketplace
@@ -89,6 +90,48 @@ namespace ArchivistContractsPlugin.Marketplace
     {
         [JsonIgnore]
         public BlockTimeEntry Block { get; set; }
+
+        private ProofOrigin? proofOrigin = null;
+
+        public ProofOrigin? FindProofOrigin(IArchivistContracts contracts, IEnumerable<IChainStateRequest> possibleRequests)
+        {
+            if (proofOrigin != null) return proofOrigin;
+            var id = Base58.Encode(Id);
+
+            var result = SearchForProofOrigin(contracts, possibleRequests, id);
+            proofOrigin = result;
+            return result;
+        }
+
+        private static ProofOrigin? SearchForProofOrigin(IArchivistContracts contracts, IEnumerable<IChainStateRequest> possibleRequests, string slotId)
+        {
+            foreach (var r in possibleRequests)
+            {
+                for (decimal slotIndex = 0; slotIndex < r.Ask.Slots; slotIndex++)
+                {
+                    var thisSlotId = contracts.GetSlotId(r.RequestId, slotIndex);
+                    var id = Base58.Encode(thisSlotId);
+
+                    if (id.ToLowerInvariant() == slotId.ToLowerInvariant())
+                    {
+                        return new ProofOrigin(r, Convert.ToInt32(slotIndex));
+                    }
+                }
+            }
+            return null;
+        }
+    }
+
+    public class ProofOrigin
+    {
+        public ProofOrigin(IChainStateRequest request, int slotIndex)
+        {
+            Request = request;
+            SlotIndex = slotIndex;
+        }
+
+        public IChainStateRequest Request { get; }
+        public int SlotIndex { get; }
     }
 
     public partial class ReserveSlotFunction : IHasBlockAndRequestId, IHasSlotIndex

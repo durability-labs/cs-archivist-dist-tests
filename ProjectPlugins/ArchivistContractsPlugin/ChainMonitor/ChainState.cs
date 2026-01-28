@@ -216,28 +216,11 @@ namespace ArchivistContractsPlugin.ChainMonitor
         {
             var id = Base58.Encode(@event.Id);
 
-            var proofOrigin = SearchForProofOrigin(id);
+            var proofOrigin = @event.FindProofOrigin(contracts, requests);
+            var proofStr = FormatProofOrigin(proofOrigin);
 
             log.Log($"{@event.Block} Proof submitted (id:{id} {proofOrigin})");
             handler.OnProofSubmitted(@event.Block, id);
-        }
-
-        private string SearchForProofOrigin(string slotId)
-        {
-            foreach (var r in requests)
-            {
-                for (decimal slotIndex = 0; slotIndex < r.Ask.Slots; slotIndex++)
-                {
-                    var thisSlotId = contracts.GetSlotId(r.RequestId, slotIndex);
-                    var id = Base58.Encode(thisSlotId);
-
-                    if (id.ToLowerInvariant() == slotId.ToLowerInvariant())
-                    {
-                        return $"({r.RequestId.ToHex()} slotIndex:{slotIndex})";
-                    }
-                }
-            }
-            return "(Could not identify proof requestId + slot)";
         }
 
         private void ApplyTimeImplicitEvents(BlockTimeEntry entry)
@@ -283,6 +266,15 @@ namespace ArchivistContractsPlugin.ChainMonitor
                 handler.OnError(msg);
                 return null;
             }
+        }
+
+        private string FormatProofOrigin(ProofOrigin? proofOrigin)
+        {
+            if (proofOrigin != null)
+            {
+                return $"({proofOrigin.Request.RequestId.ToHex()} slotIndex:{proofOrigin.SlotIndex})";
+            }
+            return "(Could not identify proof requestId + slot)";
         }
 
         public class BlockTimeGetter

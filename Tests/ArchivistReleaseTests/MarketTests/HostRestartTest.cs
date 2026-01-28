@@ -13,8 +13,6 @@ namespace ArchivistReleaseTests.MarketTests
         protected override TestToken HostStartingBalance => DefaultPurchase.CollateralRequiredPerSlot * 1.1; // Each host can hold 1 slot.
         protected override int NumberOfClients => 1;
 
-        protected override bool MonitorChainState => false;
-
         [Test]
         public void HostsRestart()
         {
@@ -26,7 +24,8 @@ namespace ArchivistReleaseTests.MarketTests
             )
             {
                 Expiry = TimeSpan.FromHours(1),
-                Duration = HostAvailabilityMaxDuration - TimeSpan.FromSeconds(10)
+                Duration = HostAvailabilityMaxDuration - TimeSpan.FromSeconds(10),
+                ProofProbability = 1,
             });
 
             purchase.WaitForStorageContractStarted();
@@ -60,7 +59,7 @@ namespace ArchivistReleaseTests.MarketTests
                 }
             }
 
-            purchase.WaitForStorageContractFinished();
+            WaitUntilProofsSubmitted(purchase.Purchase.MinRequiredNumberOfNodes);
 
             if (expectedSlotFreedEvents.Count == 0)
             {
@@ -78,6 +77,39 @@ namespace ArchivistReleaseTests.MarketTests
                         $"'{string.Join(", ", freeEvents.Select(f => f.SlotIndex))}'");
                 }
             }
+        }
+
+        private void WaitUntilProofsSubmitted(int slots)
+        {
+            Log("Waiting until a proof is submitted by each host...");
+            var start = DateTime.UtcNow;
+            var contracts = GetContracts();
+            var requests = GetChainMonitor().Requests.ToArray();
+            var seenIndices = new HashSet<int>();
+
+            Time.WaitUntil(() =>
+            {
+                var end = DateTime.UtcNow;
+                var interval = new TimeRange(start, end);
+                start = end;
+
+                var events = GetContracts().GetEvents(interval).GetEvents<ProofSubmittedEventDTO>();
+                foreach (var e in events)
+                {
+                    var proofOrigin = e.FindProofOrigin(contracts, requests);
+                    if (proofOrigin != null)
+                    {
+                        var slotIndex = proofOrigin.SlotIndex;
+                        seenIndices.Add(slotIndex);
+                        Log("Seen proof for " + slotIndex);
+                    }
+                }
+
+                return seenIndices.Count < slots;
+            },
+            timeout: contracts.Deployment.Config.PeriodDuration * 10,
+            retryDelay: TimeSpan.FromSeconds(30),
+            msg: nameof(WaitUntilProofsSubmitted));
         }
     }
 }
