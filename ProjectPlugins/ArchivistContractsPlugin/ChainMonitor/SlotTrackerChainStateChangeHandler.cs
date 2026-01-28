@@ -111,6 +111,12 @@ namespace ArchivistContractsPlugin.ChainMonitor
 
         private void FindSlotReserveCalls(DateTime endUtc)
         {
+            if (reports.Count == 0)
+            {
+                Log("No requests in slotTracker.");
+                return;
+            }
+
             var earliestCreationUtc = FindEarliestCreationUtc();
             var timeInterval = new TimeRange(earliestCreationUtc, endUtc);
             Log($"Collecting ReserveSlot calls in range {timeInterval}");

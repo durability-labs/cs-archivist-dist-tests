@@ -212,7 +212,7 @@ namespace ArchivistContractsPlugin.ChainMonitor
             var proofOrigin = @event.FindProofOrigin(contracts, requests);
             var proofStr = FormatProofOrigin(proofOrigin);
 
-            log.Log($"{@event.Block} Proof submitted (id:{id} {proofOrigin})");
+            log.Log($"{@event.Block} Proof submitted (id:{id} {proofStr})");
             handler.OnProofSubmitted(@event.Block, id);
         }
 
