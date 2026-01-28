@@ -50,12 +50,6 @@ namespace ArchivistContractsPlugin.Marketplace
         public BlockTimeEntry Block { get; set; }
     }
 
-    public partial class RequestCancelledEventDTO : IHasBlockAndRequestId
-    {
-        [JsonIgnore]
-        public BlockTimeEntry Block { get; set; }
-    }
-
     public partial class RequestFailedEventDTO : IHasBlockAndRequestId
     {
         [JsonIgnore]
