@@ -3,7 +3,7 @@ namespace ArchivistPlugin
     public class ArchivistDockerImage
     {
         private const string DefaultDockerImage =
-            "durabilitylabs/archivist-node:sha-c23d1df-dist-tests";
+            "durabilitylabs/archivist-node:sha-6e1a133-dist-tests";
 
         public string GetArchivistDockerImage()
         {
