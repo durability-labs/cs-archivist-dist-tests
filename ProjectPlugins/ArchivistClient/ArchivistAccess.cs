@@ -30,6 +30,7 @@ namespace ArchivistClient
 
         public void Restart()
         {
+            DownloadLog("_before_restart");
             processControl.Restart();
         }
 

@@ -976,10 +976,14 @@ namespace KubernetesWorkflow
         {
             WaitUntilFast(() =>
             {
-                CheckForCrash(container);
-
                 var deployment = client.Run(c => c.ReadNamespacedDeployment(container.Recipe.Name, K8sNamespace));
-                return deployment?.Status.AvailableReplicas != null && deployment.Status.AvailableReplicas == expected;
+                var actual = deployment.Status.AvailableReplicas;
+                if (expected == 0)
+                {
+                    return actual == null || actual == 0;
+                }
+
+                return actual != null && actual == expected;
             }, nameof(WaitUntilDeploymentOnline));
         }
 

@@ -293,6 +293,19 @@ namespace ArchivistClient
             Log("In-place restart...");
             hooks.OnNodeRestarting();
             archivistAccess.Restart();
+
+            Time.WaitUntil(() =>
+            {
+                try
+                {
+                    return !string.IsNullOrEmpty(GetDebugInfo().Id);
+                }
+                catch
+                {
+                    return false;
+                }
+            }, nameof(InPlaceRestart));
+
             hooks.OnNodeRestarted();
         }
 
