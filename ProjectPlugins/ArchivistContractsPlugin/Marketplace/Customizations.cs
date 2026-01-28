@@ -175,6 +175,7 @@ namespace ArchivistContractsPlugin.Marketplace
     public partial class GetActiveSlotFunction : IViewFunction { }
     public partial class GetChallengeFunction : IViewFunction { }
     public partial class SlotProbabilityFunction : IViewFunction { }
+    public partial class VaultFunction : IViewFunction { }
 
     public partial class FillSlotFunction : ITransactionFunction { }
     public partial class FreeSlot1Function : ITransactionFunction { }
@@ -185,5 +186,6 @@ namespace ArchivistContractsPlugin.Marketplace
     public partial class WithdrawFundsFunction : ITransactionFunction { }
     public partial class WithdrawFunds1Function : ITransactionFunction { }
     public partial class MarkProofAsMissingFunction : ITransactionFunction { }
+    public partial class WithdrawByValidatorFunction : ITransactionFunction { }
 }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
