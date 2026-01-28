@@ -105,7 +105,7 @@ namespace ArchivistReleaseTests.MarketTests
                     }
                 }
 
-                return seenIndices.Count < slots;
+                return seenIndices.Count == slots;
             },
             timeout: contracts.Deployment.Config.PeriodDuration * 10,
             retryDelay: TimeSpan.FromSeconds(30),
