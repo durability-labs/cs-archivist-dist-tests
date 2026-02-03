@@ -7,7 +7,8 @@ namespace AutoClient
     public class FailureDelay : IAppEventHandler
     {
         private readonly TimeSpan max = TimeSpan.FromMinutes(15);
-        private readonly TimeSpan min = TimeSpan.FromSeconds(1);
+        private readonly TimeSpan min = TimeSpan.FromMilliseconds(100);
+        private readonly TimeSpan lowIncrease = TimeSpan.FromSeconds(10);
         private readonly ILog log;
         private TimeSpan delay;
 
@@ -53,6 +54,7 @@ namespace AutoClient
         private void IncreaseDelay()
         {
             delay = delay * 2.0;
+            if (delay < lowIncrease) delay = lowIncrease;
             if (delay > max) delay = max;
         }
 
