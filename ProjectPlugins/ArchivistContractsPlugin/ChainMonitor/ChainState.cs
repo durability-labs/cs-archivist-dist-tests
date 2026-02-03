@@ -1,7 +1,8 @@
-using BlockchainUtils;
 using ArchivistContractsPlugin.Marketplace;
+using BlockchainUtils;
 using GethPlugin;
 using Logging;
+using Nethereum.Contracts;
 using Nethereum.Hex.HexConvertors.Extensions;
 using System.Numerics;
 using Utils;
@@ -167,14 +168,6 @@ namespace ArchivistContractsPlugin.ChainMonitor
             handler.OnRequestFulfilled(new RequestEvent(@event.Block, r));
         }
 
-        private void ApplyEvent(RequestCancelledEventDTO @event)
-        {
-            var r = FindRequest(@event);
-            if (r == null) return;
-            r.UpdateStateFromEvent(@event, RequestState.Cancelled);
-            handler.OnRequestCancelled(new RequestEvent(@event.Block, r));
-        }
-
         private void ApplyEvent(RequestFailedEventDTO @event)
         {
             var r = FindRequest(@event);
@@ -219,7 +212,7 @@ namespace ArchivistContractsPlugin.ChainMonitor
             var proofOrigin = @event.FindProofOrigin(contracts, requests);
             var proofStr = FormatProofOrigin(proofOrigin);
 
-            log.Log($"{@event.Block} Proof submitted (id:{id} {proofOrigin})");
+            log.Log($"{@event.Block} Proof submitted (id:{id} {proofStr})");
             handler.OnProofSubmitted(@event.Block, id);
         }
 
@@ -227,15 +220,34 @@ namespace ArchivistContractsPlugin.ChainMonitor
         {
             foreach (var r in requests)
             {
-                if (r.State == RequestState.Started
-                    && r.FinishedUtc < entry.Utc)
-                {
-                    r.UpdateStateFromTime(
-                        matchingBlock: entry,
-                        eventName: "RequestFinished",
-                        newState: RequestState.Finished);
-                    handler.OnRequestFinished(new RequestEvent(entry, r));
-                }
+                ApplyTimeImplicitCancelledEvent(r, entry);
+                ApplyTimeImplicitFinishedEvent(r, entry);
+            }
+        }
+
+        private void ApplyTimeImplicitFinishedEvent(ChainStateRequest r, BlockTimeEntry entry)
+        {
+            if (r.State == RequestState.Started
+                && r.FinishedUtc < entry.Utc)
+            {
+                r.UpdateStateFromTime(
+                    matchingBlock: entry,
+                    eventName: "RequestFinished",
+                    newState: RequestState.Finished);
+                handler.OnRequestFinished(new RequestEvent(entry, r));
+            }
+        }
+
+        private void ApplyTimeImplicitCancelledEvent(ChainStateRequest r, BlockTimeEntry entry)
+        {
+            if (r.State == RequestState.New
+                && r.ExpiryUtc < entry.Utc)
+            {
+                r.UpdateStateFromTime(
+                    matchingBlock: entry,
+                    eventName: "RequestCancelled",
+                    newState: RequestState.Cancelled);
+                handler.OnRequestCancelled(new RequestEvent(entry, r));
             }
         }
 

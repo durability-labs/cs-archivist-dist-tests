@@ -10,7 +10,6 @@ namespace ArchivistContractsPlugin.ChainMonitor
             BlockInterval blockInterval,
             StorageRequestedEventDTO[] requests,
             RequestFulfilledEventDTO[] fulfilled,
-            RequestCancelledEventDTO[] cancelled,
             RequestFailedEventDTO[] failed,
             SlotFilledEventDTO[] slotFilled,
             SlotFreedEventDTO[] slotFreed,
@@ -21,19 +20,17 @@ namespace ArchivistContractsPlugin.ChainMonitor
             BlockInterval = blockInterval;
             Requests = requests;
             Fulfilled = fulfilled;
-            Cancelled = cancelled;
             Failed = failed;
             SlotFilled = slotFilled;
             SlotFreed = slotFreed;
             SlotReservationsFull = slotReservationsFull;
             ProofSubmitted = proofSubmitted;
-            All = ConcatAll<IHasBlock>(requests, fulfilled, cancelled, failed, slotFilled, SlotFreed, SlotReservationsFull, ProofSubmitted);
+            All = ConcatAll<IHasBlock>(requests, fulfilled, failed, slotFilled, SlotFreed, SlotReservationsFull, ProofSubmitted);
         }
 
         public BlockInterval BlockInterval { get; }
         public StorageRequestedEventDTO[] Requests { get; }
         public RequestFulfilledEventDTO[] Fulfilled { get; }
-        public RequestCancelledEventDTO[] Cancelled { get; }
         public RequestFailedEventDTO[] Failed { get; }
         public SlotFilledEventDTO[] SlotFilled { get; }
         public SlotFreedEventDTO[] SlotFreed { get; }
@@ -50,7 +47,6 @@ namespace ArchivistContractsPlugin.ChainMonitor
         {
             var storageRequested = new ContractEventsCollector<StorageRequestedEventDTO>();
             var requestFulfilled = new ContractEventsCollector<RequestFulfilledEventDTO>();
-            var requestCancelled = new ContractEventsCollector<RequestCancelledEventDTO>();
             var requestFailed = new ContractEventsCollector<RequestFailedEventDTO>();
             var slotFilled = new ContractEventsCollector<SlotFilledEventDTO>();
             var slotFreed = new ContractEventsCollector<SlotFreedEventDTO>();
@@ -60,7 +56,6 @@ namespace ArchivistContractsPlugin.ChainMonitor
             events.GetEvents(
                 storageRequested,
                 requestFulfilled,
-                requestCancelled,
                 requestFailed,
                 slotFilled,
                 slotFreed,
@@ -72,7 +67,6 @@ namespace ArchivistContractsPlugin.ChainMonitor
                 events.BlockInterval,
                 storageRequested.Events.ToArray(),
                 requestFulfilled.Events.ToArray(),
-                requestCancelled.Events.ToArray(),
                 requestFailed.Events.ToArray(),
                 slotFilled.Events.ToArray(),
                 slotFreed.Events.ToArray(),
