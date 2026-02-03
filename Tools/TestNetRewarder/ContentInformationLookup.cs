@@ -46,7 +46,7 @@ namespace TestNetRewarder
             var downloadLink = $"{network.Team.Utils.Gateway}/{cid}";
             return
             [
-                $"[Download via Gateway]({downloadLink})"
+                $"[Download via Gateway](<{downloadLink}>)"
             ];
         }
 
