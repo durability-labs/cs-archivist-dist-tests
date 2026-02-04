@@ -106,7 +106,7 @@ namespace ArchivistReleaseTests.Repair
         private SlotFill[] SelectOldestSlotFills(List<IArchivistNode> hosts, int numHostsPerFailure)
         {
             var allFills = GetOnChainSlotFills(hosts);
-            Log($"Current fills:{Environment.NewLine}{string.Join($"{Environment.NewLine}           - ", allFills.Select(f => f.ToString()))}");
+            Log($"Current fills:{string.Join(string.Empty, allFills.Select(f => $"{Environment.NewLine}           - {f}"))}");
             return GetSlotFillsByOldestHost(numHostsPerFailure, allFills, hosts);
         }
 

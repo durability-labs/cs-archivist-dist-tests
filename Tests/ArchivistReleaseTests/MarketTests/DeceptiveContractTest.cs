@@ -196,9 +196,13 @@ namespace ArchivistReleaseTests.MarketTests
         private void CreateAndStartLegitRequest(IArchivistNode client, ByteSize hostQuotaSize)
         {
             Log("Now we create a legit request. The hosts should pick it up and the request should start.");
+            var filesize = 2.MB();
+            Assert.That(filesize.SizeInBytes, Is.LessThan(hostQuotaSize.Multiply(0.5).SizeInBytes),
+                "Test misconfigured: Legit request does not fit in host quota.");
+
             var legitRequest = client.Marketplace
                 .RequestStorage(new StoragePurchaseRequest(
-                    client.UploadFile(GenerateTestFile(hostQuotaSize.Multiply(0.5)))
+                    client.UploadFile(GenerateTestFile(filesize))
                 ));
 
             legitRequest.WaitForStorageContractStarted();
