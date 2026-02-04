@@ -13,30 +13,13 @@ namespace ArchivistContractsPlugin
         {
             if (functionTypes != null) return functionTypes;
 
-            var marketplaceType = typeof(MarketplaceDeployment);
-            var contractNamespace = marketplaceType.Namespace;
-
-            var allTypes = Assembly.GetAssembly(marketplaceType)!.GetTypes()
-                .Where(t =>
-                    t.IsPublic &&
-                    t.Namespace == contractNamespace &&
-                    t.BaseType != typeof(FunctionMessage) &&
-                    typeof(FunctionMessage).IsAssignableFrom(t)).ToArray();
+            var allTypes = GetAllMarketplaceTypes();
 
             var views = new List<Type>();
             var transactions = new List<Type>();
             var other = new List<Type>();
 
-            foreach (var t in allTypes)
-            {
-                var isView = typeof(IViewFunction).IsAssignableFrom(t);
-                var isTransaction = typeof(ITransactionFunction).IsAssignableFrom(t);
-                if (isView && isTransaction) throw new Exception($"Type {t.Name} is both {nameof(IViewFunction)} and {nameof(ITransactionFunction)}. Should be one or other, not both.");
-
-                if (isView) views.Add(t);
-                else if (isTransaction) transactions.Add(t);
-                else other.Add(t);
-            }
+            SortViewAndTransactionTypes(allTypes, views, transactions, other);
 
             if (other.Count > 0)
             {
@@ -52,18 +35,45 @@ namespace ArchivistContractsPlugin
         public static Type[] GetMarketplaceEventTypes()
         {
             if (eventTypes != null) return eventTypes;
+            eventTypes = GetEventTypes();
+            return eventTypes;
+        }
 
+        private static void SortViewAndTransactionTypes(Type[] allTypes, List<Type> views, List<Type> transactions, List<Type> other)
+        {
+            foreach (var t in allTypes)
+            {
+                var isView = typeof(IViewFunction).IsAssignableFrom(t);
+                var isTransaction = typeof(ITransactionFunction).IsAssignableFrom(t);
+                if (isView && isTransaction) throw new Exception($"Type {t.Name} is both {nameof(IViewFunction)} and {nameof(ITransactionFunction)}. Should be one or other, not both.");
+
+                if (isView) views.Add(t);
+                else if (isTransaction) transactions.Add(t);
+                else other.Add(t);
+            }
+        }
+
+        private static Type[] GetEventTypes()
+        {
+            return GetMarketplaceAssignableTypes<IEventDTO>();
+        }
+
+        private static Type[] GetAllMarketplaceTypes()
+        {
+            return GetMarketplaceAssignableTypes<FunctionMessage>();
+        }
+
+        private static Type[] GetMarketplaceAssignableTypes<T>()
+        {
             var marketplaceType = typeof(MarketplaceDeployment);
             var contractNamespace = marketplaceType.Namespace;
 
-            eventTypes = Assembly.GetAssembly(marketplaceType)!.GetTypes()
+            return Assembly.GetAssembly(marketplaceType)!.GetTypes()
                 .Where(t =>
                     t.IsPublic &&
                     t.Namespace == contractNamespace &&
-                    t.BaseType != typeof(IEventDTO) &&
-                    typeof(IEventDTO).IsAssignableFrom(t)).ToArray();
-
-            return eventTypes;
+                    t.BaseType != typeof(T) &&
+                    typeof(T).IsAssignableFrom(t)).ToArray();
         }
     }
 
