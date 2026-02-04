@@ -53,7 +53,7 @@ namespace AutoClient
 
         private void IncreaseDelay()
         {
-            delay = delay * 2.0;
+            delay = delay * 10.0;
             if (delay < lowIncrease) delay = lowIncrease;
             if (delay > max) delay = max;
         }
