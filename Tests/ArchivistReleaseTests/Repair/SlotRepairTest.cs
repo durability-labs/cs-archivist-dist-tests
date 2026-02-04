@@ -78,7 +78,7 @@ namespace ArchivistReleaseTests.Repair
             Assert.That(proofsMissed, Is.EqualTo(0), $"Proofs were missed *BEFORE* any hosts were shut down.");
             
             var requestState = GetContracts().GetRequestState(contract.PurchaseId.HexToByteArray());
-            Assert.That(requestState, Is.Not.EqualTo(RequestState.Failed));
+            Assert.That(requestState, Is.EqualTo(RequestState.Started));
 
             for (var i = 0; i < NumberOfFailures; i++)
             {
@@ -106,7 +106,7 @@ namespace ArchivistReleaseTests.Repair
         private SlotFill[] SelectOldestSlotFills(List<IArchivistNode> hosts, int numHostsPerFailure)
         {
             var allFills = GetOnChainSlotFills(hosts);
-            Log($"Current fills: {string.Join(", ", allFills.Select(f => f.ToString()))}");
+            Log($"Current fills:{Environment.NewLine}{string.Join($"{Environment.NewLine}           - ", allFills.Select(f => f.ToString()))}");
             return GetSlotFillsByOldestHost(numHostsPerFailure, allFills, hosts);
         }
 
@@ -171,7 +171,7 @@ namespace ArchivistReleaseTests.Repair
 
             WaitForNewEventWithTimeout(
                 startUtc: startUtc,
-                timeout: timeout,
+                timeoutUtc: DateTime.UtcNow + timeout,
                 waiter: () => GetContracts().WaitUntilNextPeriod(),
                 checker: events =>
                 {
@@ -209,7 +209,7 @@ namespace ArchivistReleaseTests.Repair
 
             WaitForNewEventWithTimeout(
                 startUtc: startUtc,
-                timeout: timeout,
+                timeoutUtc: DateTime.UtcNow + timeout,
                 waiter: () => Thread.Sleep(TimeSpan.FromSeconds(15)),
                 checker: events =>
                 {
@@ -235,12 +235,12 @@ namespace ArchivistReleaseTests.Repair
                 });
         }
 
-        private void WaitForNewEventWithTimeout(DateTime startUtc, TimeSpan timeout, Action waiter, Func<IArchivistContractsEvents, bool> checker)
+        private void WaitForNewEventWithTimeout(DateTime startUtc, DateTime timeoutUtc, Action waiter, Func<IArchivistContractsEvents, bool> checker)
         {
             var loopEnd = startUtc;
             Thread.Sleep(TimeSpan.FromSeconds(3.0));
 
-            while (DateTime.UtcNow < startUtc + timeout)
+            while (DateTime.UtcNow < timeoutUtc)
             {
                 var loopStart = loopEnd;
                 loopEnd = DateTime.UtcNow;
@@ -249,7 +249,7 @@ namespace ArchivistReleaseTests.Repair
                 if (checker(events)) return;
                 waiter();
             }
-            Assert.Fail($"{nameof(WaitForNewEventWithTimeout)} Failed after {Time.FormatDuration(timeout)}");
+            Assert.Fail($"{nameof(WaitForNewEventWithTimeout)} Failed. TimeoutUTC: {Time.FormatTimestamp(timeoutUtc)}");
         }
 
         private string GetLogContext(IStoragePurchaseContract contract, ulong[] slotIndices)
