@@ -10,6 +10,7 @@ using Utils;
 namespace ArchivistReleaseTests.Repair
 {
     [TestFixture]
+    [NonParallelizable]
     public class SlotRepairTest : MarketplaceAutoBootstrapDistTest
     {
         #region Setup
