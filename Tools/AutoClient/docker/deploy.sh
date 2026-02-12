@@ -32,10 +32,15 @@ cd "${script_dir}"
 sed -i "s|image:.*|image: ${archivist_image}|" "${archivist_compose}"
 
 # Stop and Start
+echo "Stopping current autoclient containers..."
 docker compose down
-sleep 3
+echo "Waiting a minute..."
+sleep 60
+echo "Starting updated autoclient containers..."
 docker compose up -d
 
 # Status
 docker compose ps
+
+echo "All done"
 
