@@ -30,7 +30,7 @@ namespace ArchivistReleaseTests.MarketTests
             // saturating the node with unused but locked up space.
 
             Log("All hosts are empty at the start...");
-            AssertHostsAreEmpty(hosts);
+            AssertHostsAreEmpty(hosts, HostBlockTTL);
 
             for (int i = 0; i < 5; i++)
             {
@@ -82,7 +82,7 @@ namespace ArchivistReleaseTests.MarketTests
             msg: "All purchases finished or cancelled.");
 
             Log("All purchases are finished or cancelled. All hosts should be empty...");
-            AssertHostsAreEmpty(hosts);
+            AssertHostsAreEmpty(hosts, requests.First().Purchase.Expiry);
         }
     }
 }

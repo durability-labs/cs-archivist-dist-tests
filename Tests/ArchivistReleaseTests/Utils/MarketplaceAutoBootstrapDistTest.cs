@@ -97,7 +97,7 @@ namespace ArchivistReleaseTests.Utils
         {
             get
             {
-                return HostBlockTTL / 10;
+                return TimeSpan.FromSeconds(30.0);
             }
         }
 
@@ -198,16 +198,16 @@ namespace ArchivistReleaseTests.Utils
             return host;
         }
 
-        public void AssertHostsAreEmpty(IEnumerable<IArchivistNode> hosts)
+        public void AssertHostsAreEmpty(IEnumerable<IArchivistNode> hosts, TimeSpan expectedBlockTTL)
         {
-            AssertHostHasNoActiveSlots(hosts);
-            AssertQuotaIsEmpty(hosts);
+            AssertHostHasNoActiveSlots(hosts, expectedBlockTTL);
+            AssertQuotaIsEmpty(hosts, expectedBlockTTL);
         }
 
-        public void AssertHostHasNoActiveSlots(IEnumerable<IArchivistNode> hosts)
+        public void AssertHostHasNoActiveSlots(IEnumerable<IArchivistNode> hosts, TimeSpan expectedBlockTTL)
         {
             Log($"{nameof(AssertHostHasNoActiveSlots)}...");
-            var retry = GetBlockTTLAssertRetry();
+            var retry = GetBlockTTLAssertRetry(expectedBlockTTL);
             retry.Run(() =>
             {
                 foreach (var n in hosts)
@@ -222,10 +222,10 @@ namespace ArchivistReleaseTests.Utils
             Log($"{nameof(AssertHostHasNoActiveSlots)} OK");
         }
 
-        public void AssertQuotaIsEmpty(IEnumerable<IArchivistNode> nodes)
+        public void AssertQuotaIsEmpty(IEnumerable<IArchivistNode> nodes, TimeSpan expectedBlockTTL)
         {
             Log($"{nameof(AssertQuotaIsEmpty)}...");
-            var retry = GetBlockTTLAssertRetry();
+            var retry = GetBlockTTLAssertRetry(expectedBlockTTL);
             retry.Run(() =>
             {
                 foreach (var n in nodes)
@@ -444,10 +444,10 @@ namespace ArchivistReleaseTests.Utils
                 failFast: false);
         }
 
-        private Retry GetBlockTTLAssertRetry()
+        private Retry GetBlockTTLAssertRetry(TimeSpan blockTTL)
         {
             return new Retry("AssertWithBlockTTLTimeout",
-                maxTimeout: HostBlockTTL * 3,
+                maxTimeout: blockTTL * 2,
                 sleepAfterFail: TimeSpan.FromSeconds(30.0),
                 onFail: f => { },
                 failFast: false);

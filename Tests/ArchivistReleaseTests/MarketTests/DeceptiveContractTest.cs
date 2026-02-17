@@ -156,7 +156,7 @@ namespace ArchivistReleaseTests.MarketTests
             });
 
             Log("The hosts should be empty.");
-            AssertHostsAreEmpty(hosts);
+            AssertHostsAreEmpty(hosts, DefaultStoragePurchase.Expiry);
         }
 
         private void AssertHostsDidntDownloadDataset(IArchivistNodeGroup hosts)
