@@ -23,7 +23,7 @@ namespace ArchivistReleaseTests.MarketTests
             var client = clients.Single();
 
             var request = client.Marketplace.RequestStorage(new StoragePurchaseRequest(
-                client.UploadFile(GenerateTestFile(10.MB()))
+                client.UploadFile(GenerateTestFile(DefaultStoragePurchase.UploadFileSize))
             )
             {
                 // A large duration will reveal if blocks are stored with duration-TTL instead of expiry.
