@@ -43,7 +43,7 @@ namespace ArchivistReleaseTests.MarketTests
             AssertClientHasPaidForContract(DefaultPurchase.PricePerByteSecond, client, request, hosts);
             AssertHostsWerePaidForContract(DefaultPurchase.PricePerByteSecond, request, hosts);
             AssertHostsCollateralsAreUnchanged(hosts);
-            AssertHostsAreEmpty(hosts, request.Purchase.Expiry);
+            AssertHostsAreEmpty(hosts, HostBlockTTL);
         }
 
         private IStoragePurchaseContract CreateStorageRequest(IArchivistNode client)

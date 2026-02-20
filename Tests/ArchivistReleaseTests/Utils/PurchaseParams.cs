@@ -23,11 +23,11 @@ namespace ArchivistReleaseTests.Utils
             PricePerByteSecond = pricePerByteSecond;
             CollateralPerByte = collateralPerByte;
             EncodedDatasetSize = CalculateEncodedDatasetSize();
-            SlotSize = CalculateSlotSize();
+            (SlotSize, SlotSizePowerOfTwo) = CalculateSlotSize();
             CollateralRequiredPerSlot = CalculateCollateralPerSlot();
             PaymentPerSlot = CalculatePaymentPerSlot();
 
-            Assert.That(IsPowerOfTwo(SlotSize));
+            Assert.That(IsPowerOfTwo(SlotSizePowerOfTwo));
         }
 
         public int Nodes { get; }
@@ -38,6 +38,7 @@ namespace ArchivistReleaseTests.Utils
         public TestToken CollateralPerByte { get; }
         public ByteSize EncodedDatasetSize { get; }
         public ByteSize SlotSize { get; }
+        public ByteSize SlotSizePowerOfTwo { get; }
         public TestToken CollateralRequiredPerSlot { get; }
         public TestToken PaymentPerSlot { get; }
 
@@ -71,7 +72,7 @@ namespace ArchivistReleaseTests.Utils
             return new PurchaseParams(Nodes, Tolerance, Duration, UploadFilesize, PricePerByteSecond, value);
         }
 
-        private ByteSize CalculateSlotSize()
+        private (ByteSize, ByteSize) CalculateSlotSize()
         {
             // encoded dataset is divided over the nodes.
             // then each slot is rounded up to the nearest power-of-two blocks.
@@ -80,7 +81,9 @@ namespace ArchivistReleaseTests.Utils
 
             // Next power of two:
             var numSlotBlocksPow2 = IsOrNextPowerOf2(numSlotBlocks);
-            return new ByteSize(blockSize.SizeInBytes * numSlotBlocksPow2);
+            var slotSize = new ByteSize(blockSize.SizeInBytes * numSlotBlocks);
+            var slotSizeP2 = new ByteSize(blockSize.SizeInBytes * numSlotBlocksPow2);
+            return (slotSize, slotSizeP2);
         }
 
         private ByteSize CalculateEncodedDatasetSize()

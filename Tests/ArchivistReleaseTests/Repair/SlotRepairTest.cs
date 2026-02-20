@@ -75,7 +75,10 @@ namespace ArchivistReleaseTests.Repair
             WaitAndCheckNodesStaysAlive(config.PeriodDuration * 5, hosts);
 
             // No proofs were missed so far.
+            // No slots were freed so far.
             Assert.That(proofsMissed, Is.EqualTo(0), $"Proofs were missed *BEFORE* any hosts were shut down.");
+            var slotFreedEvents = GetContracts().GetEvents(GetTestRunTimeRange()).GetEvents<SlotFreedEventDTO>();
+            Assert.That(slotFreedEvents.Length, Is.EqualTo(0), "Expected no slots freed before any hosts fail.");
             
             var requestState = GetContracts().GetRequestState(contract.PurchaseId.HexToByteArray());
             Assert.That(requestState, Is.EqualTo(RequestState.Started));
@@ -193,6 +196,11 @@ namespace ArchivistReleaseTests.Repair
                                     Log($"{context} Done! Found all required slotFree events.");
                                     return true;
                                 }
+                            }
+                            else
+                            {
+                                Assert.Fail($"{context} Found slotFree event for index {free.SlotIndex}, but this was not expected. " +
+                                    $"Expected: {string.Join(",", remaining.Select(r => r.ToStringInvariant()))}");
                             }
                         }
                     }
