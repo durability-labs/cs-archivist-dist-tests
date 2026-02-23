@@ -52,32 +52,32 @@ namespace ArchivistReleaseTests.DataTests
         }
 
         [Test]
-        public void DeletesExpiredDataUsedByStorageRequests()
+        public void DeletesExpiredClientDataUsedByStorageRequests()
         {
             var fileSize = 3.MB();
 
             var bootstrapNode = StartArchivist();
             var geth = StartGethNode(s => s.IsMiner());
             var contracts = Ci.StartArchivistContracts(geth, bootstrapNode.Version);
-            var node = StartArchivist(s => WithFastBlockExpiry(s)
+            var client = StartArchivist(s => WithFastBlockExpiry(s)
                 .EnableMarketplace(geth, contracts, m => m.WithInitial(100.Eth(), 100.Tst()))
             );
 
-            var startSpace = node.Space();
+            var startSpace = client.Space();
             Assert.That(startSpace.QuotaUsedBytes, Is.EqualTo(0));
 
-            var cid = node.UploadFile(GenerateTestFile(fileSize));
-            var purchase = node.Marketplace.RequestStorage(new StoragePurchaseRequest(cid));
-            var usedSpace = node.Space();
-            var usedFiles = node.LocalFiles();
+            var cid = client.UploadFile(GenerateTestFile(fileSize));
+            var purchase = client.Marketplace.RequestStorage(new StoragePurchaseRequest(cid));
+            var usedSpace = client.Space();
+            var usedFiles = client.LocalFiles();
             Assert.That(usedSpace.QuotaUsedBytes, Is.GreaterThanOrEqualTo(fileSize.SizeInBytes));
             Assert.That(usedSpace.FreeBytes, Is.LessThanOrEqualTo(startSpace.FreeBytes - fileSize.SizeInBytes));
             Assert.That(usedFiles.Content.Length, Is.EqualTo(2));
 
             Thread.Sleep(blockTtl * 2);
 
-            var cleanupSpace = node.Space();
-            var cleanupFiles = node.LocalFiles();
+            var cleanupSpace = client.Space();
+            var cleanupFiles = client.LocalFiles();
 
             Assert.That(cleanupSpace.QuotaUsedBytes, Is.LessThan(usedSpace.QuotaUsedBytes));
             Assert.That(cleanupSpace.FreeBytes, Is.GreaterThan(usedSpace.FreeBytes));
@@ -88,7 +88,7 @@ namespace ArchivistReleaseTests.DataTests
         }
 
         [Test]
-        public void StorageRequestsKeepManifests()
+        public void HostsDoNotDeleteRequestManifests()
         {
             var bootstrapNode = StartArchivist(s => s.WithName("Bootstrap"));
             var geth = StartGethNode(s => s.IsMiner());
@@ -99,28 +99,19 @@ namespace ArchivistReleaseTests.DataTests
                 .EnableMarketplace(geth, contracts, m => m.WithInitial(100.Eth(), 100.Tst()))
             );
 
-            var hosts = StartArchivist(3, s => WithFastBlockExpiry(s)
+            var hosts = StartArchivist(4, s => WithFastBlockExpiry(s)
                 .WithName("host")
                 .WithBootstrapNode(bootstrapNode)
                 .EnableMarketplace(geth, contracts, m => m.AsStorageNode().WithInitial(100.Eth(), 100.Tst()))
             );
-            foreach (var host in hosts) host.Marketplace.MakeStorageAvailable(new ArchivistClient.CreateStorageAvailability(
+            foreach (var host in hosts) host.Marketplace.MakeStorageAvailable(new CreateStorageAvailability(
                 maxDuration: TimeSpan.FromDays(2.0),
                 untilUtc: DateTime.UtcNow + TimeSpan.FromDays(30.0),
                 minPricePerBytePerSecond: 1.TstWei(),
                 maxCollateralPerByte: 10.Tst()));
 
-            var uploadCid = client.UploadFile(GenerateTestFile(5.MB()));
-            var request = client.Marketplace.RequestStorage(new ArchivistClient.StoragePurchaseRequest(uploadCid)
-            {
-                CollateralPerByte = 1.TstWei(),
-                Duration = TimeSpan.FromDays(1.0),
-                Expiry = TimeSpan.FromHours(1.0),
-                MinRequiredNumberOfNodes = 3,
-                NodeFailureTolerance = 1,
-                PricePerBytePerSecond = 10.TstWei(),
-                ProofProbability = 99999
-            });
+            var uploadCid = client.UploadFile(GenerateTestFile(DefaultStoragePurchase.UploadFileSize));
+            var request = client.Marketplace.RequestStorage(new StoragePurchaseRequest(uploadCid));
             request.WaitForStorageContractSubmitted();
             request.WaitForStorageContractStarted();
             var storeCid = request.ContentId;
