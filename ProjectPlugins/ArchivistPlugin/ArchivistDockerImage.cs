@@ -4,7 +4,8 @@ namespace ArchivistPlugin
     {
         private const string DefaultDockerImage =
             //"durabilitylabs/archivist-node:sha-1ad57bf-dist-tests"; // overlay - stores encoded manifest twice somehow
-            "durabilitylabs/archivist-node:sha-7e8c0c8-dist-tests"; // main - Feat/make submodules great again(#96) - correct no duplicates
+            //"durabilitylabs/archivist-node:sha-7e8c0c8-dist-tests"; // main - Feat/make submodules great again(#96) - correct no duplicates
+            "durabilitylabs/archivist-node:sha-32ca0d0-dist-tests"; // 32ca0d0 - misc: small cleanup
 
         public string GetArchivistDockerImage()
         {
