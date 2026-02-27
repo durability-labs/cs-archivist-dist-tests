@@ -80,7 +80,8 @@ public class Program
         app.Log.Log($"'{address}': Creating wrapper...");
 
         var numberStr = number.ToString().PadLeft(3, '0');
-        var log = new LogPrefixer(app.Log, $"[{numberStr}]");
+        var modifyingPrefixer = new LogPrefixer(app.Log, "");
+        var log = new LogPrefixer(modifyingPrefixer, $"[{numberStr}]");
         var httpFactory = new HttpFactory(log, new AutoClientWebTimeSet());
         var archivistNodeFactory = new ArchivistNodeFactory(log: log, httpFactory: httpFactory, dataDir: app.Config.DataPath);
         var instance = ArchivistInstance.CreateFromApiEndpoint($"[AC-{numberStr}]", address, EthAccountGenerator.GenerateNew());
@@ -89,7 +90,7 @@ public class Program
         node.SetLogLevel(LogLevel);
 
         app.Log.Log($"'{address}': Connect successful");
-        return new ArchivistWrapper(app, node);
+        return new ArchivistWrapper(app, node, modifyingPrefixer);
     }
 
     private void Log(string msg)

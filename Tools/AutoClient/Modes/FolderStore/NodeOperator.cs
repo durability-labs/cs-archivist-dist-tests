@@ -44,7 +44,8 @@ namespace AutoClient.Modes.FolderStore
 
         private void OnNodeAction(FileStatus entry, Action<NodeAction> action)
         {
-            dispatcher.OnNode(node =>
+            var prefix = $"['{entry.Filename}']";
+            dispatcher.OnNode(prefix, node =>
             {
                 var nodeAction = new NodeAction(log, node, entry, appEventHandler);
                 action(nodeAction);

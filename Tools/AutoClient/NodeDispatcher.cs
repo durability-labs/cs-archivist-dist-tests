@@ -14,7 +14,7 @@ namespace AutoClient
             this.nodes = nodes.ToList();
         }
 
-        public void OnNode(Action<ArchivistWrapper> action, Action whenDone)
+        public void OnNode(string prefix, Action<ArchivistWrapper> action, Action whenDone)
         {
             var node = TakeNode();
 
@@ -22,14 +22,16 @@ namespace AutoClient
             {
                 try
                 {
+                    node.SetLogPrefix(prefix);
                     action(node);
                 }
                 catch (Exception ex)
                 {
-                    log.Error(ex.ToString());
+                    log.Error($"'{prefix}': {ex}");
                 }
                 finally
                 {
+                    node.SetLogPrefix(string.Empty);
                     whenDone();
                 }
 

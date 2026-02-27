@@ -1,5 +1,6 @@
 using ArchivistClient;
 using FileUtils;
+using Logging;
 using Utils;
 
 namespace AutoClient
@@ -7,32 +8,44 @@ namespace AutoClient
     public class ArchivistWrapper
     {
         private readonly App app;
+        private readonly LogPrefixer modifyingLogPrefixer;
+        private readonly IArchivistNode node;
+
         private static readonly Random r = new Random();
 
-        public ArchivistWrapper(App app, IArchivistNode node)
+        public ArchivistWrapper(App app, IArchivistNode node, LogPrefixer modifyingLogPrefixer)
         {
             this.app = app;
-            Node = node;
+            this.modifyingLogPrefixer = modifyingLogPrefixer;
+            this.node = node;
         }
 
-        public IArchivistNode Node { get; }
+        public void SetLogPrefix(string prefix)
+        {
+            modifyingLogPrefixer.Prefix = prefix;
+        }
+
+        public ArchivistSpace Space()
+        {
+            return node.Space();
+        }
 
         public ContentId UploadFile(string filepath)
         {
-            return Node.UploadFile(TrackedFile.FromPath(app.Log, filepath));
+            return node.UploadFile(TrackedFile.FromPath(app.Log, filepath));
         }
 
         public StoragePurchase? GetStoragePurchase(string pid)
         {
-            var purchases = Node.GetPurchases();
+            var purchases = node.GetPurchases();
             if (!purchases.Contains(pid.ToLowerInvariant())) return null;
-            return Node.GetPurchaseStatus(pid);
+            return node.GetPurchaseStatus(pid);
         }
 
         public IStoragePurchaseContract RequestStorage(ContentId cid)
         {
             var durability = GetDurabilityValues();
-            var result = Node.Marketplace.RequestStorage(new StoragePurchaseRequest(cid)
+            var result = node.Marketplace.RequestStorage(new StoragePurchaseRequest(cid)
             {
                 CollateralPerByte = app.Config.CollateralPerByte.TstWei(),
                 Duration = GetDuration(),
@@ -48,7 +61,7 @@ namespace AutoClient
         public IStoragePurchaseContract ExtendStorage(ContentId cid, int nodes, int tolerance)
         {
             var durability = GetDurabilityValues();
-            var result = Node.Marketplace.RequestStorage(new StoragePurchaseRequest(cid)
+            var result = node.Marketplace.RequestStorage(new StoragePurchaseRequest(cid)
             {
                 CollateralPerByte = app.Config.CollateralPerByte.TstWei(),
                 Duration = GetDuration(),

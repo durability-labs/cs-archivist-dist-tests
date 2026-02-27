@@ -18,19 +18,20 @@ namespace AutoClient.Modes.FolderStore
             timeoutUntil = DateTime.UtcNow;
         }
 
-        public void Step()
+        public bool Step()
         {
-            if (timeoutUntil > DateTime.UtcNow) return;
+            if (timeoutUntil > DateTime.UtcNow) return false;
 
             var fileStatus = folderStatus.Get(CanExtendPurchase);
             if (fileStatus == null)
             {
                 timeoutUntil = DateTime.UtcNow + TimeSpan.FromMinutes(30);
                 Log("Found no purchases to renew.");
-                return;
+                return false;
             }
 
             handler.ExtendPurchase(fileStatus);
+            return true;
         }
 
         private void Log(string v)

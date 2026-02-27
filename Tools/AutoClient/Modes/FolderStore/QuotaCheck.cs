@@ -34,7 +34,7 @@ namespace AutoClient.Modes.FolderStore
             var info = new FileInfo(filepath);
             var fileSize = info.Length;
             var padded = new ByteSize(Convert.ToInt64(fileSize * 1.1));
-            var space = instance.Node.Space();
+            var space = instance.Space();
             var free = new ByteSize(space.FreeBytes);
 
             log.Log($"Quota free: {free} - filesize: {padded}");

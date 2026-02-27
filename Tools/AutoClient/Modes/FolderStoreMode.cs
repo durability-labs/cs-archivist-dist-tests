@@ -42,7 +42,8 @@ namespace AutoClient.Modes
                 while (!folderIterator.IsFinished && !app.Cts.IsCancellationRequested)
                 {
                     folderIterator.Step();
-                    purchaseRenewer.Step();
+
+                    ExtendExistingPurchases(purchaseRenewer);
 
                     app.FailureDelay.ApplyDelay();
                 }
@@ -52,6 +53,16 @@ namespace AutoClient.Modes
             {
                 app.Log.Error("Exception in FolderStoreMode: " + ex);
                 Environment.Exit(1);
+            }
+        }
+
+        private void ExtendExistingPurchases(PurchaseRenewer purchaseRenewer)
+        {
+            while (!app.Cts.IsCancellationRequested)
+            {
+                if (!purchaseRenewer.Step()) return;
+
+                Thread.Sleep(TimeSpan.FromSeconds(3000));
             }
         }
 
