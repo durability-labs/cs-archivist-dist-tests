@@ -62,7 +62,7 @@ namespace AutoClient.Modes
             {
                 if (!purchaseRenewer.Step()) return;
 
-                Thread.Sleep(TimeSpan.FromSeconds(3000));
+                Thread.Sleep(TimeSpan.FromSeconds(3));
             }
         }
 
