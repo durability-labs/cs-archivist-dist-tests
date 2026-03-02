@@ -184,6 +184,13 @@ namespace ArchivistClient
             return mapper.Map(collection);
         }
 
+        public StorageSlotItem GetSlot(string slotId)
+        {
+            var slot = OnArchivist(api => api.GetActiveSlotByIdAsync(slotId));
+            if (slot == null) throw new Exception($"Unable to find slot by Id: '{slotId}'");
+            return mapper.Map(slot);
+        }
+
         public string RequestStorage(StoragePurchaseRequest request)
         {
             var body = mapper.Map(request);

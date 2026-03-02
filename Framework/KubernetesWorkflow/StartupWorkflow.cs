@@ -15,7 +15,8 @@ namespace KubernetesWorkflow
         PodInfo GetPodInfo(RunningPod pod);
         ContainerCrashWatcher CreateCrashWatcher(RunningContainer container);
         void Stop(RunningPod pod, bool waitTillStopped);
-        void Restart(RunningContainer container);
+        void Pause(RunningContainer container);
+        void Resume(RunningContainer container);
         void DownloadContainerLog(RunningContainer container, ILogHandler logHandler, int? tailLines = null, bool? previous = null);
         IDownloadedLog DownloadContainerLog(RunningContainer container, int? tailLines = null, bool? previous = null);
         string ExecuteCommand(RunningContainer container, string command, params string[] args);
@@ -123,11 +124,19 @@ namespace KubernetesWorkflow
             cluster.Configuration.Hooks.OnContainersStopped(runningPod);
         }
 
-        public void Restart(RunningContainer runningContainer)
+        public void Pause(RunningContainer runningContainer)
         {
             K8s(controller =>
             {
-                controller.Restart(runningContainer);
+                controller.SetZeroReplicas(runningContainer);
+            });
+        }
+
+        public void Resume(RunningContainer runningContainer)
+        {
+            K8s(controller =>
+            {
+                controller.SetOneReplica(runningContainer);
             });
         }
 

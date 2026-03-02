@@ -34,16 +34,21 @@ namespace GethPlugin
         BlockTimeEntry GetHighestBlockBeforeUtc(DateTime utc);
         BlockTimeEntry GetLowestBlockAfterUtc(DateTime utc);
         IGethNode WithDifferentAccount(EthAccount account);
+
+        void Pause();
+        void Resume();
     }
 
     public class DeploymentGethNode : BaseGethNode, IGethNode
     {
         private readonly ILog log;
+        private readonly IPluginTools tools;
         private readonly BlockCache blockCache;
 
-        public DeploymentGethNode(ILog log, BlockCache blockCache, GethDeployment startResult)
+        public DeploymentGethNode(IPluginTools tools, BlockCache blockCache, GethDeployment startResult)
         {
-            this.log = log;
+            this.tools = tools;
+            log = tools.GetLog();
             this.blockCache = blockCache;
             StartResult = startResult;
             CurrentAddress = new EthAddress(startResult.Account.Account);
@@ -87,6 +92,18 @@ namespace GethPlugin
                     ),
                     account.PrivateKey));
         }
+
+        public void Pause()
+        {
+            var workflow = tools.CreateWorkflow();
+            workflow.Pause(StartResult.Container);
+        }
+
+        public void Resume()
+        {
+            var workflow = tools.CreateWorkflow();
+            workflow.Resume(StartResult.Container);
+        }
     }
 
     public class CustomGethNode : BaseGethNode, IGethNode
@@ -125,6 +142,16 @@ namespace GethPlugin
         {
             var creator = new NethereumInteractionCreator(log, blockCache, rpcUrl, privateKey);
             return creator.CreateWorkflow();
+        }
+
+        public void Pause()
+        {
+            throw new NotSupportedException("Cannot pause/resume external process.");
+        }
+
+        public void Resume()
+        {
+            throw new NotSupportedException("Cannot pause/resume external process.");
         }
     }
 
