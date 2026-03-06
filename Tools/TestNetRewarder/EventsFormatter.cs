@@ -75,13 +75,25 @@ namespace TestNetRewarder
                 $"Proof Probability: 1 / {request.Ask.ProofProbability} every {periodDuration}"
             ]);
 
-            AddRequestBlock(requestEvent, emojiMaps.NewRequest,
+            AddRequestBlock(requestEvent, GetNewOrExtendEmoji(request),
                 new MsgBlock(
-                    header: "New Request",
+                    header: GetNewOrExtendHeader(request),
                     content: content.ToArray(),
                     footer: string.Empty
                 )
             );
+        }
+
+        private string GetNewOrExtendEmoji(IChainStateRequest request)
+        {
+            if (request.IsExtendOfExistingContract) return emojiMaps.ExtendRequest;
+            return emojiMaps.NewRequest;
+        }
+
+        private string GetNewOrExtendHeader(IChainStateRequest request)
+        {
+            if (request.IsExtendOfExistingContract) return "Renewed Request";
+            return "New Request";
         }
 
         public void OnRequestCancelled(RequestEvent requestEvent)

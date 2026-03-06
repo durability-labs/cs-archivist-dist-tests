@@ -1,8 +1,8 @@
+using ArchivistClient;
 using ArchivistContractsPlugin.Marketplace;
 using BlockchainUtils;
 using GethPlugin;
 using Logging;
-using Nethereum.Contracts;
 using Nethereum.Hex.HexConvertors.Extensions;
 using System.Numerics;
 using Utils;
@@ -259,7 +259,15 @@ namespace ArchivistContractsPlugin.ChainMonitor
         private ChainStateRequest? FindRequest(byte[] requestId)
         {
             var r = requests.SingleOrDefault(r => ByteArrayUtils.Equal(r.RequestId, requestId));
-            if (r != null) return r;
+            if (r != null)
+            {
+                if (ShouldRemove(r))
+                {
+                    requests.Remove(r);
+                    return null;
+                }
+                return r;
+            }
 
             try
             {
@@ -267,7 +275,7 @@ namespace ArchivistContractsPlugin.ChainMonitor
                 if (request == null) return null;
                 var state = contracts.GetRequestState(requestId);
                 if (state == null) return null;
-                var newRequest = new ChainStateRequest(log, requestId, request, state.Value);
+                var newRequest = new ChainStateRequest(log, requestId, request, state.Value, CheckIfItExtendAnExistingContract);
                 requests.Add(newRequest);
                 return newRequest;
             }
@@ -278,6 +286,20 @@ namespace ArchivistContractsPlugin.ChainMonitor
                 handler.OnError(msg);
                 return null;
             }
+        }
+
+        private bool ShouldRemove(ChainStateRequest r)
+        {
+            return (r.FinishedUtc + TimeSpan.FromHours(8)) > DateTime.UtcNow;
+        }
+
+        private bool CheckIfItExtendAnExistingContract(ContentId newCid)
+        {
+            // If we have the same CID is an existing contract that has not finished yet, then yes.
+            return requests.Any(r => 
+                r.Cid == newCid &&
+                r.FinishedUtc > DateTime.UtcNow
+            );
         }
 
         private string FormatProofOrigin(ProofOrigin? proofOrigin)
