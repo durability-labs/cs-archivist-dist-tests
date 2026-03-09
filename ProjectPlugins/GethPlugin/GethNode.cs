@@ -48,7 +48,7 @@ namespace GethPlugin
         public DeploymentGethNode(IPluginTools tools, BlockCache blockCache, GethDeployment startResult)
         {
             this.tools = tools;
-            log = tools.GetLog();
+            log = new LogPrefixer(tools.GetLog(), $"({startResult.Container.Name})");
             this.blockCache = blockCache;
             StartResult = startResult;
             CurrentAddress = new EthAddress(startResult.Account.Account);
@@ -95,12 +95,14 @@ namespace GethPlugin
 
         public void Pause()
         {
+            log.Log(nameof(Pause));
             var workflow = tools.CreateWorkflow();
             workflow.Pause(StartResult.Container);
         }
 
         public void Resume()
         {
+            log.Log(nameof(Resume));
             var workflow = tools.CreateWorkflow();
             workflow.Resume(StartResult.Container);
         }

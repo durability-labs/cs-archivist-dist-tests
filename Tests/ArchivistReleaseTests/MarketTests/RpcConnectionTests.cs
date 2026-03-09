@@ -12,7 +12,7 @@ namespace ArchivistReleaseTests.MarketTests
         protected override int NumberOfClients => 1;
 
         [Test]
-        public void Start()
+        public void RecoversSlotAfterDisconnect()
         {
             // Unusual setup: We're using an extra geth node that follows the miner.
             // We can stop and restart it, disconnecting archivist host node
@@ -54,9 +54,31 @@ namespace ArchivistReleaseTests.MarketTests
 
         private void WaitUntilSlotState(IArchivistNode host, string slotId, StorageSlotState expected)
         {
-            Log($"{nameof(WaitUntilSlotState)}: {expected}");
+            Log($"{expected}");
             Time.WaitUntil(() =>
-                host.Marketplace.GetSlot(slotId).State == expected,
+                {
+                    try
+                    {
+                        var actual = host.Marketplace.GetSlot(slotId).State;
+                        return actual == expected;
+                    }
+                    catch (TimeoutException timeout)
+                    {
+                        if (timeout.InnerException is AggregateException agg1)
+                        {
+                            if (agg1.InnerException is AggregateException agg2)
+                            {
+                                if (agg2.InnerException is ArchivistOpenApi.ApiException apiException)
+                                {
+                                    return 
+                                        expected == StorageSlotState.Errored &&
+                                        apiException.Message.Contains("Host is not in an active sale for the slot");
+                                }
+                            }
+                        }
+                        return false;
+                    }
+                },
                 timeout: GetPeriodDuration() * 2,
                 retryDelay: TimeSpan.FromSeconds(10),
                 msg: $"{nameof(WaitUntilSlotState)} == {expected}"
