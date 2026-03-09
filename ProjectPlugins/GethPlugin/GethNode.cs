@@ -80,7 +80,7 @@ namespace GethPlugin
 
         public IGethNode WithDifferentAccount(EthAccount account)
         {
-            return new DeploymentGethNode(log, blockCache,
+            return new DeploymentGethNode(tools, blockCache,
                 new GethDeployment(
                     StartResult.Pod,
                     StartResult.DiscoveryPort,
