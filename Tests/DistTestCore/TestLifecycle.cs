@@ -133,7 +133,14 @@ namespace DistTestCore
                     {
                         foreach (var c in rc.Containers)
                         {
-                            result.Add(CoreInterface.DownloadLog(c));
+                            try
+                            {
+                                result.Add(CoreInterface.DownloadLog(c));
+                            }
+                            catch (Exception e)
+                            {
+                                Log.Error($"Failed to download log for container '{c.Name}': {e}");
+                            }
                         }
                     }
                 }

@@ -94,10 +94,9 @@ namespace ArchivistPlugin
 
                 var mconfig = config.MarketplaceConfig;
                 var gethStart = mconfig.GethNode.StartResult;
-                var wsAddress = gethStart.Container.GetInternalAddress(GethContainerRecipe.WsPortTag);
                 var marketplaceAddress = mconfig.ArchivistContracts.Deployment.MarketplaceAddress;
 
-                AddEnvVar("ARCHIVIST_ETH_PROVIDER", $"{wsAddress.Host.Replace("http://", "ws://")}:{wsAddress.Port}");
+                AddEnvVar("ARCHIVIST_ETH_PROVIDER", GetEthRpcProvider(gethStart, mconfig));
                 AddEnvVar("ARCHIVIST_MARKETPLACE_ADDRESS", marketplaceAddress.Address);
 
                 var marketplaceSetup = config.MarketplaceConfig.MarketplaceSetup;
@@ -118,10 +117,25 @@ namespace ArchivistPlugin
                 }
             }
 
+            // Required for the new "overlay" support:
+            AddEnvVar("ARCHIVIST_FS_FSYNC_FILE", "off");
+            AddEnvVar("ARCHIVIST_FS_FSYNC_DIR", "off");
+
             if (!string.IsNullOrEmpty(config.NameOverride))
             {
                 AddEnvVar("ARCHIVIST_NODENAME", config.NameOverride);
             }
+        }
+
+        private string GetEthRpcProvider(GethDeployment gethStart, MarketplaceInitialConfig mconfig)
+        {
+            if (mconfig.UseWebsocketRPC)
+            {
+                var wsAddress = gethStart.Container.GetInternalAddress(GethContainerRecipe.WsPortTag);
+                return $"{wsAddress.Host.Replace("http://", "ws://")}:{wsAddress.Port}";
+            }
+            var httpAddress = gethStart.Container.GetInternalAddress(GethContainerRecipe.HttpPortTag);
+            return $"{httpAddress.Host}:{httpAddress.Port}";
         }
 
         private Port CreateApiPort()

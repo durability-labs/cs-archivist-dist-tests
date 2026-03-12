@@ -9,6 +9,7 @@ namespace ArchivistClient
         void MakeStorageAvailable(CreateStorageAvailability availability);
         StorageAvailability GetAvailability();
         StorageSlot[] GetSlots();
+        StorageSlotItem GetSlot(string slotId);
         IStoragePurchaseContract RequestStorage(StoragePurchaseRequest purchase);
     }
 
@@ -81,6 +82,13 @@ namespace ArchivistClient
             return result;
         }
 
+        public StorageSlotItem GetSlot(string slotId)
+        {
+            var result = archivistAccess.GetSlot(slotId);
+            result.Log(log);
+            return result;
+        }
+
         private void Log(string msg)
         {
             log.Log(msg);
@@ -108,6 +116,12 @@ namespace ArchivistClient
         }
 
         public StorageSlot[] GetSlots()
+        {
+            Unavailable();
+            throw new NotImplementedException();
+        }
+
+        public StorageSlotItem GetSlot(string slotId)
         {
             Unavailable();
             throw new NotImplementedException();

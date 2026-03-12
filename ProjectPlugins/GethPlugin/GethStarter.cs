@@ -48,7 +48,7 @@ namespace GethPlugin
         public IGethNode WrapGethContainer(GethDeployment startResult, BlockCache blockCache)
         {
             startResult = SerializeGate.Gate(startResult);
-            var node = new DeploymentGethNode(tools.GetLog(), blockCache, startResult);
+            var node = new DeploymentGethNode(tools, blockCache, startResult);
             Log($"EthAddress: {node.CurrentAddress}");
             return node;
         }

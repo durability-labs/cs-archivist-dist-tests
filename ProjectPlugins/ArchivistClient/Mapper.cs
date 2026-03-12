@@ -92,6 +92,17 @@ namespace ArchivistClient
             return slots.Select(Map).ToArray(); 
         }
 
+        public StorageSlotItem Map(ArchivistOpenApi.SalesSlot slot)
+        {
+            return new StorageSlotItem
+            {
+                SlotIndex = slot.SlotIndex,
+                RequestId = slot.RequestId,
+                Request = Map(slot.Request),
+                State = Map(slot.State)
+            };
+        }
+
         public StorageSlot Map(ArchivistOpenApi.Slot slot)
         {
             return new StorageSlot(
@@ -136,6 +147,43 @@ namespace ArchivistClient
             }
 
             throw new Exception("API incompatibility detected. Unknown purchaseState: " + purchaseState.ToString());
+        }
+
+        public StorageSlotState Map(ArchivistOpenApi.SalesSlotState slotState)
+        {
+            // Explicit mapping: If the API changes, we will get compile errors here.
+            // That's what we want.
+            switch (slotState)
+            {
+                case ArchivistOpenApi.SalesSlotState.SaleCancelled:
+                    return StorageSlotState.Cancelled;
+                case ArchivistOpenApi.SalesSlotState.SaleDownloading:
+                    return StorageSlotState.Downloading;
+                case ArchivistOpenApi.SalesSlotState.SaleErrored:
+                    return StorageSlotState.Errored;
+                case ArchivistOpenApi.SalesSlotState.SaleFailed:
+                    return StorageSlotState.Failed;
+                case ArchivistOpenApi.SalesSlotState.SaleFilled:
+                    return StorageSlotState.Filled;
+                case ArchivistOpenApi.SalesSlotState.SaleFilling:
+                    return StorageSlotState.Filling;
+                case ArchivistOpenApi.SalesSlotState.SaleFinished:
+                    return StorageSlotState.Finished;
+                case ArchivistOpenApi.SalesSlotState.SaleIgnored:
+                    return StorageSlotState.Ignored;
+                case ArchivistOpenApi.SalesSlotState.SaleInitialProving:
+                    return StorageSlotState.InitialProving;
+                case ArchivistOpenApi.SalesSlotState.SalePayout:
+                    return StorageSlotState.Payout;
+                case ArchivistOpenApi.SalesSlotState.SalePreparing:
+                    return StorageSlotState.Preparing;
+                case ArchivistOpenApi.SalesSlotState.SaleProving:
+                    return StorageSlotState.Proving;
+                case ArchivistOpenApi.SalesSlotState.SaleUnknown:
+                    return StorageSlotState.Unknown;
+            }
+
+            throw new Exception("API incompatibility detected. Unknown purchaseState: " + slotState.ToString());
         }
 
         public StorageRequest Map(ArchivistOpenApi.StorageRequest request)

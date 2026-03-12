@@ -65,16 +65,22 @@ namespace KubernetesWorkflow
             if (waitTillStopped) WaitUntilPodsForDeploymentAreOffline(startResult.Deployment);
         }
 
-        public void Restart(RunningContainer container)
+        public void SetZeroReplicas(RunningContainer container)
         {
-            log.Debug();
+            SetReplicas(container, 0);
+        }
 
-            PatchReplicas(container.RunningPod.StartResult.Deployment, 0);
-            WaitUntilReplicas(container, 0);
-            Thread.Sleep(1000);
+        public void SetOneReplica(RunningContainer container)
+        {
+            SetReplicas(container, 1);
+        }
 
-            PatchReplicas(container.RunningPod.StartResult.Deployment, 1);
-            WaitUntilReplicas(container, 1);
+        private void SetReplicas(RunningContainer container, int replicas)
+        { 
+            log.Debug($"replicas: {replicas}");
+
+            PatchReplicas(container.RunningPod.StartResult.Deployment, replicas);
+            WaitUntilReplicas(container, replicas);
             Thread.Sleep(1000);
         }
 

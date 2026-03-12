@@ -167,4 +167,37 @@ namespace ArchivistClient
                 $"request: {Request.Id})");
         }
     }
+
+    public enum StorageSlotState
+    {
+        Cancelled = 0,
+        Downloading = 1,
+        Errored = 2,
+        Failed = 3,
+        Filled = 4,
+        Filling = 5,
+        Finished = 6,
+        Ignored = 7,
+        InitialProving = 8,
+        Payout = 9,
+        Preparing = 10,
+        Proving = 11,
+        Unknown = 12,
+    }
+
+    public class StorageSlotItem
+    {
+        public long SlotIndex { get; set; }
+        public string RequestId { get; set; } = string.Empty;
+        public StorageRequest Request { get; set; } = new StorageRequest();
+        public StorageSlotState State { get; set; }
+
+        public void Log(ILog log)
+        {
+            log.Log($"Storage Slot Item: (" +
+                $"requestId: {RequestId}, " +
+                $"slotIndex: {SlotIndex}, " +
+                $"state: {State})");
+        }
+    }
 }
