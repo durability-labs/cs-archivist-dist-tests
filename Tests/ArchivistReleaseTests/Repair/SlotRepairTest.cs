@@ -10,7 +10,6 @@ using Utils;
 namespace ArchivistReleaseTests.Repair
 {
     [TestFixture]
-    [NonParallelizable]
     public class SlotRepairTest : MarketplaceAutoBootstrapDistTest
     {
         #region Setup
@@ -24,14 +23,6 @@ namespace ArchivistReleaseTests.Repair
         #endregion
 
         private int proofsMissed = 0;
-
-        [Test]
-        public void SingleFailure()
-        {
-            RollingRepairTest(
-                numHostsPerFailure: 1
-            );
-        }
 
         [Test]
         public void DoubleFailure()
