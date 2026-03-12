@@ -75,6 +75,8 @@ namespace TestNetRewarder
                 $"Proof Probability: 1 / {request.Ask.ProofProbability} every {periodDuration}"
             ]);
 
+            AddExtendsContractInfo(request, content);
+
             AddRequestBlock(requestEvent, GetNewOrExtendEmoji(request),
                 new MsgBlock(
                     header: GetNewOrExtendHeader(request),
@@ -82,18 +84,6 @@ namespace TestNetRewarder
                     footer: string.Empty
                 )
             );
-        }
-
-        private string GetNewOrExtendEmoji(IChainStateRequest request)
-        {
-            if (request.IsExtendOfExistingContract) return emojiMaps.ExtendRequest;
-            return emojiMaps.NewRequest;
-        }
-
-        private string GetNewOrExtendHeader(IChainStateRequest request)
-        {
-            if (request.IsExtendOfExistingContract) return "Renewed Request";
-            return "New Request";
         }
 
         public void OnRequestCancelled(RequestEvent requestEvent)
@@ -118,12 +108,12 @@ namespace TestNetRewarder
             );
         }
 
-        public void OnRequestFinished(RequestEvent requestEvent)
+        public void OnRequestFinished(RequestEvent requestEvent, IChainStateRequest? extendedBy)
         {
-            AddRequestBlock(requestEvent, emojiMaps.Finished,
+            AddRequestBlock(requestEvent, GetFinishedEmoji(extendedBy),
                 new MsgBlock(
                     header: "Finished",
-                    content: [],
+                    content: GetFinishedContent(extendedBy),
                     footer: string.Empty
                 )
             );
@@ -134,9 +124,9 @@ namespace TestNetRewarder
             var request = requestEvent.Request;
             var cid = request.Cid.Id;
 
-            AddRequestBlock(requestEvent, emojiMaps.Started,
+            AddRequestBlock(requestEvent, GetStartedOrExtendEmoji(request),
                 new MsgBlock(
-                    header: "Started",
+                    header: GetStartedOrExtendHeader(request),
                     content: lookup.DescribeManifest(cid),
                     footer: lookup.GenerateDownloadLink(cid)
                 )
@@ -145,13 +135,20 @@ namespace TestNetRewarder
 
         public void OnSlotFilled(RequestEvent requestEvent, EthAddress host, BigInteger slotIndex, bool isRepair)
         {
-            AddRequestBlock(requestEvent, GetSlotFilledIcon(isRepair),
+            var request = requestEvent.Request;
+            var content = new List<string>
+            {
+                $"Slot Index: {slotIndex}",
+                $"Host: {host}"
+            };
+
+            AddPreviousHostInfoIfAble(request, slotIndex, content);
+
+
+            AddRequestBlock(requestEvent, GetSlotFilledIcon(request, isRepair),
                 new MsgBlock(
                     header: GetSlotFilledTitle(isRepair),
-                    content: [
-                        $"Slot Index: {slotIndex}",
-                        $"Host: {host}"
-                    ],
+                    content: content.ToArray(),
                     footer: string.Empty
                 )
             );
@@ -201,6 +198,57 @@ namespace TestNetRewarder
                 PublishPeriodReports();
                 reports.Clear();
             }
+        }
+
+        private string[] GetFinishedContent(IChainStateRequest? extendedBy)
+        {
+            if (extendedBy == null) return Array.Empty<string>();
+            return [$"Extended by: {FormatRequestId(extendedBy.RequestId)}"];
+        }
+
+        private string GetFinishedEmoji(IChainStateRequest? extendedBy)
+        {
+            if (extendedBy == null) return emojiMaps.Finished;
+            return emojiMaps.FinishedButExtended;
+        }
+
+        private void AddPreviousHostInfoIfAble(IChainStateRequest request, BigInteger slotIndex, List<string> content)
+        {
+            if (request.ExtendsExistingContract == null) return;
+            var existing = request.ExtendsExistingContract;
+            var previousHost = existing.Hosts.GetHost((int)slotIndex);
+            if (previousHost == null) return;
+            content.Add($"Previous host: {previousHost}");
+        }
+
+        private void AddExtendsContractInfo(IChainStateRequest request, List<string> content)
+        {
+            if (request.ExtendsExistingContract == null) return;
+            content.Add($"Extends previous contract: {FormatRequestId(request.ExtendsExistingContract.RequestId)}");
+        }
+
+        private string GetNewOrExtendEmoji(IChainStateRequest request)
+        {
+            if (request.ExtendsExistingContract != null) return emojiMaps.ExtendRequest;
+            return emojiMaps.NewRequest;
+        }
+
+        private string GetNewOrExtendHeader(IChainStateRequest request)
+        {
+            if (request.ExtendsExistingContract != null) return "Renewed Request";
+            return "New Request";
+        }
+
+        private string GetStartedOrExtendEmoji(IChainStateRequest request)
+        {
+            if (request.ExtendsExistingContract != null) return emojiMaps.Renewed;
+            return emojiMaps.Started;
+        }
+
+        private string GetStartedOrExtendHeader(IChainStateRequest request)
+        {
+            if (request.ExtendsExistingContract != null) return "Renewed";
+            return "Started";
         }
 
         private bool ShouldPublishPeriodReports()
@@ -273,9 +321,10 @@ namespace TestNetRewarder
             );
         }
 
-        private string GetSlotFilledIcon(bool isRepair)
+        private string GetSlotFilledIcon(IChainStateRequest request, bool isRepair)
         {
             if (isRepair) return emojiMaps.SlotRepaired;
+            if (request.ExtendsExistingContract != null) return emojiMaps.SlotReFilled;
             return emojiMaps.SlotFilled;
         }
 

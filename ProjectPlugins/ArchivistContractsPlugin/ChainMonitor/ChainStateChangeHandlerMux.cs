@@ -28,9 +28,9 @@ namespace ArchivistContractsPlugin.ChainMonitor
             foreach (var handler in Handlers) handler.OnRequestFailed(requestEvent);
         }
 
-        public void OnRequestFinished(RequestEvent requestEvent)
+        public void OnRequestFinished(RequestEvent requestEvent, IChainStateRequest? extendedBy)
         {
-            foreach (var handler in Handlers) handler.OnRequestFinished(requestEvent);
+            foreach (var handler in Handlers) handler.OnRequestFinished(requestEvent, extendedBy);
         }
 
         public void OnRequestFulfilled(RequestEvent requestEvent)

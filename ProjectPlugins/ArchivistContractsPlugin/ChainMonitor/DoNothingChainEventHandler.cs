@@ -18,7 +18,7 @@ namespace ArchivistContractsPlugin.ChainMonitor
         {
         }
 
-        public void OnRequestFinished(RequestEvent requestEvent)
+        public void OnRequestFinished(RequestEvent requestEvent, IChainStateRequest? extendedBy)
         {
         }
 
@@ -61,7 +61,7 @@ namespace ArchivistContractsPlugin.ChainMonitor
         {
         }
 
-        public void OnRequestFinished(RequestEvent requestEvent)
+        public void OnRequestFinished(RequestEvent requestEvent, IChainStateRequest? extendedBy)
         {
         }
 

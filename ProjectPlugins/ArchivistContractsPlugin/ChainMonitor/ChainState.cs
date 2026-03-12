@@ -12,7 +12,7 @@ namespace ArchivistContractsPlugin.ChainMonitor
     public interface IChainStateChangeHandler
     {
         void OnNewRequest(RequestEvent requestEvent);
-        void OnRequestFinished(RequestEvent requestEvent);
+        void OnRequestFinished(RequestEvent requestEvent, IChainStateRequest? extendedBy);
         void OnRequestFulfilled(RequestEvent requestEvent);
         void OnRequestCancelled(RequestEvent requestEvent);
         void OnRequestFailed(RequestEvent requestEvent);
@@ -234,8 +234,24 @@ namespace ArchivistContractsPlugin.ChainMonitor
                     matchingBlock: entry,
                     eventName: "RequestFinished",
                     newState: RequestState.Finished);
-                handler.OnRequestFinished(new RequestEvent(entry, r));
+                handler.OnRequestFinished(new RequestEvent(entry, r), HasBeenExtendedByAnotherRequest(r));
             }
+        }
+
+        private IChainStateRequest? HasBeenExtendedByAnotherRequest(ChainStateRequest request)
+        {
+            // If another contract exists for the same CID and
+            // it has been started AND it has a later FinishedUTC,
+            // then this one is finished but the data is still stored in the network.
+            // Downstream apps may want to be aware of this.
+
+            return requests.FirstOrDefault(r =>
+                r.Cid == request.Cid &&
+                r.State == RequestState.Started &&
+                // The renew-contract must last at least 1 hour longer than the old one.
+                // Or else it doesn't count.
+                r.FinishedUtc > (request.FinishedUtc + TimeSpan.FromHours(1))
+            );
         }
 
         private void ApplyTimeImplicitCancelledEvent(ChainStateRequest r, BlockTimeEntry entry)
@@ -275,7 +291,7 @@ namespace ArchivistContractsPlugin.ChainMonitor
                 if (request == null) return null;
                 var state = contracts.GetRequestState(requestId);
                 if (state == null) return null;
-                var newRequest = new ChainStateRequest(log, requestId, request, state.Value, CheckIfItExtendAnExistingContract);
+                var newRequest = new ChainStateRequest(log, requestId, request, state.Value, GetExtendsExistingContract);
                 requests.Add(newRequest);
                 return newRequest;
             }
@@ -293,10 +309,11 @@ namespace ArchivistContractsPlugin.ChainMonitor
             return (r.FinishedUtc + TimeSpan.FromHours(8)) > DateTime.UtcNow;
         }
 
-        private bool CheckIfItExtendAnExistingContract(ContentId newCid)
+        private ChainStateRequest? GetExtendsExistingContract(ContentId newCid)
         {
-            // If we have the same CID is an existing contract that has not finished yet, then yes.
-            return requests.Any(r => 
+            // If we have the same CID is an existing contract that has not finished yet, then
+            // this contract is an extend of the previous one.
+            return requests.FirstOrDefault(r => 
                 r.Cid == newCid &&
                 r.FinishedUtc > DateTime.UtcNow
             );

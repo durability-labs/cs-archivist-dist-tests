@@ -78,11 +78,14 @@ namespace TestNetRewarder
         public string NewRequest => "🌱";
         public string ExtendRequest => "🍀";
         public string Started => "🌳";
+        public string Renewed => "🌴";
         public string SlotFilled => "🟣";
+        public string SlotReFilled => "🟪";
         public string SlotRepaired => "♻";
         public string SlotFreed => "⭕";
         public string SlotReservationsFull => "☑️";
-        public string Finished => "✅";
+        public string Finished => "☑";
+        public string FinishedButExtended => "✅";
         public string Cancelled => "🚫";
         public string Failed => "❌";
         public string ProofSubmitted => "🎵";

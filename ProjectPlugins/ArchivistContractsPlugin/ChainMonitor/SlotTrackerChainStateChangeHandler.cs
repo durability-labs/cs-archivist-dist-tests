@@ -50,7 +50,7 @@ namespace ArchivistContractsPlugin.ChainMonitor
             foreach (var pair in d) pair.Value.RequestFailed(requestEvent.Block);
         }
 
-        public void OnRequestFinished(RequestEvent requestEvent)
+        public void OnRequestFinished(RequestEvent requestEvent, IChainStateRequest? extendedBy)
         {
             if (!IsMyRequest(requestEvent)) return;
             var d = GetMap(requestEvent);

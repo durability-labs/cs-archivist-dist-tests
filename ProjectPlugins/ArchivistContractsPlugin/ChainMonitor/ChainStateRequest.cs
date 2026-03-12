@@ -19,14 +19,14 @@ namespace ArchivistContractsPlugin.ChainMonitor
         ContentId Cid { get; }
         RequestHosts Hosts { get; }
         ChainStateRequestAsk Ask { get; }
-        bool IsExtendOfExistingContract { get; }
+        ChainStateRequest? ExtendsExistingContract { get; }
     }
 
     public class ChainStateRequest : IChainStateRequest
     {
         private readonly ILog log;
 
-        public ChainStateRequest(ILog log, byte[] requestId, CacheRequest cacheRequest, RequestState state, Func<ContentId, bool> checkIsExtend)
+        public ChainStateRequest(ILog log, byte[] requestId, CacheRequest cacheRequest, RequestState state, Func<ContentId, ChainStateRequest?> getIsExtend)
         {
             if (requestId == null || requestId.Length != 32) throw new ArgumentException(nameof(requestId));
 
@@ -44,7 +44,7 @@ namespace ArchivistContractsPlugin.ChainMonitor
             Client = new EthAddress(cacheRequest.Request.Client);
             Cid = new ContentId("z" + Base58.Encode(cacheRequest.Request.Content.Cid));
             Hosts = new RequestHosts();
-            IsExtendOfExistingContract = checkIsExtend(Cid);
+            ExtendsExistingContract = getIsExtend(Cid);
 
             var ask = cacheRequest.Request.Ask;
             Ask = new ChainStateRequestAsk(
@@ -68,7 +68,7 @@ namespace ArchivistContractsPlugin.ChainMonitor
         public ContentId Cid { get; }
         public RequestHosts Hosts { get; }
         public ChainStateRequestAsk Ask { get; }
-        public bool IsExtendOfExistingContract { get; }
+        public ChainStateRequest? ExtendsExistingContract { get; }
 
         public void UpdateStateFromEvent(IHasBlockAndRequestId triggeringEvent, RequestState newState)
         {
