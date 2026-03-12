@@ -60,7 +60,12 @@ namespace ArchivistReleaseTests.MarketTests
                     try
                     {
                         var actual = host.Marketplace.GetSlot(slotId).State;
-                        return actual == expected;
+                        if (actual == expected)
+                        {
+                            Log($"Successfully detected slot state {expected}");
+                            return true;
+                        }
+                        return false;
                     }
                     catch (TimeoutException timeout)
                     {
@@ -70,9 +75,12 @@ namespace ArchivistReleaseTests.MarketTests
                             {
                                 if (agg2.InnerException is ArchivistOpenApi.ApiException apiException)
                                 {
-                                    return 
-                                        expected == StorageSlotState.Errored &&
-                                        apiException.Message.Contains("Host is not in an active sale for the slot");
+                                    if (expected == StorageSlotState.Errored &&
+                                        apiException.Message.Contains("Host is not in an active sale for the slot"))
+                                    {
+                                        Log("Successfully detected errored slot state.");
+                                        return true;
+                                    }
                                 }
                             }
                         }
