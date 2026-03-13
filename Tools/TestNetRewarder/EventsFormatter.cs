@@ -144,7 +144,6 @@ namespace TestNetRewarder
 
             AddPreviousHostInfoIfAble(request, slotIndex, content);
 
-
             AddRequestBlock(requestEvent, GetSlotFilledIcon(request, isRepair),
                 new MsgBlock(
                     header: GetSlotFilledTitle(isRepair),

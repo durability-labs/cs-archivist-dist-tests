@@ -3,7 +3,13 @@ using System.Net.Http.Json;
 
 namespace DiscordRewards
 {
-    public class BotClient
+    public interface IBotClient
+    {
+        Task<bool> IsOnline();
+        Task<bool> SendRewards(EventsAndErrors command);
+    }
+
+    public class BotClient : IBotClient
     {
         private readonly string host;
         private readonly int port;
@@ -64,6 +70,19 @@ namespace DiscordRewards
         private string GetUrl()
         {
             return $"{host}:{port}/api/reward";
+        }
+    }
+
+    public class DoNothingBotClient : IBotClient
+    {
+        public async Task<bool> IsOnline()
+        {
+            return true;
+        }
+
+        public async Task<bool> SendRewards(EventsAndErrors command)
+        {
+            return true;
         }
     }
 }

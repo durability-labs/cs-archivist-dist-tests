@@ -14,7 +14,7 @@ namespace TestNetRewarder
         public static CancellationToken CancellationToken;
         private static Configuration Config = null!;
         private static ILog Log = null!;
-        private static BotClient BotClient = null!;
+        private static IBotClient BotClient = null!;
         private static Processor processor = null!;
         private static IGethNode node = null!;
         private static DateTime lastCheck = DateTime.MinValue;

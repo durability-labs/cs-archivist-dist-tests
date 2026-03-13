@@ -1,6 +1,5 @@
 using ArchivistContractsPlugin;
 using ArchivistContractsPlugin.ChainMonitor;
-using ArchivistContractsPlugin.Marketplace;
 using DiscordRewards;
 using GethPlugin;
 using Logging;
@@ -14,11 +13,11 @@ namespace TestNetRewarder
         private readonly EventsFormatter eventsFormatter;
         private readonly ChainState chainState;
         private readonly Configuration config;
-        private readonly BotClient client;
+        private readonly IBotClient client;
         private readonly IArchivistContracts contracts;
         private readonly ILog log;
 
-        public Processor(Configuration config, BotClient client, ContentInformationLookup lookup, IGethNode geth, IArchivistContracts contracts, ILog log)
+        public Processor(Configuration config, IBotClient client, ContentInformationLookup lookup, IGethNode geth, IArchivistContracts contracts, ILog log)
         {
             this.config = config;
             this.client = client;

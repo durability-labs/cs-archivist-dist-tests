@@ -122,16 +122,29 @@ namespace ArchivistContractsPlugin.ChainMonitor
 
             log.Debug($"ChainState updating: {events.BlockInterval} = {events.All.Length} events.");
 
-            // Run through each block and apply the events to the state in order.
-            // Even when there are no events in the list, still run through each block:
-            // There might be time-based OR period-based actions that need to happen at each step.
-            var blockTimeGetter = new BlockTimeGetter(events.BlockInterval);
-            for (var b = events.BlockInterval.From; b <= events.BlockInterval.To; b++)
+            ApplyInternal(events);
+        }
+
+        private void ApplyInternal(ChainEvents events)
+        {
+            try
             {
-                var entry = blockTimeGetter.Get(b);
-                var blockEvents = events.All.Where(e => e.Block.BlockNumber == b).ToArray();
-                ApplyEvents(entry, blockEvents);
-                UpdatePeriodMonitor(entry);
+                // Run through each block and apply the events to the state in order.
+                // Even when there are no events in the list, still run through each block:
+                // There might be time-based OR period-based actions that need to happen at each step.
+                var blockTimeGetter = new BlockTimeGetter(events.BlockInterval);
+                for (var b = events.BlockInterval.From; b <= events.BlockInterval.To; b++)
+                {
+                    var entry = blockTimeGetter.Get(b);
+                    var blockEvents = events.All.Where(e => e.Block.BlockNumber == b).ToArray();
+                    ApplyEvents(entry, blockEvents);
+                    UpdatePeriodMonitor(entry);
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error($"Exception in {nameof(ApplyInternal)}: {ex}");
+                throw;
             }
         }
 
@@ -155,7 +168,7 @@ namespace ArchivistContractsPlugin.ChainMonitor
         private void ApplyEvent(StorageRequestedEventDTO @event)
         {
             var r = FindRequest(@event);
-            if (r == null) throw new Exception("ChainState is inconsistent. Failed to find request after receiving creation event.");
+            if (r == null) return;
           
             handler.OnNewRequest(new RequestEvent(@event.Block, r));
         }
@@ -306,7 +319,7 @@ namespace ArchivistContractsPlugin.ChainMonitor
 
         private bool ShouldRemove(ChainStateRequest r)
         {
-            return (r.FinishedUtc + TimeSpan.FromHours(8)) > DateTime.UtcNow;
+            return (r.FinishedUtc + TimeSpan.FromHours(8)) < DateTime.UtcNow;
         }
 
         private ChainStateRequest? GetExtendsExistingContract(ContentId newCid)
