@@ -47,22 +47,22 @@ namespace TestNetRewarder
             var lookup = new ContentInformationLookup(Config, network);
             BotClient = new BotClient(Config.DiscordHost, Config.DiscordPort, Log);
             node = connector.GethNode;
-            processor = new Processor(Config, BotClient, lookup, connector.GethNode, connector.ArchivistContracts, Log);
+            processor = new Processor(Config, BotClient, requestsCache, lookup, connector.GethNode, connector.ArchivistContracts, Log);
 
             EnsurePath(Config.DataPath);
             EnsurePath(Config.LogPath);
 
-            return new Program().MainAsync(requestsCache);
+            return new Program().MainAsync();
         }
 
-        public async Task MainAsync(IRequestsCache requestsCache)
+        public async Task MainAsync()
         {
             EnsureGethOnline();
 
             Log.Log("Starting Testnet Rewarder...");
             var segmenter = new TimeSegmenter(Log, Config.Interval, Config.HistoryStartUtc, processor);
             await EnsureBotOnline();
-            await processor.Initialize(requestsCache);
+            await processor.Initialize();
 
             Log.Log("Running...");
             while (!CancellationToken.IsCancellationRequested)

@@ -62,9 +62,18 @@ namespace ArchivistContractsPlugin.ChainMonitor
         public PeriodMonitor PeriodMonitor { get; }
         public BlockTimeEntry CurrentBlock { get; private set; } = null!;
 
-        public bool TryAddRequest(byte[] requestId)
+        public bool TryRecoverRunningRequest(byte[] requestId)
         {
-            return FindRequest(requestId) != null;
+            var request = FindRequestOnChain(requestId);
+            // Request not found by this ID
+            if (request == null) return false; 
+
+            // Found and relevant:
+            if (request.State == RequestState.New) return true;
+            if (request.State == RequestState.Started) return true;
+
+            // Found, but no longer relevant.
+            return false;
         }
 
         public int Update()
@@ -225,7 +234,6 @@ namespace ArchivistContractsPlugin.ChainMonitor
             var proofOrigin = @event.FindProofOrigin(contracts, requests);
             var proofStr = FormatProofOrigin(proofOrigin);
 
-            log.Log($"{@event.Block} Proof submitted (id:{id} {proofStr})");
             handler.OnProofSubmitted(@event.Block, id);
         }
 
@@ -300,11 +308,8 @@ namespace ArchivistContractsPlugin.ChainMonitor
 
             try
             {
-                var request = contracts.GetRequest(requestId);
-                if (request == null) return null;
-                var state = contracts.GetRequestState(requestId);
-                if (state == null) return null;
-                var newRequest = new ChainStateRequest(log, requestId, request, state.Value, GetExtendsExistingContract);
+                var newRequest = FindRequestOnChain(requestId);
+                if (newRequest == null) return null;
                 requests.Add(newRequest);
                 return newRequest;
             }
@@ -315,6 +320,18 @@ namespace ArchivistContractsPlugin.ChainMonitor
                 handler.OnError(msg);
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Returns null when not found. Throws when call fails.
+        /// </summary>
+        private ChainStateRequest? FindRequestOnChain(byte[] requestId)
+        {
+            var request = contracts.GetRequest(requestId);
+            if (request == null) return null;
+            var state = contracts.GetRequestState(requestId);
+            if (state == null) return null;
+            return new ChainStateRequest(log, requestId, request, state.Value, GetExtendsExistingContract);
         }
 
         private bool ShouldRemove(ChainStateRequest r)

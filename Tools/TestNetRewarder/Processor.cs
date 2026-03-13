@@ -14,13 +14,15 @@ namespace TestNetRewarder
         private readonly ChainState chainState;
         private readonly Configuration config;
         private readonly IBotClient client;
+        private readonly IRequestsCache requestsCache;
         private readonly IArchivistContracts contracts;
         private readonly ILog log;
 
-        public Processor(Configuration config, IBotClient client, ContentInformationLookup lookup, IGethNode geth, IArchivistContracts contracts, ILog log)
+        public Processor(Configuration config, IBotClient client, IRequestsCache requestsCache, ContentInformationLookup lookup, IGethNode geth, IArchivistContracts contracts, ILog log)
         {
             this.config = config;
             this.client = client;
+            this.requestsCache = requestsCache;
             this.contracts = contracts;
             this.log = log;
 
@@ -31,7 +33,7 @@ namespace TestNetRewarder
                 doProofPeriodMonitoring: config.ShowProofsMissed > 0, this);
         }
 
-        public async Task Initialize(IRequestsCache requestsCache)
+        public async Task Initialize()
         {
             var numRecoveredRequests = TryRecoverRunningRequests(requestsCache);
             var events = eventsFormatter.GetInitializationEvents(config, numRecoveredRequests);
@@ -93,7 +95,21 @@ namespace TestNetRewarder
             var recovered = 0;
             requestsCache.IterateAll(requestId =>
             {
-                if (chainState.TryAddRequest(requestId))
+                var r = false;
+                try
+                {
+                    r = chainState.TryRecoverRunningRequest(requestId);
+                }
+                catch
+                {
+                    // TryRecoverRunningRequest returns true when the id is found
+                    // and the request is still relevant.
+                    // It returns false when it is found and no longer relevant.
+                    // And it throws if the call fails.
+                    // In that case, we don't delete the requestId. We can retry it later.
+                }
+
+                if (r)
                 {
                     recovered++;
                 }
