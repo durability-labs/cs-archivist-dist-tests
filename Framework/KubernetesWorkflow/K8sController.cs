@@ -532,8 +532,7 @@ namespace KubernetesWorkflow
             {
                 Name = recipe.Name,
                 Image = recipe.Image,
-                //ImagePullPolicy = "Always", Not sure it's necessary to pull always.
-                ImagePullPolicy = "IfNotPresent",
+                ImagePullPolicy = "Always",
                 Ports = CreateContainerPorts(recipe),
                 Env = CreateEnv(recipe),
                 VolumeMounts = CreateContainerVolumeMounts(recipe),
