@@ -3,109 +3,63 @@ using ArchivistNetworkConfig;
 using ArgsUniform;
 using BlockchainUtils;
 using DiscordRewards;
-using GethPlugin;
 using Logging;
-using Utils;
 
 namespace TestNetRewarder
 {
     public class Program
     {
-        public static CancellationToken CancellationToken;
-        private static Configuration Config = null!;
-        private static ILog Log = null!;
-        private static IBotClient BotClient = null!;
-        private static Processor processor = null!;
-        private static IGethNode node = null!;
-        private static DateTime lastCheck = DateTime.MinValue;
-
         public static Task Main(string[] args)
         {
             var cts = new CancellationTokenSource();
-            CancellationToken = cts.Token;
+            var ct = cts.Token;
             Console.CancelKeyPress += (sender, args) => cts.Cancel();
 
-            var uniformArgs = new ArgsUniform<Configuration>(PrintHelp, args);
-            Config = uniformArgs.Parse(true);
+            var uniformArgs = new ArgsUniform<Configuration>(args);
+            var config = uniformArgs.Parse(true);
 
-            Log = new TimestampPrefixer(                
+            var log = new TimestampPrefixer(                
                 new LogSplitter(
-                    new FileLog(Path.Combine(Config.LogPath, "testnetrewarder")),
+                    new FileLog(Path.Combine(config.LogPath, "testnetrewarder")),
                     new ConsoleLog()
                 )
             );
 
-            var networkConnector = new ArchivistNetworkConnector(Log);
+            var networkConnector = new ArchivistNetworkConnector(log);
             var network = networkConnector.GetConfig();
 
-            var diskStore = new DiskBlockBucketStore(Log, Path.Join(Config.DataPath, "blockcache"));
-            var blockCache = new BlockCache(Log, diskStore);
-            var requestsCache = new DiskRequestsCache(Path.Join(Config.DataPath, "requestscache"));
-            var connector = GethConnector.GethConnector.Initialize(Log, network, blockCache, requestsCache);
+            var diskStore = new DiskBlockBucketStore(log, Path.Join(config.DataPath, "blockcache"));
+            var blockCache = new BlockCache(log, diskStore);
+            var requestsCache = new DiskRequestsCache(Path.Join(config.DataPath, "requestscache"));
+            var connector = GethConnector.GethConnector.Initialize(log, network, blockCache, requestsCache);
             if (connector == null) throw new Exception("Invalid Eth RPC information");
 
-            var lookup = new ContentInformationLookup(Config, network);
-            BotClient = new BotClient(Config.DiscordHost, Config.DiscordPort, Log);
-            node = connector.GethNode;
-            processor = new Processor(Config, BotClient, requestsCache, lookup, connector.GethNode, connector.ArchivistContracts, Log);
+            var builder = new RequestBuilder();
+            var lookup = new ContentInformationLookup(config, network);
+            var botClient = new BotClient(config.DiscordHost, config.DiscordPort, log);
 
-            EnsurePath(Config.DataPath);
-            EnsurePath(Config.LogPath);
+            var eventsFormatter = new EventsFormatter(lookup, connector.ArchivistContracts.Deployment.Config);
+            var periodMonitorHandler = new PeriodMonitorHandler(eventsFormatter);
 
-            return new Program().MainAsync();
+            var hooks = new ChainFollowHooksHandler(log, config, eventsFormatter, builder, botClient, ct);
+
+            var followConfig = new ChainFollowConfig(log, config.Interval, config.HistoryStartUtc, connector.GethNode, connector.ArchivistContracts, requestsCache);
+            var handlers = new ChainFollowHandlers(hooks, eventsFormatter, config.ShowProofsMissed > 0 ? periodMonitorHandler : null);
+
+            var chainFollower = new ChainFollowing(followConfig, handlers);
+
+            EnsurePath(config.DataPath);
+            EnsurePath(config.LogPath);
+
+            return new Program().MainAsync(log, chainFollower, botClient, ct);
         }
 
-        public async Task MainAsync()
+        public async Task MainAsync(ILog log, ChainFollowing chain, BotClient botClient, CancellationToken ct)
         {
-            EnsureGethOnline();
+            log.Log("Starting Testnet Rewarder...");
+            await botClient.EnsureBotOnline(ct);
 
-            Log.Log("Starting Testnet Rewarder...");
-            var segmenter = new TimeSegmenter(Log, Config.Interval, Config.HistoryStartUtc, processor);
-            await EnsureBotOnline();
-            await processor.Initialize();
-
-            Log.Log("Running...");
-            while (!CancellationToken.IsCancellationRequested)
-            {
-                await EnsureBotOnline();
-                await segmenter.ProcessNextSegment();
-                await Task.Delay(100, CancellationToken);
-            }
-        }
-
-        private static void EnsureGethOnline()
-        {
-            Log.Log("Checking Eth RPC...");
-            var blockNumber = node.GetSyncedBlockNumber();
-            if (blockNumber == null || blockNumber < 1) throw new Exception("Eth RPC connection failed.");
-            Log.Log("Eth RPC OK. Block number: " + blockNumber);
-        }
-
-        private static async Task EnsureBotOnline()
-        {
-            var start = DateTime.UtcNow;
-            var timeSince = start - lastCheck;
-            if (timeSince.TotalSeconds < 30.0) return;
-
-            while (! await BotClient.IsOnline() && !CancellationToken.IsCancellationRequested)
-            {
-                await Task.Delay(5000);
-
-                var elapsed = DateTime.UtcNow - start;
-                if (elapsed.TotalMinutes > 10)
-                {
-                    var msg = "Unable to connect to bot for " + Time.FormatDuration(elapsed);
-                    Log.Error(msg);
-                    throw new Exception(msg);
-                }
-            }
-
-            lastCheck = start;
-        }
-
-        private static void PrintHelp()
-        {
-            Log.Log("Testnet Rewarder");
+            await chain.Run(ct);
         }
 
         private static void EnsurePath(string path)

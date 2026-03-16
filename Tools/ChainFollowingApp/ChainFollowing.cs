@@ -7,7 +7,7 @@ namespace TestNetRewarder
 {
     public interface IChainFollowingHooks
     {
-        Task OnInitialized(int recoveredRequests);
+        Task OnInitialized(ChainState chainState, int recoveredRequests);
         Task OnRunStarting();
         Task OnLoopStepStarting();
         Task OnLoopStepFinished();

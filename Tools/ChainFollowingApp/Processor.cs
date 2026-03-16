@@ -24,7 +24,7 @@ namespace TestNetRewarder
         public async Task Initialize()
         {
             var numRecoveredRequests = TryRecoverRunningRequests(config.RequestsCache);
-            await handlers.Hooks.OnInitialized(numRecoveredRequests);
+            await handlers.Hooks.OnInitialized(chainState, numRecoveredRequests);
         }
 
         public async Task<TimeSegmentResponse> OnNewSegment(TimeRange timeRange)
@@ -94,29 +94,5 @@ namespace TestNetRewarder
                 return 0;
             }
         }
-    }
-
-    public class PeriodReportWithMisses
-    {
-        public PeriodReportWithMisses(PeriodReport periodReport, MissedSlot[] missedSlots)
-        {
-            PeriodReport = periodReport;
-            MissedSlots = missedSlots;
-        }
-
-        public PeriodReport PeriodReport { get; }
-        public MissedSlot[] MissedSlots { get; }
-    }
-
-    public class MissedSlot
-    {
-        public MissedSlot(IChainStateRequest request, PeriodRequestSlotReport slotReport)
-        {
-            Request = request;
-            SlotReport = slotReport;
-        }
-
-        public IChainStateRequest Request { get; }
-        public PeriodRequestSlotReport SlotReport { get; }
     }
 }

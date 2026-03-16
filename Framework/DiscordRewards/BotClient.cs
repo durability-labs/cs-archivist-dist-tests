@@ -1,5 +1,6 @@
 ﻿using Logging;
 using System.Net.Http.Json;
+using Utils;
 
 namespace DiscordRewards
 {
@@ -7,6 +8,7 @@ namespace DiscordRewards
     {
         Task<bool> IsOnline();
         Task<bool> SendRewards(EventsAndErrors command);
+        Task EnsureBotOnline(CancellationToken ct);
     }
 
     public class BotClient : IBotClient
@@ -14,6 +16,7 @@ namespace DiscordRewards
         private readonly string host;
         private readonly int port;
         private readonly ILog log;
+        private DateTime lastCheck = DateTime.MinValue;
 
         public BotClient(string host, int port, ILog log)
         {
@@ -26,6 +29,28 @@ namespace DiscordRewards
         {
             var result = await HttpGet();
             return result == "Pong";
+        }
+
+        public async Task EnsureBotOnline(CancellationToken ct)
+        {
+            var start = DateTime.UtcNow;
+            var timeSince = start - lastCheck;
+            if (timeSince.TotalSeconds < 30.0) return;
+
+            while (!await IsOnline() && !ct.IsCancellationRequested)
+            {
+                await Task.Delay(5000);
+
+                var elapsed = DateTime.UtcNow - start;
+                if (elapsed.TotalMinutes > 10)
+                {
+                    var msg = "Unable to connect to bot for " + Time.FormatDuration(elapsed);
+                    log.Error(msg);
+                    throw new Exception(msg);
+                }
+            }
+
+            lastCheck = start;
         }
 
         public async Task<bool> SendRewards(EventsAndErrors command)
@@ -75,6 +100,11 @@ namespace DiscordRewards
 
     public class DoNothingBotClient : IBotClient
     {
+        public Task EnsureBotOnline(CancellationToken ct)
+        {
+            return Task.CompletedTask;
+        }
+
         public async Task<bool> IsOnline()
         {
             return true;
