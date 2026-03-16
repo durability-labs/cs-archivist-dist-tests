@@ -37,12 +37,12 @@ namespace TestNetRewarder
 
         public bool IsRealtime { get; private set; } = false;
 
-        public async Task ProcessNextSegment()
+        public async Task ProcessNextSegment(CancellationToken ct)
         {
             var end = GetNewSegmentEnd();
-            IsRealtime = await WaitUntilTimeSegmentInPast(end);
+            IsRealtime = await WaitUntilTimeSegmentInPast(ct, end);
 
-            if (Program.CancellationToken.IsCancellationRequested) return;
+            if (ct.IsCancellationRequested) return;
 
             var postfix = "(Catching up...)";
             if (IsRealtime) postfix = "(Real-time)";
@@ -82,16 +82,16 @@ namespace TestNetRewarder
             }
         }
 
-        private async Task<bool> WaitUntilTimeSegmentInPast(DateTime end)
+        private async Task<bool> WaitUntilTimeSegmentInPast(CancellationToken ct, DateTime end)
         {
-            await Task.Delay(TimeSpan.FromSeconds(3), Program.CancellationToken);
+            await Task.Delay(TimeSpan.FromSeconds(3), ct);
 
             var now = DateTime.UtcNow;
             while (end > now)
             {
                 currentSegmentMult = 1;
                 var delay = (end - now) + TimeSpan.FromSeconds(3);
-                await Task.Delay(delay, Program.CancellationToken);
+                await Task.Delay(delay, ct);
                 return true;
             }
             return false;
