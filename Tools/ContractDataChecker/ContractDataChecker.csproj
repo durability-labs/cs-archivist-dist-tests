@@ -14,6 +14,7 @@
     <ProjectReference Include="..\..\Framework\GethConnector\GethConnector.csproj" />
     <ProjectReference Include="..\..\Framework\Logging\Logging.csproj" />
     <ProjectReference Include="..\..\ProjectPlugins\ArchivistContractsPlugin\ArchivistContractsPlugin.csproj" />
+    <ProjectReference Include="..\ChainFollowingApp\ChainFollowingApp.csproj" />
   </ItemGroup>
 
 </Project>

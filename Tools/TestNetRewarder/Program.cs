@@ -54,7 +54,7 @@ namespace TestNetRewarder
             return new Program().MainAsync(log, chainFollower, botClient, ct);
         }
 
-        public async Task MainAsync(ILog log, ChainFollowing chain, BotClient botClient, CancellationToken ct)
+        public async Task MainAsync(ILog log, ChainFollowing chain, IBotClient botClient, CancellationToken ct)
         {
             log.Log("Starting Testnet Rewarder...");
             await botClient.EnsureBotOnline(ct);
