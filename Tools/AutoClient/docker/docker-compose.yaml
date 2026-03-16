@@ -52,7 +52,7 @@ services:
     volumes:
       - ./volumes/arch1-data:/data
     ports:
-      - 8080:8080/tcp
+      # - 8080:8080/tcp
       - 8070:8070/tcp
       - 8090:8090/udp
 
@@ -70,7 +70,7 @@ services:
     volumes:
       - ./volumes/arch2-data:/data
     ports:
-      - 8081:8081/tcp
+      # - 8081:8081/tcp
       - 8071:8071/tcp
       - 8091:8091/udp
 
@@ -88,7 +88,7 @@ services:
     volumes:
       - ./volumes/arch3-data:/data
     ports:
-      - 8082:8082/tcp
+      # - 8082:8082/tcp
       - 8072:8072/tcp
       - 8092:8092/udp
 
