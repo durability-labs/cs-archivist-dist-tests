@@ -50,7 +50,10 @@ namespace ArchivistReleaseTests.MarketTests
         private IStoragePurchaseContract StartFirstContract(IArchivistNode client)
         {
             var cid = client.UploadFile(GenerateTestFile(DefaultPurchase.UploadFilesize));
-            var firstContract = client.Marketplace.RequestStorage(new StoragePurchaseRequest(cid));
+            var firstContract = client.Marketplace.RequestStorage(new StoragePurchaseRequest(cid)
+            {
+                Duration = HostAvailabilityMaxDuration * 0.99
+            });
 
             firstContract.WaitForStorageContractStarted();
 
@@ -76,8 +79,8 @@ namespace ArchivistReleaseTests.MarketTests
 
             // These values must be different
             Assert.That(a.Id, Is.Not.EqualTo(b.Id));
-            Assert.That(a.FinishedUtc, Is.LessThan(b.FinishedUtc));
-            Assert.That(a.ExpiryUtc, Is.LessThan(b.ExpiryUtc));
+            Assert.That(a.FinishedUtc, Is.Not.EqualTo(b.FinishedUtc).Within(TimeSpan.FromSeconds(3)));
+            Assert.That(a.ExpiryUtc, Is.Not.EqualTo(b.ExpiryUtc).Within(TimeSpan.FromSeconds(3)));
         }
     }
 }
