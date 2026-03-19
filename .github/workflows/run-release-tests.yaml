@@ -51,7 +51,6 @@ env:
   JOB_MANIFEST: docker/job-release-tests.yaml
   COMMAND: dotnet test Tests/ArchivistReleaseTests
   KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
-  KUBECONFIG: ~/.kube/config
   KUBE_VERSION: v1.30.5
 
 jobs:
@@ -92,6 +91,9 @@ jobs:
         run: |
           echo "is there a kubeconfig?"
           ls "${HOME}"/.kube/config
+          echo "can list namespaces?"
+          kubectl get namespaces
+          echo "can apply?"
           kubectl apply -f ${{ env.JOB_MANIFEST }}
 
       - name: Tests Identification
