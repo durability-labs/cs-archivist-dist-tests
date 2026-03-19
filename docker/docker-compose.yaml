@@ -5,7 +5,8 @@ services:
       dockerfile: docker/Dockerfile
     environment:
       - ARCHIVISTDOCKERIMAGE=durabilitylabs/archivist-node:latest-dist-tests
-      - BRANCH="fix/release-tests-ci"
+      - BRANCH=fix/release-tests-ci
       - KUBECONFIG=/opt/kubeconfig
       - LOGPATH=/opt/logs
-      - RUNNERLOCATION=ExternalToCluster
+    volumes:
+      - /path/to/kubeconfig:/opt/kubeconfig

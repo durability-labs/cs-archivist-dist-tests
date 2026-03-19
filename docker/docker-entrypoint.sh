@@ -22,4 +22,5 @@ cd "${FOLDER}"
 echo -e "Running tests from branch '$(git branch --show-current) ($(git rev-parse --short HEAD))'\n"
 
 echo -e "Running ${TESTS_TYPE}\n"
+dotnet build
 exec "$@"
