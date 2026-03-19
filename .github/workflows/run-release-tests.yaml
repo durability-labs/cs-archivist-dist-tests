@@ -98,7 +98,7 @@ jobs:
           echo "Repository: ${{ env.SOURCE }}"
           echo "Branch: ${{ env.BRANCH }}"
           echo "Runner job: ${{ env.NAMEPREFIX }}"
-          echo "Runner pod: $(kubectl get pod --selector job-name=${{ env.NAMEPREFIX }} -ojsonpath='{.items[0].metadata.name}')"
+          echo "Runner pod: $(kubectl get pod -n ${{ env.NAMESPACE }} --selector job-name=${{ env.NAMEPREFIX }} -ojsonpath='{.items[0].metadata.name}')"
           echo "Runner namespace: ${{ env.NAMESPACE }}"
           echo "----"
 
@@ -107,7 +107,7 @@ jobs:
           # Variables
           # We need more than 300 seconds because Auto Scaler may take 3 minutes to tun a node
           namespace="${{ env.NAMESPACE }}"
-          pod=$(kubectl get pod --selector job-name=${{ env.NAMEPREFIX }} -o jsonpath='{.items[0].metadata.name}')
+          pod=$(kubectl get pod -n ${{ env.NAMESPACE }} --selector job-name=${{ env.NAMEPREFIX }} -o jsonpath='{.items[0].metadata.name}')
 
           # Check Pod status
           WAIT=120
