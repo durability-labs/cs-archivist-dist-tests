@@ -37,7 +37,7 @@ namespace ArchivistContractsPlugin.ChainMonitor
 
     public class ChainState
     {
-        private readonly List<ChainStateRequest> requests = new List<ChainStateRequest>();
+        private readonly ChainStateRequestList requests;
         private readonly ILog log;
         private readonly IGethNode geth;
         private readonly IArchivistContracts contracts;
@@ -47,6 +47,8 @@ namespace ArchivistContractsPlugin.ChainMonitor
         public ChainState(ILog log, IGethNode geth, IArchivistContracts contracts, IChainStateChangeHandler changeHandler, DateTime startUtc, bool doProofPeriodMonitoring, IPeriodMonitorEventHandler periodEventHandler)
         {
             this.log = new LogPrefixer(log, "(ChainState) ");
+            requests = new ChainStateRequestList(this.log);
+
             this.geth = geth;
             this.contracts = contracts;
             handler = changeHandler;
@@ -66,11 +68,15 @@ namespace ArchivistContractsPlugin.ChainMonitor
         {
             var request = FindRequestOnChain(requestId);
             // Request not found by this ID
-            if (request == null) return false; 
+            if (request == null) return false;
 
             // Found and relevant:
-            if (request.State == RequestState.New) return true;
-            if (request.State == RequestState.Started) return true;
+            if (request.State == RequestState.New ||
+                request.State == RequestState.Started)
+            {
+                requests.Add(request);
+                return true;
+            }
 
             // Found, but no longer relevant.
             return false;
@@ -83,6 +89,8 @@ namespace ArchivistContractsPlugin.ChainMonitor
 
         public int Update(DateTime toUtc)
         {
+            requests.Cleanup();
+
             var name = $"{nameof(Update)}({Time.FormatTimestamp(toUtc)})";
             return Stopwatch.Measure(log, name, () => UpdateInternal(toUtc), true).Value;
         }
@@ -231,7 +239,7 @@ namespace ArchivistContractsPlugin.ChainMonitor
         {
             var id = Base58.Encode(@event.Id);
 
-            var proofOrigin = @event.FindProofOrigin(contracts, requests);
+            var proofOrigin = @event.FindProofOrigin(contracts, requests.ToArray());
             var proofStr = FormatProofOrigin(proofOrigin);
 
             handler.OnProofSubmitted(@event.Block, id);
@@ -239,7 +247,7 @@ namespace ArchivistContractsPlugin.ChainMonitor
 
         private void ApplyTimeImplicitEvents(BlockTimeEntry entry)
         {
-            foreach (var r in requests)
+            foreach (var r in requests.ToArray())
             {
                 ApplyTimeImplicitCancelledEvent(r, entry);
                 ApplyTimeImplicitFinishedEvent(r, entry);
@@ -296,15 +304,7 @@ namespace ArchivistContractsPlugin.ChainMonitor
         private ChainStateRequest? FindRequest(byte[] requestId)
         {
             var r = requests.SingleOrDefault(r => ByteArrayUtils.Equal(r.RequestId, requestId));
-            if (r != null)
-            {
-                if (ShouldRemove(r))
-                {
-                    requests.Remove(r);
-                    return null;
-                }
-                return r;
-            }
+            if (r != null) return r;
 
             try
             {
@@ -332,11 +332,6 @@ namespace ArchivistContractsPlugin.ChainMonitor
             var state = contracts.GetRequestState(requestId);
             if (state == null) return null;
             return new ChainStateRequest(log, requestId, request, state.Value, GetExtendsExistingContract);
-        }
-
-        private bool ShouldRemove(ChainStateRequest r)
-        {
-            return (r.FinishedUtc + TimeSpan.FromHours(8)) < DateTime.UtcNow;
         }
 
         private ChainStateRequest? GetExtendsExistingContract(ContentId newCid)
