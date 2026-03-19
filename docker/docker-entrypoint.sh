@@ -21,13 +21,6 @@ cd "${FOLDER}"
 # Run tests
 echo -e "Running tests from branch '$(git branch --show-current) ($(git rev-parse --short HEAD))'\n"
 
-if [[ "${TESTS_TYPE}" == "continuous-tests" ]]; then
-  echo -e "Running ArchivistNetDeployer\n"
-  bash "${DEPLOYMENT_ARCHIVISTNETDEPLOYER_PATH}"/"${DEPLOYMENT_ARCHIVISTNETDEPLOYER_RUNNER}"
-  echo
-  echo -e "Running continuous-tests\n"
-  bash "${CONTINUOUS_TESTS_FOLDER}"/"${CONTINUOUS_TESTS_RUNNER}"
-else
-  echo -e "Running ${TESTS_TYPE}\n"
-  exec "$@"
-fi
+echo -e "Running ${TESTS_TYPE}\n"
+dotnet build
+exec "$@"
