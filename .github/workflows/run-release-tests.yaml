@@ -90,6 +90,8 @@ jobs:
 
       - name: Kubectl - Create Job to run tests
         run: |
+          echo "is there a kubeconfig?"
+          ls "${HOME}"/.kube/config
           kubectl apply -f ${{ env.JOB_MANIFEST }}
 
       - name: Tests Identification
