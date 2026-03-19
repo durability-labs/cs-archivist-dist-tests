@@ -4,17 +4,8 @@ services:
       context: ..
       dockerfile: docker/Dockerfile
     environment:
-      - ARCHIVISTDOCKERIMAGE=durabilitylabs/archivist-node:sha-9817b12
-      - BRANCH="feature/docker-image-testruns"
+      - ARCHIVISTDOCKERIMAGE=durabilitylabs/archivist-node:latest-dist-tests
+      - BRANCH="fix/release-tests-ci"
       - KUBECONFIG=/opt/kubeconfig
       - LOGPATH=/opt/logs
       - RUNNERLOCATION=ExternalToCluster
-
-  continuous-test-run:
-    image: thatbenbierens/dist-tests-deployandrun:initial
-    environment:
-      # - ARCHIVISTDOCKERIMAGE=imageoverride
-      - DNR_REP=3
-      - DNR_NAME=Tryout
-      - DNR_FILTER=PeernBeer
-      - DNR_DURATION=172800
