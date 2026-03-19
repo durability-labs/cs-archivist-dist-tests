@@ -90,7 +90,7 @@ jobs:
 
       - name: Kubectl - Create Job to run tests
         run: |
-          envsubst < ${{ env.JOB_MANIFEST }} | kubectl apply -f -
+          kubectl apply -f ${{ env.JOB_MANIFEST }}
 
       - name: Tests Identification
         run: |
