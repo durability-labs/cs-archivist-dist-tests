@@ -8,6 +8,11 @@ on:
         description: "Archivist Docker image (example: 'durabilitylabs/archivist-node:0.0.1-dist-tests')"
         required: true
         type: string
+      namespace:
+        description: Kubernetes namespace for test jobs
+        required: false
+        type: string
+        default: 'devnet'
   workflow_call:
     inputs:
       source:
@@ -27,6 +32,11 @@ on:
         required: false
         type: string
         default: ''
+      namespace:
+        description: Kubernetes namespace for test jobs
+        required: false
+        type: string
+        default: 'devnet'
     secrets:
       KUBE_CONFIG:
         required: true
@@ -37,7 +47,7 @@ env:
   ARCHIVISTDOCKERIMAGE: durabilitylabs/archivist-node:latest-dist-tests
   TEST_TYPE: release-tests
   NAMEPREFIX: r-tests
-  NAMESPACE: default
+  NAMESPACE: ${{ inputs.namespace || 'devnet' }}
   JOB_MANIFEST: docker/job-release-tests.yaml
   COMMAND: dotnet test Tests/ArchivistReleaseTests
   KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
