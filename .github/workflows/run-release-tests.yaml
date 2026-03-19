@@ -27,6 +27,9 @@ on:
         required: false
         type: string
         default: ''
+    secrets:
+      KUBE_CONFIG:
+        required: true
 
 env:
   SOURCE: ${{ format('{0}/{1}', github.server_url, github.repository) }}
@@ -92,7 +95,7 @@ jobs:
       - name: Show Runner logs
         run: |
           # Variables
-          # We need more than 300 seconds because Auto Scaler may take 3 minutes to tun a node 
+          # We need more than 300 seconds because Auto Scaler may take 3 minutes to tun a node
           namespace="${{ env.NAMESPACE }}"
           pod=$(kubectl get pod --selector job-name=${{ env.NAMEPREFIX }} -o jsonpath='{.items[0].metadata.name}')
 
