@@ -51,8 +51,8 @@ env:
   JOB_MANIFEST: docker/job-release-tests.yaml
   COMMAND: dotnet test Tests/ArchivistReleaseTests
   KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+  KUBECONFIG: ~/.kube/config
   KUBE_VERSION: v1.30.5
-
 
 jobs:
   run_tests:
