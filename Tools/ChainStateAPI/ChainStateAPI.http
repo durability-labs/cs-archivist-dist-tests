@@ -1,0 +1,6 @@
+@ChainStateAPI_HostAddress = http://localhost:5173
+
+GET {{ChainStateAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
