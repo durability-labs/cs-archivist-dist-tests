@@ -91,11 +91,6 @@ namespace TraceContract
             return tracker.FinishBlock!;
         }
 
-        private bool IsThisRequest(byte[] requestId)
-        {
-            return requestId.ToHex().ToLowerInvariant() == input.PurchaseId.ToLowerInvariant();
-        }
-
         private CacheRequest? GetRequest()
         {
             return contracts.GetRequest(input.RequestId);

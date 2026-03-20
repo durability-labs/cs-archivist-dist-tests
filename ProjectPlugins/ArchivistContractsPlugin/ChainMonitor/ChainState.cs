@@ -186,6 +186,18 @@ namespace ArchivistContractsPlugin.ChainMonitor
         {
             var r = FindRequest(@event);
             if (r == null) return;
+
+            // Important: FindRequest may have created the request object using
+            // the current on-chain state. But we're not busy representing the current
+            // state. This might be historical! So, if the state of the request is not
+            // "new", then we set it to new.
+            if (r.State != RequestState.New)
+            {
+                log.Log($"In applying the create event for request '{r.Id}', it was fetched from the chain in a different " +
+                    $"state: '{r.State}'. Setting it to 'new' to represent the current (historical) state.");
+
+                r.UpdateStateFromEvent(@event, RequestState.New);
+            }
           
             handler.OnNewRequest(new RequestEvent(@event.Block, r));
         }
