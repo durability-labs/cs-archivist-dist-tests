@@ -77,7 +77,7 @@ namespace ArchivistPlugin
             }
             if (config.BlockTTL != null)
             {
-                AddArg("--block-ttl", config.BlockTTL.ToString()!);
+                AddArg("--overlay-ttl", config.BlockTTL.Value.TotalSeconds.ToString());
             }
             if (config.BlockMaintenanceInterval != null)
             {
