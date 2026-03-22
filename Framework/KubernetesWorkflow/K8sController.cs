@@ -497,8 +497,7 @@ namespace KubernetesWorkflow
 
         private IDictionary<string, string> GetRunnerNamespaceSelector()
         {
-            var runnerNamespace = Environment.GetEnvironmentVariable("NAMESPACE") ?? "default";
-            return new Dictionary<string, string> { { "kubernetes.io/metadata.name", runnerNamespace } };
+            return new Dictionary<string, string> { { "kubernetes.io/metadata.name", "default" } };
         }
 
         private IDictionary<string, string> GetPrometheusNamespaceSelector()
