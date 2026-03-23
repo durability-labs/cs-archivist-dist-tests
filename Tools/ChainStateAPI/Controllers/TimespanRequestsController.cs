@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using ChainStateAPI.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ChainStateAPI.Controllers
 {
@@ -6,10 +7,20 @@ namespace ChainStateAPI.Controllers
     [Route("[controller]")]
     public class TimespanRequestsController : ControllerBase
     {
+        private readonly IEventTypeService eventTypeService;
+
+        public TimespanRequestsController(IEventTypeService eventTypeService)
+        {
+            this.eventTypeService = eventTypeService;
+        }
+
         [HttpGet]
         public EventTypesResponse GetEventTypes()
         {
-            return new EventTypesResponse();
+            return new EventTypesResponse
+            {
+                Types = eventTypeService.GetEventTypes(),
+            };
         }
 
         [HttpPost]
