@@ -4,17 +4,20 @@ services:
       context: ../..
       dockerfile: ./Tools/ChainStateAPI/Dockerfile
     environment:
-      DBHOST: chainstatedb
+      DBHOST: postgres_chainstate
       DBLOGIN: chainstate
       DBPASSWORD: chainstatepw
+      ARCHIVIST_NETWORK: devnet
+      ARCHIVIST_VERSION: latest
+      DATADIR: /data
+      LOGDEBUG: 1
     depends_on:
       postgres_chainstate:
         condition: service_healthy
     volumes:
-      - chainstate_logs:/logs
+      - chainstate_data:/data
 
   postgres_chainstate:
-    container_name: dburls
     image: postgres:16
     environment:
       POSTGRES_USER: chainstate
@@ -36,11 +39,11 @@ volumes:
     driver_opts:
       o: bind
       type: none
-      device: ./data/urls/db
+      device: ./docker/database
 
-  chainstate_logs:
+  chainstate_data:
     driver: local
     driver_opts:
       o: bind
       type: none
-      device: ./logs
+      device: ./docker/data

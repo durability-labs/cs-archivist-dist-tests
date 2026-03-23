@@ -11,9 +11,11 @@ namespace ChainStateAPI
             builder.Services.AddControllers();
             builder.Services.AddOpenApi();
 
+            var dataDir = Environment.GetEnvironmentVariable("DATADIR")!;
+
             var log = new TimestampPrefixer(
                 new LogSplitter(
-                    new FileLog(Path.Combine("logs", "chainstateapi")),
+                    new FileLog(Path.Combine(dataDir, "logs", "chainstateapi")),
                     new ConsoleLog()
                 )
             );
@@ -23,6 +25,8 @@ namespace ChainStateAPI
             builder.Services.AddSingleton<IDeploymentService>(deploymentService);
             builder.Services.AddSingleton<IUpdateLoopService, UpdateLoopService>();
             builder.Services.AddSingleton<IDatabaseService, DatabaseService>();
+            builder.Services.AddSingleton<IMapperService, MapperService>();
+            builder.Services.AddSingleton<ITimeBasedEventsService, TimeBasedEventsService>();
 
             var app = builder.Build();
             if (app.Environment.IsDevelopment())
@@ -32,7 +36,7 @@ namespace ChainStateAPI
             app.UseHttpsRedirection();
             app.UseAuthorization();
 
-            app.Services.GetService<IDeploymentService>()!.Start();
+            app.Services.GetService<IDeploymentService>()!.Start(dataDir);
             app.Services.GetService<IUpdateLoopService>()!.Start();
 
             app.MapControllers();

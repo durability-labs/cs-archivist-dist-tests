@@ -21,6 +21,7 @@ namespace ChainStateAPI.Services
 
         public TResult Query<TContext, TResult>(Func<TContext, TResult> query) where TContext : BaseContext, new()
         {
+            log.Debug("Query...");
             var context = GetOrCreate<TContext>();
             try
             {
@@ -35,6 +36,7 @@ namespace ChainStateAPI.Services
 
         public void Mutate<TContext>(Action<TContext> mutation) where TContext : BaseContext, new()
         {
+            log.Debug("Mutate...");
             var context = GetOrCreate<TContext>();
             lock (context)
             {
@@ -57,11 +59,13 @@ namespace ChainStateAPI.Services
             {
                 if (contexts[typeof(TContext)] is DbCommon<TContext> handle)
                 {
+                    log.Debug("Context hit");
                     return handle.Context;
                 }
                 throw new InvalidOperationException($"DBContext for type {typeof(TContext).Name} is not of correct type.");
             }
 
+            log.Debug("Creating new context...");
             var newDbHandle = new DbCommon<TContext>(log);
             newDbHandle.Initialize().Wait();
             contexts.Add(typeof(TContext), newDbHandle);

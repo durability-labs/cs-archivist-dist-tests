@@ -1,6 +1,6 @@
+using ChainStateAPI.Database;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Converters;
-using System.Numerics;
 using System.Text.Json.Serialization;
 
 namespace ChainStateAPI.Controllers
@@ -80,20 +80,8 @@ namespace ChainStateAPI.Controllers
     public class ContractChainValues
     {
         public string Client { get; set; } = string.Empty;
-        public ContractAsk Ask { get; set; } = new();
+        public StorageRequested Request { get; set; } = new();
         public ContractContent Content { get; set; } = new();
-        public ulong Expiry { get; set; }
-    }
-
-    public class ContractAsk
-    {
-        public BigInteger ProofProbability { get; set; }
-        public BigInteger PricePerBytePerSecond { get; set; }
-        public BigInteger CollateralPerByte { get; set; }
-        public ulong Slots { get; set; }
-        public ulong SlotSize { get; set; }
-        public ulong Duration { get; set; }
-        public ulong MaxSlotLoss { get; set; }
     }
 
     public class ContractContent

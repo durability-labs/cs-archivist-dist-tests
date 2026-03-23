@@ -8,7 +8,7 @@ namespace ChainStateAPI.Services
 {
     public interface IDeploymentService
     {
-        void Start();
+        void Start(string datadir);
 
         string RpcEndpoint { get; }
         string MarketplaceContractAddress { get; }
@@ -22,7 +22,7 @@ namespace ChainStateAPI.Services
 
         public DeploymentService(ILog log)
         {
-            this.log = new LogPrefixer(log, "Deployment");
+            this.log = new LogPrefixer(log, "(Deployment) ");
         }
 
         public string RpcEndpoint { get; private set; } = string.Empty;
@@ -30,7 +30,7 @@ namespace ChainStateAPI.Services
         public IArchivistContracts Contracts { get; private set; } = null!;
         public IGethNode RpcNode { get; private set; } = null!;
 
-        public void Start()
+        public void Start(string datadir)
         {
             var connector = new ArchivistNetworkConnector(log);
             var network = connector.GetConfig();
@@ -44,9 +44,9 @@ namespace ChainStateAPI.Services
             RpcEndpoint = network.Team.Utils.BotRpc;
             MarketplaceContractAddress = network.Marketplace.ContractAddress;
 
-            var blockStore = new DiskBlockBucketStore(log, "blockcache");
+            var blockStore = new DiskBlockBucketStore(log, Path.Combine(datadir, "blockcache"));
             var blockCache = new BlockCache(log, blockStore);
-            var requestsCache = new DiskRequestsCache("requestscache");
+            var requestsCache = new DiskRequestsCache(Path.Combine(datadir, "requestscache"));
 
             var gethConnector = GethConnector.GethConnector.Initialize(log, network, blockCache, requestsCache, EthAccountGenerator.GenerateNew().PrivateKey);
             if (gethConnector == null)

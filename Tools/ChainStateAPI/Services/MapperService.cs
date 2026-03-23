@@ -1,6 +1,5 @@
 ﻿using ArchivistContractsPlugin;
 using ArchivistContractsPlugin.Marketplace;
-using ChainStateAPI.Controllers;
 using ChainStateAPI.Database;
 using Nethereum.Hex.HexConvertors.Extensions;
 
@@ -33,24 +32,17 @@ namespace ChainStateAPI.Services
 
         public StorageRequested Map(StorageRequestedEventDTO eventDTO)
         {
+            var ask = eventDTO.Ask;
             var result = MapContractEvent<StorageRequested>(eventDTO);
-            result.Ask = Map(eventDTO.Ask);
+            result.CollateralPerByte = ask.CollateralPerByte;
+            result.Duration = ask.Duration;
+            result.MaxSlotLoss = ask.MaxSlotLoss;
+            result.PricePerBytePerSecond = ask.PricePerBytePerSecond;
+            result.ProofProbability = ask.ProofProbability;
+            result.Slots = ask.Slots;
+            result.SlotSize = ask.SlotSize;
             result.Expiry = eventDTO.Expiry;
             return result;
-        }
-
-        private ContractAsk Map(Ask ask)
-        {
-            return new ContractAsk
-            {
-                CollateralPerByte = ask.CollateralPerByte,
-                Duration = ask.Duration,
-                MaxSlotLoss = ask.MaxSlotLoss,
-                PricePerBytePerSecond = ask.PricePerBytePerSecond,
-                ProofProbability = ask.ProofProbability,
-                Slots = ask.Slots,
-                SlotSize = ask.SlotSize,
-            };
         }
 
         public ContractStarted Map(RequestFulfilledEventDTO eventDTO)

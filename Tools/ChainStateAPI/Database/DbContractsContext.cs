@@ -1,13 +1,13 @@
-﻿using ChainStateAPI.Controllers;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Numerics;
 
 namespace ChainStateAPI.Database
 {
     public class DbContractsContext : BaseContext
     {
-        protected override string DatabaseName => "events";
+        protected override string DatabaseName => "chainstatedb";
 
         public DbSet<StorageContract> StorageContracts { get; set; }
 
@@ -51,7 +51,13 @@ namespace ChainStateAPI.Database
     public class StorageRequested : ContractEvent
     {
         public ulong Expiry { get; set; }
-        public ContractAsk Ask { get; set; } = new();
+        public BigInteger ProofProbability { get; set; }
+        public BigInteger PricePerBytePerSecond { get; set; }
+        public BigInteger CollateralPerByte { get; set; }
+        public ulong Slots { get; set; }
+        public ulong SlotSize { get; set; }
+        public ulong Duration { get; set; }
+        public ulong MaxSlotLoss { get; set; }
     }
 
     public class ContractStarted : ContractEvent

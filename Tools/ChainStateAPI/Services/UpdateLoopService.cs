@@ -98,11 +98,21 @@ namespace ChainStateAPI.Services
                 slotFilled.Events,
                 slotFreed.Events,
                 slotReservationsFull.Events);
+
+            log.Debug($"Found {all.Length} on-chain events.");
+
             EnsureContractsAreStored(all);
 
             // We compute all time-based events (expired, finished) now and store them as if
             // they were normal chain events.
             var timeEvents = timeBasedEvents.GetTimeBasedEvents(span.TimeRange);
+
+            // If there are no events at all, don't bother the database.
+            if (all.Length == 0 && timeEvents.IsEmpty())
+            {
+                lastUpdate = nowBlock;
+                return;
+            }
 
             databaseService.Mutate<DbContractsContext>(context =>
             {
@@ -123,6 +133,10 @@ namespace ChainStateAPI.Services
         private void EnsureContractsAreStored(IHasRequestId[] all)
         {
             var requestIds = all.Select(a => mapper.Map(a.RequestId)).Distinct().ToArray();
+            if (requestIds.Length == 0) return;
+
+            log.Debug($"Found {requestIds.Length} distinct ids. Checking if known...");
+
             var toFetch = databaseService.Query<DbContractsContext, string[]>(context =>
             {
                 return requestIds.Where(id => !context.StorageContracts.Any(s => s.RequestId == id)).ToArray();
