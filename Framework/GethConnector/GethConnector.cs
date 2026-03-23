@@ -33,7 +33,11 @@ namespace GethConnector
         public static GethConnector? Initialize(ILog log, ArchivistNetwork networkConfig, BlockCache blockCache, IRequestsCache requestsCache)
         {
             var privateKey = EnvVar.GetOrThrow(GethPrivKeyVar);
+            return Initialize(log, networkConfig, blockCache, requestsCache, privateKey);
+        }
 
+        public static GethConnector? Initialize(ILog log, ArchivistNetwork networkConfig, BlockCache blockCache, IRequestsCache requestsCache, string privateKey)
+        {
             var gethNode = new CustomGethNode(log, blockCache, networkConfig.Team.Utils.BotRpc, privateKey);
             var config = GetArchivistMarketplaceConfig(gethNode, new ContractAddress(networkConfig.Marketplace.ContractAddress));
 
