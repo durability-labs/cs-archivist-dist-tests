@@ -8,6 +8,8 @@ namespace ChainStateAPI.Services
 {
     public interface IDeploymentService
     {
+        string RpcEndpoint { get; }
+        string MarketplaceContractAddress { get; }
         IArchivistContracts Contracts { get; }
         IGethNode RpcNode { get; }
     }
@@ -21,6 +23,8 @@ namespace ChainStateAPI.Services
             this.log = new LogPrefixer(log, "Deployment");
         }
 
+        public string RpcEndpoint { get; private set; } = string.Empty;
+        public string MarketplaceContractAddress { get; private set; } = string.Empty;
         public IArchivistContracts Contracts { get; private set; } = null!;
         public IGethNode RpcNode { get; private set; } = null!;
 
@@ -34,6 +38,9 @@ namespace ChainStateAPI.Services
             log.Log($"Archivist revision: {network.Version.Revision}");
             log.Log($"Contracts revision: {network.Version.Contracts}");
             log.Log($"Contracts address: {network.Marketplace.ContractAddress}");
+
+            RpcEndpoint = network.Team.Utils.BotRpc;
+            MarketplaceContractAddress = network.Marketplace.ContractAddress;
 
             var blockStore = new DiskBlockBucketStore(log, "blockcache");
             var blockCache = new BlockCache(log, blockStore);
