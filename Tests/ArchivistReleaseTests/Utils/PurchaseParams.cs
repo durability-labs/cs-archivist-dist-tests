@@ -5,7 +5,7 @@ namespace ArchivistReleaseTests.Utils
 {
     public class PurchaseParams
     {
-        private readonly ByteSize blockSize = 64.KB();
+        private readonly ByteSize blockSize = 512.KB();
 
         public PurchaseParams(
             int nodes,
