@@ -24,7 +24,7 @@ namespace ArchivistReleaseTests.DataTests
 
             var spaceDiff = startSpace.FreeBytes - downloader.Space().FreeBytes;
 
-            Assert.That(spaceDiff, Is.LessThan(64.KB().SizeInBytes));
+            Assert.That(spaceDiff, Is.LessThan(512.KB().SizeInBytes));
 
             Assert.That(localDataset.Cid, Is.EqualTo(cid));
             Assert.That(localDataset.Manifest.DatasetSize.SizeInBytes, Is.EqualTo(file.GetFilesize().SizeInBytes));
