@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using System.Numerics;
 
 namespace ChainStateAPI.Controllers
 {
@@ -56,12 +55,12 @@ namespace ChainStateAPI.Controllers
         public SlotFilled[] SlotFilled { get; set; } = Array.Empty<SlotFilled>();
         public SlotFreed[] SlotFreed { get; set; } = Array.Empty<SlotFreed>();
         public SlotReservationsFull[] SlotReservationsFull { get; set; } = Array.Empty<SlotReservationsFull>();
-        public ProofSubmitted[] ProofSubmitted { get; set; } = Array.Empty<ProofSubmitted>();
+        //public ProofSubmitted[] ProofSubmitted { get; set; } = Array.Empty<ProofSubmitted>();
         public ContractCancelled[] ContractCancelled { get; set; } = Array.Empty<ContractCancelled>();
         public ContractFinished[] ContractFinished { get; set; } = Array.Empty<ContractFinished>();
     }
 
-    public class ContractEvent
+    public abstract class ContractEvent
     {
         public string RequestId { get; set; } = string.Empty;
     }
@@ -72,17 +71,6 @@ namespace ChainStateAPI.Controllers
         public ContractAsk Ask { get; set; } = new();
     }
 
-    public class ContractAsk
-    {
-        public BigInteger ProofProbability { get; set; }
-        public BigInteger PricePerBytePerSecond { get; set; }
-        public BigInteger CollateralPerByte { get; set; }
-        public ulong Slots { get; set; }
-        public ulong SlotSize { get; set; }
-        public ulong Duration { get; set; }
-        public ulong MaxSlotLoss { get; set; }
-    }
-
     public class ContractStarted : ContractEvent
     {
     }
@@ -91,7 +79,7 @@ namespace ChainStateAPI.Controllers
     {
     }
 
-    public class SlotEvent : ContractEvent
+    public abstract class SlotEvent : ContractEvent
     {
         public ulong SlotIndex { get; set; }
     }
@@ -108,10 +96,10 @@ namespace ChainStateAPI.Controllers
     {
     }
 
-    public class ProofSubmitted
-    {
-        public byte[] Id { get; set; } = Array.Empty<byte>();
-    }
+    //public class ProofSubmitted
+    //{
+    //    public byte[] Id { get; set; } = Array.Empty<byte>();
+    //}
 
     public class ContractCancelled : ContractEvent
     {
