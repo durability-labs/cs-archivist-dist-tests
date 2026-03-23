@@ -54,7 +54,7 @@ namespace Logging
             if (IsDebug)
             {
                 var callerName = DebugStack.GetCallerName(skipFrames);
-                Log($"(debug)({callerName}) {message}");
+                Log($"(debug) {message} ({callerName})");
             }
         }
 

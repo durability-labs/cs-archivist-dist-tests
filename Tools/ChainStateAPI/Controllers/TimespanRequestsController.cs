@@ -15,15 +15,6 @@ namespace ChainStateAPI.Controllers
             this.eventTypeService = eventTypeService;
         }
 
-        [HttpGet]
-        public EventTypesResponse GetEventTypes()
-        {
-            return new EventTypesResponse
-            {
-                Types = eventTypeService.GetEventTypes(),
-            };
-        }
-
         [HttpPost]
         public EventsResponse GetEvents([FromBody] EventsRequest request)
         {
@@ -31,26 +22,21 @@ namespace ChainStateAPI.Controllers
         }
     }
 
-    public class EventTypesResponse
-    {
-        public EventType[] Types { get; set; } = Array.Empty<EventType>();
-    }
-
-    public class EventType
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-    }
-
-    public class TimespanRequest
+    public class EventsRequest
     {
         public DateTime InclFromUtc { get; set; }
         public DateTime ExclToUtc { get; set; }
-    }
+        public string[] RequestIds { get; set; } = Array.Empty<string>();
 
-    public class EventsRequest : TimespanRequest
-    {
-        public int[] EventTypeIds { get; set; } = Array.Empty<int>();
+        public bool StorageRequested { get; set; }
+        public bool ContractStarted { get; set; }
+        public bool ContractFailed { get; set; }
+        public bool SlotFilled { get; set; }
+        public bool SlotFreed { get; set; }
+        public bool SlotReservationsFull { get; set; }
+        //public bool ProofSubmitted { get; set; }
+        public bool ContractCancelled { get; set; }
+        public bool ContractFinished { get; set; }
     }
 
     public class EventsResponse
@@ -61,6 +47,8 @@ namespace ChainStateAPI.Controllers
     public class EventsMoment
     {
         public DateTime Utc { get; set; }
+        // should these be the db objects? yes compiletime checked, no separation
+        // how is the request identified? extra layer? yes clear, no more looping
         public StorageRequested[] StorageRequested { get; set; } = Array.Empty<StorageRequested>();
         public ContractStarted[] ContractStarted { get; set; } = Array.Empty<ContractStarted>();
         public ContractFailed[] ContractFailed { get; set; } = Array.Empty<ContractFailed>();

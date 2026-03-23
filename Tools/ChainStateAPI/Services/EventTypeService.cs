@@ -11,8 +11,9 @@ namespace ChainStateAPI.Services
     public class EventTypeService : IEventTypeService
     {
         private readonly EventType[] eventTypes;
+        private readonly IDatabaseService databaseService;
 
-        public EventTypeService()
+        public EventTypeService(IDatabaseService databaseService)
         {
             eventTypes = [
                 CreateEventType<StorageRequested>(101),
@@ -24,6 +25,13 @@ namespace ChainStateAPI.Services
                 //CreateEventType<ProofSubmitted>(107),
                 CreateEventType<ContractFinished>(108),
             ];
+
+            this.databaseService = databaseService;
+        }
+
+        public EventsResponse QueryEvents(EventsRequest request)
+        {
+
         }
 
         public EventType[] GetEventTypes()
