@@ -23,7 +23,8 @@ namespace Utils
 
         public bool Includes(DateTime utc)
         {
-            return From <= utc && utc <= To;
+            // exclude the upper bound.
+            return From <= utc && utc < To;
         }
 
         public override string ToString()

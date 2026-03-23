@@ -10,27 +10,52 @@ namespace ChainStateAPI.Services
 
     public class TimeBasedEventsService : ITimeBasedEventsService
     {
-        private readonly IActiveContractsService activeContractsService;
+        private readonly IDatabaseService databaseService;
+        private readonly IDeploymentService deploymentService;
 
-        public TimeBasedEventsService(IActiveContractsService activeContractsService)
+        public TimeBasedEventsService(IDatabaseService databaseService, IDeploymentService deploymentService)
         {
-            this.activeContractsService = activeContractsService;
+            this.databaseService = databaseService;
+            this.deploymentService = deploymentService;
         }
 
         public TimeEvents GetTimeBasedEvents(TimeRange timeRange)
         {
-            var result = new TimeEvents();
-            foreach (var c in activeContractsService.GetActiveContracts())
+            return new TimeEvents
             {
-                Apply(result, c);
-            }
-
-            return result;
+                CancelledEvents = QueryCancelledEvents(timeRange),
+                FinishedEvents = QueryFinishedEvents(timeRange)
+            };
         }
 
-        private void Apply(TimeEvents result, StorageContract c)
+        private ContractFinished[] QueryFinishedEvents(TimeRange timeRange)
         {
-            throw new NotImplementedException();
+            var contracts = databaseService.Query<DbContractsContext, StorageContract[]>(context =>
+            {
+                return context.StorageContracts.Where(c => timeRange.Includes(c.FinishedUtc)).ToArray();
+            });
+
+            return contracts.Select(c => new ContractFinished
+            {
+                BlockNumber = deploymentService.RpcNode.GetHighestBlockBeforeUtc(c.FinishedUtc).BlockNumber,
+                Utc = c.FinishedUtc,
+                RequestId = c.RequestId,
+            }).ToArray();
+        }
+
+        private ContractCancelled[] QueryCancelledEvents(TimeRange timeRange)
+        {
+            var contracts = databaseService.Query<DbContractsContext, StorageContract[]>(context =>
+            {
+                return context.StorageContracts.Where(c => timeRange.Includes(c.ExpiryUtc)).ToArray();
+            });
+
+            return contracts.Select(c => new ContractCancelled
+            {
+                BlockNumber = deploymentService.RpcNode.GetHighestBlockBeforeUtc(c.FinishedUtc).BlockNumber,
+                Utc = c.ExpiryUtc,
+                RequestId = c.RequestId,
+            }).ToArray();
         }
     }
 
