@@ -27,6 +27,10 @@ namespace ArchivistContractsPlugin.Marketplace
     {
     }
 
+    public interface IHasBlockRequestIdSlotIndex : IHasBlockAndRequestId, IHasSlotIndex
+    {
+    }
+
     public interface IHasSlotIndex
     {
         ulong SlotIndex { get; set; }
@@ -56,7 +60,7 @@ namespace ArchivistContractsPlugin.Marketplace
         public BlockTimeEntry Block { get; set; }
     }
 
-    public partial class SlotFilledEventDTO : IHasBlockAndRequestId, IHasSlotIndex
+    public partial class SlotFilledEventDTO : IHasBlockRequestIdSlotIndex
     {
         [JsonIgnore]
         public BlockTimeEntry Block { get; set; }
@@ -68,13 +72,13 @@ namespace ArchivistContractsPlugin.Marketplace
         }
     }
 
-    public partial class SlotFreedEventDTO : IHasBlockAndRequestId, IHasSlotIndex
+    public partial class SlotFreedEventDTO : IHasBlockRequestIdSlotIndex
     {
         [JsonIgnore]
         public BlockTimeEntry Block { get; set; }
     }
 
-    public partial class SlotReservationsFullEventDTO : IHasBlockAndRequestId, IHasSlotIndex
+    public partial class SlotReservationsFullEventDTO : IHasBlockRequestIdSlotIndex
     {
         [JsonIgnore]
         public BlockTimeEntry Block { get; set; }
@@ -128,7 +132,7 @@ namespace ArchivistContractsPlugin.Marketplace
         public int SlotIndex { get; }
     }
 
-    public partial class ReserveSlotFunction : IHasBlockAndRequestId, IHasSlotIndex
+    public partial class ReserveSlotFunction : IHasBlockRequestIdSlotIndex
     {
         [JsonIgnore]
         public BlockTimeEntry Block { get; set; }

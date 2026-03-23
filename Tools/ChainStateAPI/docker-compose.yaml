@@ -1,0 +1,46 @@
+services:
+  chainstateapi:
+    build:
+      context: ../..
+      dockerfile: ./Tools/ChainStateAPI/Dockerfile
+    environment:
+      DBHOST: chainstatedb
+      DBLOGIN: chainstate
+      DBPASSWORD: chainstatepw
+    depends_on:
+      postgres_chainstate:
+        condition: service_healthy
+    volumes:
+      - chainstate_logs:/logs
+
+  postgres_chainstate:
+    container_name: dburls
+    image: postgres:16
+    environment:
+      POSTGRES_USER: chainstate
+      POSTGRES_PASSWORD: chainstatepw
+      POSTGRES_DB: chainstatedb
+    # ports:
+    #   - 5432:5432
+    volumes:
+      - postgres_chainstate_data:/var/lib/postgresql/data
+    healthcheck:
+      test: pg_isready -U chainstate -d chainstatedb
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+volumes:
+  postgres_chainstate_data:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: ./data/urls/db
+
+  chainstate_logs:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: ./logs

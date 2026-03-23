@@ -1,4 +1,5 @@
 ﻿using ChainStateAPI.Controllers;
+using ChainStateAPI.Database;
 
 namespace ChainStateAPI.Services
 {

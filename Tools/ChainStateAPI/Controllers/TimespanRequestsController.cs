@@ -1,4 +1,5 @@
-﻿using ChainStateAPI.Services;
+﻿using ChainStateAPI.Database;
+using ChainStateAPI.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ChainStateAPI.Controllers

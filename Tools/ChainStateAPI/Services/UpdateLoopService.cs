@@ -163,7 +163,7 @@ namespace ChainStateAPI.Services
                 return null;
             }
 
-            return mapper.Map(chainRequest);
+            return mapper.Map(requestId, chainRequest);
         }
 
         private T[] ConcatAll<T>(params IEnumerable<T>[] arrays)
