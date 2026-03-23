@@ -21,6 +21,8 @@ namespace ChainStateAPI
             var deploymentService = new DeploymentService(log);
             builder.Services.AddSingleton<ILog>(log);
             builder.Services.AddSingleton<IDeploymentService>(deploymentService);
+            builder.Services.AddSingleton<IUpdateLoopService, UpdateLoopService>();
+            builder.Services.AddSingleton<IDatabaseService, DatabaseService>();
 
             var app = builder.Build();
             if (app.Environment.IsDevelopment())
@@ -30,7 +32,8 @@ namespace ChainStateAPI
             app.UseHttpsRedirection();
             app.UseAuthorization();
 
-            deploymentService.Initialize();
+            app.Services.GetService<IDeploymentService>()!.Start();
+            app.Services.GetService<IUpdateLoopService>()!.Start();
 
             app.MapControllers();
             app.Run();

@@ -8,6 +8,8 @@ namespace ChainStateAPI.Services
 {
     public interface IDeploymentService
     {
+        void Start();
+
         string RpcEndpoint { get; }
         string MarketplaceContractAddress { get; }
         IArchivistContracts Contracts { get; }
@@ -28,7 +30,7 @@ namespace ChainStateAPI.Services
         public IArchivistContracts Contracts { get; private set; } = null!;
         public IGethNode RpcNode { get; private set; } = null!;
 
-        public void Initialize()
+        public void Start()
         {
             var connector = new ArchivistNetworkConnector(log);
             var network = connector.GetConfig();

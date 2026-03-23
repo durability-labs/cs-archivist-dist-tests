@@ -1,7 +1,7 @@
 ﻿using ChainStateAPI.Database;
 using Logging;
 
-namespace ChainStateAPI.Controllers
+namespace ChainStateAPI.Services
 {
     public interface IDatabaseService
     {
