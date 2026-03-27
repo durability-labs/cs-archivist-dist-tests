@@ -27,6 +27,7 @@ namespace ChainStateAPI
             builder.Services.AddSingleton<IDatabaseService, DatabaseService>();
             builder.Services.AddSingleton<IMapperService, MapperService>();
             builder.Services.AddSingleton<ITimeBasedEventsService, TimeBasedEventsService>();
+            builder.Services.AddSingleton<IActiveContractsService, ActiveContractsService>();
 
             var app = builder.Build();
             if (app.Environment.IsDevelopment())

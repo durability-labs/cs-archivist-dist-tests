@@ -1,20 +1,12 @@
 ﻿using ChainStateAPI.Database;
-using ChainStateAPI.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ChainStateAPI.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class TimespanRequestsController : ControllerBase
+    public class EventsController : ControllerBase
     {
-        private readonly IEventTypeService eventTypeService;
-
-        public TimespanRequestsController(IEventTypeService eventTypeService)
-        {
-            this.eventTypeService = eventTypeService;
-        }
-
         [HttpPost]
         public EventsResponse GetEvents([FromBody] EventsRequest request)
         {
@@ -26,7 +18,7 @@ namespace ChainStateAPI.Controllers
     {
         public DateTime InclFromUtc { get; set; }
         public DateTime ExclToUtc { get; set; }
-        public string[] RequestIds { get; set; } = Array.Empty<string>();
+        public string[] ContractIds { get; set; } = Array.Empty<string>();
 
         public bool StorageRequested { get; set; }
         public bool ContractStarted { get; set; }
@@ -41,6 +33,12 @@ namespace ChainStateAPI.Controllers
 
     public class EventsResponse
     {
+        public EventsRequestResponse[] Requests { get; set; } = Array.Empty<EventsRequestResponse>();
+    }
+
+    public class EventsRequestResponse
+    {
+        public string ContractId { get; set; } = string.Empty;
         public EventsMoment[] Moments { get; set; } = Array.Empty<EventsMoment>();
     }
 

@@ -1,4 +1,5 @@
 using ChainStateAPI.Database;
+using ChainStateAPI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Converters;
 using System.Text.Json.Serialization;
@@ -7,18 +8,40 @@ namespace ChainStateAPI.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class MomentRequestsController : ControllerBase
+    public class ContractStateController : ControllerBase
     {
+        private readonly IActiveContractsService activeContractsService;
+        private readonly IContractStateService contractStateService;
+
+        public ContractStateController(IActiveContractsService activeContractsService, IContractStateService contractStateService)
+        {
+            this.activeContractsService = activeContractsService;
+            this.contractStateService = contractStateService;
+        }
+
         [HttpPost]
         public ActiveContractsResponse GetActiveContracts([FromBody] MomentRequest request)
         {
-            return new ActiveContractsResponse();
+            return new ActiveContractsResponse
+            {
+                ContractIds = activeContractsService.GetActiveContractIds(request.Utc)
+            };
         }
 
         [HttpPost]
         public ContractsStateResponse GetContractsState([FromBody] ContractsStateRequest request)
         {
-            return new ContractsStateResponse();
+            var contractStates = request.ContractIds
+                .Select(id => contractStateService.GetContractState(id, request.Utc))
+                .Where(s => s != null)
+                .Cast<ContractState>()
+                .ToArray();
+
+            return new ContractsStateResponse
+            {
+                Utc = request.Utc,
+                ContractStates = contractStates
+            };
         }
     }
 
@@ -80,7 +103,7 @@ namespace ChainStateAPI.Controllers
     public class ContractChainValues
     {
         public string Client { get; set; } = string.Empty;
-        public StorageRequested Request { get; set; } = new();
+        public StorageContractAsk Ask { get; set; } = new();
         public ContractContent Content { get; set; } = new();
     }
 

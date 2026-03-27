@@ -1,7 +1,9 @@
 ﻿using ArchivistContractsPlugin;
 using ArchivistContractsPlugin.Marketplace;
+using ChainStateAPI.Controllers;
 using ChainStateAPI.Database;
 using Nethereum.Hex.HexConvertors.Extensions;
+using Utils;
 
 namespace ChainStateAPI.Services
 {
@@ -16,6 +18,7 @@ namespace ChainStateAPI.Services
         SlotFreed Map(SlotFreedEventDTO eventDTO);
         SlotReservationsFull Map(SlotReservationsFullEventDTO eventDTO);
         StorageContract Map(string requestId, CacheRequest chainRequest);
+        ContractChainValues Map(StorageContract contract);
     }
 
     public class MapperService : IMapperService
@@ -32,16 +35,8 @@ namespace ChainStateAPI.Services
 
         public StorageRequested Map(StorageRequestedEventDTO eventDTO)
         {
-            var ask = eventDTO.Ask;
             var result = MapContractEvent<StorageRequested>(eventDTO);
-            result.CollateralPerByte = ask.CollateralPerByte;
-            result.Duration = ask.Duration;
-            result.MaxSlotLoss = ask.MaxSlotLoss;
-            result.PricePerBytePerSecond = ask.PricePerBytePerSecond;
-            result.ProofProbability = ask.ProofProbability;
-            result.Slots = ask.Slots;
-            result.SlotSize = ask.SlotSize;
-            result.Expiry = eventDTO.Expiry;
+            result.Ask = Map(eventDTO.Expiry, eventDTO.Ask);
             return result;
         }
 
@@ -57,7 +52,9 @@ namespace ChainStateAPI.Services
 
         public SlotFilled Map(SlotFilledEventDTO eventDTO)
         {
-            return MapSlotEvent<SlotFilled>(eventDTO);
+            var result = MapSlotEvent<SlotFilled>(eventDTO);
+            result.HostAddress = eventDTO.Host.Address;
+            return result;
         }
 
         public SlotFreed Map(SlotFreedEventDTO eventDTO)
@@ -78,6 +75,40 @@ namespace ChainStateAPI.Services
                 CreationUtc = chainRequest.ExpiryUtc - TimeSpan.FromSeconds(chainRequest.Request.Expiry),
                 ExpiryUtc = chainRequest.ExpiryUtc,
                 FinishedUtc = chainRequest.FinishUtc,
+                ClientAddress = chainRequest.Request.Client,
+                Cid = chainRequest.Request.Content.Cid,
+                CidStr = "z" + Base58.Encode(chainRequest.Request.Content.Cid),
+                MerkleRoot = chainRequest.Request.Content.MerkleRoot,
+                Ask = Map(chainRequest.Request.Expiry, chainRequest.Request.Ask)
+            };
+        }
+
+        private StorageContractAsk Map(ulong expiry, Ask ask)
+        {
+            return new StorageContractAsk
+            {
+                Expiry = expiry,
+                CollateralPerByte = ask.CollateralPerByte,
+                Duration = ask.Duration,
+                MaxSlotLoss = ask.MaxSlotLoss,
+                PricePerBytePerSecond = ask.PricePerBytePerSecond,
+                ProofProbability = ask.ProofProbability,
+                Slots = ask.Slots,
+                SlotSize = ask.SlotSize,
+            };
+        }
+
+        public ContractChainValues Map(StorageContract contract)
+        {
+            return new ContractChainValues
+            {
+                Client = contract.ClientAddress,
+                Content = new ContractContent
+                {
+                    Cid = contract.Cid,
+                    MerkleRoot = contract.MerkleRoot,
+                },
+                Ask = contract.Ask,
             };
         }
 
