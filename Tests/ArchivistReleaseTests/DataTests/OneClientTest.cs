@@ -18,6 +18,30 @@ namespace ArchivistReleaseTests.DataTests
             LogNodeStatus(node);
         }
 
+        [Test]
+        public void UploadQuotaLimit()
+        {
+            var node = StartArchivist(n => n.WithStorageQuota(10.MB()));
+
+            for (var i = 0; i < 9; i++)
+            {
+                node.UploadFile(GenerateTestFile(1.MB()));
+                node.Space();
+            }
+
+            try
+            {
+                node.UploadFile(GenerateTestFile(1.MB()));
+                node.Space();
+                Assert.Fail("Successfully uploaded a dataset causing the node to exceed its quota.");
+            }
+            catch (Exception ex)
+            {
+                Assert.That(ex.Message.Contains("Unable to store block"));
+                Log("Upload failed with correct error message.");
+            }
+        }
+
         private void PerformOneClientTest(IArchivistNode primary)
         {
             var testFile = GenerateTestFile(1.MB());
