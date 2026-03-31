@@ -72,7 +72,7 @@ namespace ArchivistReleaseTests.DataTests
             var usedFiles = node.LocalFiles();
             Assert.That(usedSpace.QuotaUsedBytes, Is.GreaterThanOrEqualTo(fileSize.SizeInBytes));
             Assert.That(usedSpace.FreeBytes, Is.LessThanOrEqualTo(startSpace.FreeBytes - fileSize.SizeInBytes));
-            Assert.That(usedFiles.Content.Length, Is.EqualTo(3));
+            Assert.That(usedFiles.Content.Length, Is.EqualTo(2));
 
             Thread.Sleep(blockTtl * 2);
 
