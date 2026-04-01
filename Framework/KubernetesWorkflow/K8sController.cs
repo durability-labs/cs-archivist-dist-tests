@@ -497,7 +497,18 @@ namespace KubernetesWorkflow
 
         private IDictionary<string, string> GetRunnerNamespaceSelector()
         {
-            return new Dictionary<string, string> { { "kubernetes.io/metadata.name", "default" } };
+            return new Dictionary<string, string> { { "kubernetes.io/metadata.name", GetRunnerNamespace() } };
+        }
+
+        private static string GetRunnerNamespace()
+        {
+            const string saNamespacePath = "/var/run/secrets/kubernetes.io/serviceaccount/namespace";
+            if (File.Exists(saNamespacePath))
+            {
+                var ns = File.ReadAllText(saNamespacePath).Trim();
+                if (!string.IsNullOrEmpty(ns)) return ns;
+            }
+            return "default";
         }
 
         private IDictionary<string, string> GetPrometheusNamespaceSelector()
