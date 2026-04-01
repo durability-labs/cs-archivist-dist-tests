@@ -543,7 +543,7 @@ namespace KubernetesWorkflow
             {
                 Name = recipe.Name,
                 Image = recipe.Image,
-                ImagePullPolicy = "Always",
+                ImagePullPolicy = cluster.Configuration.ImagePullPolicy,
                 Ports = CreateContainerPorts(recipe),
                 Env = CreateEnv(recipe),
                 VolumeMounts = CreateContainerVolumeMounts(recipe),
