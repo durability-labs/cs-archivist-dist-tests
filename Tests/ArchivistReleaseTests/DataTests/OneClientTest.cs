@@ -37,8 +37,9 @@ namespace ArchivistReleaseTests.DataTests
             }
             catch (Exception ex)
             {
-                Assert.That(ex.Message.Contains("Unable to store block"));
-                Log("Upload failed with correct error message.");
+                Assert.That(ex.Message.Contains("413"),
+                    $"Expected HTTP 413 error, but got: {ex.Message}");
+                Log("Upload failed with correct HTTP 413 status code.");
             }
         }
 
