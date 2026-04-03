@@ -160,20 +160,26 @@ namespace TraceContract
                     if (string.IsNullOrEmpty(message)) return null;
                     var tokens = message.Split(' ', StringSplitOptions.RemoveEmptyEntries);
                     if (!tokens.Any()) return null;
-                    var countToken = tokens.SingleOrDefault(t => t.StartsWith("count="));
-                    if (countToken == null) return null;
-                    var number = countToken.Substring(6);
-                    if (ulong.TryParse(number, out ulong value))
-                    {
-                        return value;
-                    }
-                    return null;
+                    var numbers = tokens.Select(ParseCountToken).Where(n => n != null).Cast<ulong>().ToArray();
+                    if (numbers.Length == 0) return null;
+                    return numbers.Max();
                 }
                 catch (Exception ex)
                 {
                     log.Error($"Exception when parsing line count. Line '{message}' = '{ex}'");
                     throw;
                 }
+            }
+
+            private ulong? ParseCountToken(string token)
+            {
+                if (!token.StartsWith("count=")) return null;
+                var number = token.Substring(6);
+                if (ulong.TryParse(number, out ulong value))
+                {
+                    return value;
+                }
+                return null;
             }
 
             private void UpdateSearchAfter(SearchResponse response)
