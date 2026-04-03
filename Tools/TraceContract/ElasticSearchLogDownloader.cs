@@ -155,17 +155,25 @@ namespace TraceContract
 
             private ulong? ParseCountNumber(string message)
             {
-                if (string.IsNullOrEmpty(message)) return null;
-                var tokens = message.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                if (!tokens.Any()) return null;
-                var countToken = tokens.SingleOrDefault(t => t.StartsWith("count="));
-                if (countToken == null) return null;
-                var number = countToken.Substring(6);
-                if (ulong.TryParse(number, out ulong value))
+                try
                 {
-                    return value;
+                    if (string.IsNullOrEmpty(message)) return null;
+                    var tokens = message.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                    if (!tokens.Any()) return null;
+                    var countToken = tokens.SingleOrDefault(t => t.StartsWith("count="));
+                    if (countToken == null) return null;
+                    var number = countToken.Substring(6);
+                    if (ulong.TryParse(number, out ulong value))
+                    {
+                        return value;
+                    }
+                    return null;
                 }
-                return null;
+                catch (Exception ex)
+                {
+                    log.Error($"Exception when parsing line count. Line '{message}' = '{ex}'");
+                    throw;
+                }
             }
 
             private void UpdateSearchAfter(SearchResponse response)
