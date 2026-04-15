@@ -45,7 +45,7 @@ namespace ArchivistReleaseTests.DataTests
             var usedFiles = node.LocalFiles();
             Assert.That(usedSpace.QuotaUsedBytes, Is.GreaterThanOrEqualTo(fileSize.SizeInBytes));
             Assert.That(usedSpace.FreeBytes, Is.LessThanOrEqualTo(startSpace.FreeBytes - (uploads * fileSize.SizeInBytes)));
-            Assert.That(usedFiles.Content.Length, Is.EqualTo(1000));
+            Assert.That(usedFiles.Content.Length, Is.EqualTo(uploads));
 
             WaitAndAssertEmpty(node, usedSpace, startSpace);
         }
