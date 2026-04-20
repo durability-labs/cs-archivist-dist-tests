@@ -4,9 +4,9 @@ using ArchivistContractsPlugin.ChainMonitor;
 using ArchivistNetworkConfig;
 using ArgsUniform;
 using BlockchainUtils;
+using ChainFollowingApp;
 using ContractDataChecker;
 using Logging;
-using TestNetRewarder;
 
 public class Program
 {
@@ -58,7 +58,7 @@ public class Program
             rpcConnector.ArchivistContracts,
             requestsCache
         ), new ChainFollowHandlers(
-            new DataChecker(log, archivistNode),
+            new DataChecker(log, config, archivistNode),
             new DoNothingChainEventHandler(),
             null
         ));

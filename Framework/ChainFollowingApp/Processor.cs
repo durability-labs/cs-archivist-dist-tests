@@ -3,7 +3,7 @@ using ArchivistContractsPlugin.ChainMonitor;
 using Logging;
 using Utils;
 
-namespace TestNetRewarder
+namespace ChainFollowingApp
 {
     public class Processor : ITimeSegmentHandler
     {

@@ -1,4 +1,5 @@
 ﻿using ArchivistContractsPlugin.ChainMonitor;
+using ChainFollowingApp;
 using DiscordRewards;
 using Logging;
 

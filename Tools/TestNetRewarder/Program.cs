@@ -2,6 +2,7 @@ using ArchivistContractsPlugin;
 using ArchivistNetworkConfig;
 using ArgsUniform;
 using BlockchainUtils;
+using ChainFollowingApp;
 using DiscordRewards;
 using Logging;
 

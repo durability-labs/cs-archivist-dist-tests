@@ -1,7 +1,7 @@
 ﻿using ArchivistClient;
 using ArchivistContractsPlugin.ChainMonitor;
+using ChainFollowingApp;
 using Logging;
-using TestNetRewarder;
 using Utils;
 
 namespace ContractDataChecker
@@ -9,12 +9,14 @@ namespace ContractDataChecker
     public class DataChecker : IChainFollowingHooks
     {
         private readonly LogPrefixer log;
+        private readonly Configuration config;
         private readonly IArchivistNode archivistNode;
         private ChainState chainState = null!;
 
-        public DataChecker(LogPrefixer log, IArchivistNode archivistNode)
+        public DataChecker(LogPrefixer log, Configuration config, IArchivistNode archivistNode)
         {
             this.log = log;
+            this.config = config;
             this.archivistNode = archivistNode;
         }
 
@@ -29,24 +31,42 @@ namespace ContractDataChecker
                 return;
             }
             var request = RandomUtils.GetOneRandom(runningRequests);
+            Log($"Selected running request: {request.Id}");
+            Log($"Total size: {GetTotalSize(request)}");
+            Log($"Finish: {Time.FormatTimestamp(request.FinishedUtc)} " +
+                $"(in {Time.FormatDuration(GetTimeTillFinish(request))}) ");
 
             var manifest = FetchManifest(request);
             if (manifest == null)
             {
                 Log("Failed to fetch manifest.");
+                OutputFailure(request, "Manifest");
                 return;
             }
-            if (manifest.Manifest.DatasetSize.SizeInBytes > 100.MB().SizeInBytes)
+            if (manifest.Manifest.DatasetSize.SizeInBytes > 1.GB().SizeInBytes)
             {
                 Log($"Fetched manifest but dataset is too large to try download: {manifest.Manifest.DatasetSize}");
+                OutputFailure(request, "TooBig");
                 return;
             }
             if (!SuccessfulDownload(request))
             {
                 Log("Failed to download.");
+                OutputFailure(request, "Download");
                 return;
             }
             Log("Successfully downloaded contract data.");
+            OutputSuccess(request);
+        }
+
+        private ByteSize GetTotalSize(IChainStateRequest request)
+        {
+            return request.Ask.SlotSize.Multiply(request.Ask.Slots);
+        }
+
+        private TimeSpan GetTimeTillFinish(IChainStateRequest request)
+        {
+            return request.FinishedUtc - DateTime.UtcNow;
         }
 
         private bool SuccessfulDownload(IChainStateRequest request)
@@ -81,6 +101,32 @@ namespace ContractDataChecker
         private void Log(string v)
         {
             log.Log(v);
+        }
+
+        private void OutputSuccess(IChainStateRequest request)
+        {
+            WriteOutput("OK", "", request);
+        }
+
+        private void OutputFailure(IChainStateRequest request, string details)
+        {
+            WriteOutput("FAIL", details, request);
+        }
+
+        private void WriteOutput(string conclusion, string details, IChainStateRequest request)
+        {
+            WriteConclusion($"{Time.FormatTimestamp(DateTime.UtcNow)}," +
+                $"{conclusion},{details},{request.Id}," +
+                $"{GetTotalSize(request).SizeInBytes},{GetTimeTillFinish(request).TotalSeconds}");
+        }
+
+        private readonly Lock outputLock = new Lock();
+        private void WriteConclusion(string v)
+        {
+            lock (outputLock)
+            {
+                File.AppendAllLines(Path.Combine(config.DataPath, "output.log"), [v]);
+            }
         }
 
         #region Hooks

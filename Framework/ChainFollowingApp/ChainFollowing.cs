@@ -3,7 +3,7 @@ using ArchivistContractsPlugin.ChainMonitor;
 using GethPlugin;
 using Logging;
 
-namespace TestNetRewarder
+namespace ChainFollowingApp
 {
     public interface IChainFollowingHooks
     {

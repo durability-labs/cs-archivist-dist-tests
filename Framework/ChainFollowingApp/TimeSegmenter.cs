@@ -1,7 +1,7 @@
 using Logging;
 using Utils;
 
-namespace TestNetRewarder
+namespace ChainFollowingApp
 {
     public interface ITimeSegmentHandler
     {
