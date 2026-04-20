@@ -1,5 +1,6 @@
 ﻿using ArchivistClient;
 using ArchivistReleaseTests.Utils;
+using GethPlugin;
 using NUnit.Framework;
 using Utils;
 
@@ -11,14 +12,22 @@ namespace ArchivistReleaseTests.MarketTests
         protected override int NumberOfHosts => 4;
         protected override int NumberOfClients => 1;
 
-        [Test]
-        public void RecoversSlotAfterDisconnect()
+        private IGethNode rpcNode = null!;
+
+        [SetUp]
+        public void Setup()
         {
             // Unusual setup: We're using an extra geth node that follows the miner.
             // We can stop and restart it, disconnecting archivist host node
             // without screwing with the testing infra that's monitoring the chain.
+            rpcNode = StartGethNode(s => s.WithName("follower").WithBootstrapNode(GetGeth()));
+        }
 
-            var rpcNode = StartGethNode(s => s.WithName("follower").WithBootstrapNode(GetGeth()));
+        [Test]
+        [Combinatorial]
+        public void HostRecoversSlotAfterDisconnect(
+            [Values(0, 15)] int delayMinutes)
+        {
             var hosts = StartHosts(s => s
                     .EnableMarketplace(rpcNode, GetContracts(), s => s
                     .WithInitial(StartingBalanceEth.Eth(), HostStartingBalance)
@@ -45,11 +54,25 @@ namespace ArchivistReleaseTests.MarketTests
             Log("We expect the host to report and error state for this slot.");
             WaitUntilSlotState(host, slotId, StorageSlotState.Errored);
 
+            Log($"Apply a delay of {delayMinutes} minutes...");
+            Thread.Sleep(TimeSpan.FromMinutes(delayMinutes));
+
             Log("We restore the RPC connecting...");
             rpcNode.Resume();
 
             Log("The host's slot should recover.");
             WaitUntilSlotState(host, slotId, StorageSlotState.Proving);
+        }
+
+        [Test]
+        public void ValidatorRecoversAfterDisconnect()
+        {
+            //var (hosts, clients) = JumpStartHostsAndClients();
+            //var client = clients.Single();
+            //var validator = StartValidator(s => s);
+
+            //var request = CreateStorageRequest(client);
+            //request.WaitForStorageContractStarted();
         }
 
         private void WaitUntilSlotState(IArchivistNode host, string slotId, StorageSlotState expected)
