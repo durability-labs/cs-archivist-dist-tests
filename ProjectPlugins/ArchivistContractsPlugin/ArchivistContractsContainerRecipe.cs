@@ -45,6 +45,10 @@ namespace ArchivistContractsPlugin
             {
                 AddEnvVar("DISTTEST_MAXRESERVATIONS", setup.MaxReservationsOverride.Value);
             }
+            else
+            {
+                AddEnvVar("DISTTEST_MAXRESERVATIONS", 3);
+            }
 
             // Customized values, required to operate in a network with
             // block frequency of 1.

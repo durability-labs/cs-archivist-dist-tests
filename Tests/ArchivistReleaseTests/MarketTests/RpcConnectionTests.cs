@@ -1,4 +1,5 @@
 ﻿using ArchivistClient;
+using ArchivistContractsPlugin.ChainMonitor;
 using ArchivistReleaseTests.Utils;
 using GethPlugin;
 using NUnit.Framework;
@@ -13,12 +14,13 @@ namespace ArchivistReleaseTests.MarketTests
         protected override int NumberOfClients => 1;
 
         private IGethNode rpcNode = null!;
+        private int numMarkedAsMissing = 0;
 
         [SetUp]
         public void Setup()
         {
             // Unusual setup: We're using an extra geth node that follows the miner.
-            // We can stop and restart it, disconnecting archivist host node
+            // We can stop and restart it, disconnecting archivist nodes
             // without screwing with the testing infra that's monitoring the chain.
             rpcNode = StartGethNode(s => s.WithName("follower").WithBootstrapNode(GetGeth()));
         }
@@ -65,14 +67,65 @@ namespace ArchivistReleaseTests.MarketTests
         }
 
         [Test]
-        public void ValidatorRecoversAfterDisconnect()
+        [Combinatorial]
+        public void ValidatorRecoversAfterDisconnect(
+            [Values(0, 15)] int delayMinutes)
         {
-            //var (hosts, clients) = JumpStartHostsAndClients();
-            //var client = clients.Single();
-            //var validator = StartValidator(s => s);
+            var (hosts, clients) = JumpStartHostsAndClients();
+            var client = clients.Single();
+            var validator = StartValidator(s => s
+                    .EnableMarketplace(rpcNode, GetContracts(), s => s
+                    .WithInitial(StartingBalanceEth.Eth(), HostStartingBalance)
+                    .AsValidator()));
 
-            //var request = CreateStorageRequest(client);
-            //request.WaitForStorageContractStarted();
+            var request = CreateStorageRequest(client);
+            request.WaitForStorageContractStarted();
+
+            // Select a host to stop.
+            var fills = GetOnChainSlotFills(hosts);
+            var select = fills.First();
+            var host = select.Host;
+            Log($"Host {host.GetName()} is holding slot {select.SlotFilledEvent.SlotIndex} and is selected to be stopped.");
+
+            Log("The RPC connection provider goes down.");
+            rpcNode.Pause();
+
+            Log("Oh no the host goes offline, but there's no validator to detect it.");
+            host.Stop(waitTillStopped: true);
+
+            // There's no way to check the validator status directly. We wait a while.
+            Log("We wait 5 periods. That should be enough to free the slot if the validator was looking.");
+            Thread.Sleep(GetPeriodDuration() * 5);
+
+            Assert.That(numMarkedAsMissing, Is.EqualTo(0));
+            Log("But the validator was offline, so no proof was marked as missing.");
+
+            Thread.Sleep(TimeSpan.FromMinutes(delayMinutes));
+
+            Log("The RPC connection provider is restored.");
+            rpcNode.Resume();
+
+            Log("The validator should resume work and mark proofs as missing.");
+            Time.WaitUntil(() => numMarkedAsMissing > 0,
+                timeout: GetPeriodDuration() * 5,
+                retryDelay: TimeSpan.FromSeconds(10),
+                msg: "At least 1 proof is marked as missing."
+            );
+        }
+
+        protected override void OnPeriod(PeriodReport report)
+        {
+            foreach (var r in report.Requests)
+            {
+                foreach (var s in r.Slots)
+                {
+                    if (s.MarkedAsMissing)
+                    {
+                        Log($"Proof for slot {s.Index} is marked as missing in period {report.Period.PeriodNumber}");
+                        numMarkedAsMissing++;
+                    }
+                }
+            }
         }
 
         private void WaitUntilSlotState(IArchivistNode host, string slotId, StorageSlotState expected)
@@ -121,7 +174,8 @@ namespace ArchivistReleaseTests.MarketTests
             var cid = client.UploadFile(GenerateTestFile(DefaultPurchase.UploadFilesize));
             return client.Marketplace.RequestStorage(new StoragePurchaseRequest(cid)
             {
-                Duration = HostAvailabilityMaxDuration * 0.75
+                Duration = HostAvailabilityMaxDuration * 0.75,
+                ProofProbability = 1
             });
         }
     }
