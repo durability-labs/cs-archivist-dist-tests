@@ -58,6 +58,7 @@ namespace ContractDataChecker
                 OutputFailure(request, "TooBig");
                 return;
             }
+            Log("Manifest OK");
             if (!SuccessfulDownload(request))
             {
                 Log("Failed to download.");
@@ -82,7 +83,7 @@ namespace ContractDataChecker
         {
             try
             {
-                var result = archivistNode.DownloadContent(request.Cid);
+                var result = archivistNode.DownloadContent(request.Cid, timeout: TimeSpan.FromMinutes(30));
                 if (result != null)
                 {
                     try

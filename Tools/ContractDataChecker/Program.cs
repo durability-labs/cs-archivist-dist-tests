@@ -28,10 +28,10 @@ public class Program
         ct = cts.Token;
         Console.CancelKeyPress += (sender, args) => cts.Cancel();
 
-        var log = new LogPrefixer(new LogSplitter(
+        var log = new LogPrefixer(new TimestampPrefixer(new LogSplitter(
              new ConsoleLog(),
              new FileLog(Path.Combine(config.LogPath, "cdt"))
-         ), "(CDT)");
+         )), "(CDT)");
 
         log.Log("Getting Archivist network configuration...");
         var netConnector = new ArchivistNetworkConnector(log);
@@ -51,8 +51,8 @@ public class Program
         var host = endpoint.Substring(0, splitIndex);
         var port = Convert.ToInt32(endpoint.Substring(splitIndex + 1));
         var instance = ArchivistInstance.CreateFromApiEndpoint(
-            "cdt",
-            new Utils.Address("cdt", host, port)
+            "node",
+            new Utils.Address("node", host, port)
         );
         var archivistNode = factory.CreateArchivistNode(instance);
 
