@@ -22,7 +22,10 @@ namespace ArchivistReleaseTests.Utils
         public void SetupMarketplace()
         {
             var geth = StartGethNode(s => s.WithName("geth").IsMiner());
-            var contracts = Ci.StartArchivistContracts(geth, BootstrapNode.Version);
+            var contracts = Ci.StartArchivistContracts(s => s
+                .WithRpcNode(geth)
+                .WithVersionInfo(BootstrapNode.Version)
+            );
             // Do not use TestRunTimeRange().From to initialize the chain monitor:
             // It'll find its earliest timestamps in the pre-mined blocks in the geth image
             // and completely screw with chain state tracking.

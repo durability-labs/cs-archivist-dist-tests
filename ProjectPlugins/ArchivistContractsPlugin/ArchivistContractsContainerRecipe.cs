@@ -25,9 +25,9 @@ namespace ArchivistContractsPlugin
 
         protected override void Initialize(StartupConfig startupConfig)
         {
-            var config = startupConfig.Get<ArchivistContractsContainerConfig>();
+            var setup = startupConfig.Get<ArchivistContractsSetup>();
 
-            var address = config.GethNode.StartResult.Container.GetAddress(GethContainerRecipe.HttpPortTag);
+            var address = setup.RpcNode.StartResult.Container.GetAddress(GethContainerRecipe.HttpPortTag);
 
             SetSchedulingAffinity(notIn: "false");
 
@@ -39,8 +39,12 @@ namespace ArchivistContractsPlugin
             AddEnvVar("DISTTEST_SLASHPERCENTAGE", 20);
             AddEnvVar("DISTTEST_VALIDATORREWARD", 20);
             AddEnvVar("DISTTEST_DOWNTIMEPRODUCT", 131);
-            AddEnvVar("DISTTEST_MAXRESERVATIONS", 3);
             AddEnvVar("DISTTEST_MAXDURATION", Convert.ToInt32(TimeSpan.FromDays(30).TotalSeconds));
+
+            if (setup.MaxReservationsOverride.HasValue)
+            {
+                AddEnvVar("DISTTEST_MAXRESERVATIONS", setup.MaxReservationsOverride.Value);
+            }
 
             // Customized values, required to operate in a network with
             // block frequency of 1.

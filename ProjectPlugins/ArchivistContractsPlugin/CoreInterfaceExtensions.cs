@@ -1,36 +1,23 @@
-using ArchivistClient;
 using Core;
-using GethPlugin;
 
 namespace ArchivistContractsPlugin
 {
     public static class CoreInterfaceExtensions
     {
-        public static ArchivistContractsDeployment DeployArchivistContracts(this CoreInterface ci, IGethNode gethNode, DebugInfoVersion versionInfo)
+        public static ArchivistContractsDeployment DeployArchivistContracts(this CoreInterface ci, Action<IArchivistContractsSetup> setup)
         {
-            return Plugin(ci).DeployContracts(ci, gethNode, versionInfo);
+            return Plugin(ci).DeployContracts(ci, setup);
         }
 
-        public static IArchivistContracts WrapArchivistContractsDeployment(this CoreInterface ci, IGethNode gethNode, ArchivistContractsDeployment deployment)
+        public static IArchivistContracts WrapArchivistContractsDeployment(this CoreInterface ci, ArchivistContractsDeployment deployment, Action<IArchivistContractsSetup> setup)
         {
-            return WrapArchivistContractsDeployment(ci, gethNode, deployment, new NullRequestsCache());
+            return Plugin(ci).WrapDeploy(deployment, setup);
         }
 
-        public static IArchivistContracts WrapArchivistContractsDeployment(this CoreInterface ci, IGethNode gethNode, ArchivistContractsDeployment deployment, IRequestsCache requestsCache)
+        public static IArchivistContracts StartArchivistContracts(this CoreInterface ci, Action<IArchivistContractsSetup> setup)
         {
-            return Plugin(ci).WrapDeploy(gethNode, deployment, requestsCache);
-        }
-
-        public static IArchivistContracts StartArchivistContracts(this CoreInterface ci, IGethNode gethNode, DebugInfoVersion versionInfo)
-        {
-            var deployment = DeployArchivistContracts(ci, gethNode, versionInfo);
-            return WrapArchivistContractsDeployment(ci, gethNode, deployment);
-        }
-
-        public static IArchivistContracts StartArchivistContracts(this CoreInterface ci, IGethNode gethNode, DebugInfoVersion versionInfo, IRequestsCache requestsCache)
-        {
-            var deployment = DeployArchivistContracts(ci, gethNode, versionInfo);
-            return WrapArchivistContractsDeployment(ci, gethNode, deployment, requestsCache);
+            var deployment = DeployArchivistContracts(ci, setup);
+            return WrapArchivistContractsDeployment(ci, deployment, setup);
         }
 
         private static ArchivistContractsPlugin Plugin(CoreInterface ci)

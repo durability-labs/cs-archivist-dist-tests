@@ -57,7 +57,10 @@ namespace ArchivistReleaseTests.DataTests
 
             var bootstrapNode = StartArchivist();
             var geth = StartGethNode(s => s.IsMiner());
-            var contracts = Ci.StartArchivistContracts(geth, bootstrapNode.Version);
+            var contracts = Ci.StartArchivistContracts(s => s
+                .WithRpcNode(geth)
+                .WithVersionInfo(bootstrapNode.Version)
+            );
             var node = StartArchivist(s => WithFastBlockExpiry(s)
                 .EnableMarketplace(geth, contracts, m => m.WithInitial(100.Eth(), 100.Tst()))
             );
@@ -81,7 +84,10 @@ namespace ArchivistReleaseTests.DataTests
         {
             var bootstrapNode = StartArchivist(s => s.WithName("Bootstrap"));
             var geth = StartGethNode(s => s.IsMiner());
-            var contracts = Ci.StartArchivistContracts(geth, bootstrapNode.Version);
+            var contracts = Ci.StartArchivistContracts(s => s
+                .WithRpcNode(geth)
+                .WithVersionInfo(bootstrapNode.Version)
+            );
             var client = StartArchivist(s => WithFastBlockExpiry(s)
                 .WithName("client")
                 .WithBootstrapNode(bootstrapNode)
