@@ -33,20 +33,26 @@ public class Program
              new FileLog(Path.Combine(config.LogPath, "cdt"))
          ), "(CDT)");
 
+        log.Log("Getting Archivist network configuration...");
         var netConnector = new ArchivistNetworkConnector(log);
         var network = netConnector.GetConfig();
 
+        log.Log("Initializing RPC connector...");
         var diskStore = new DiskBlockBucketStore(log, Path.Join(config.DataPath, "blockcache"));
         var blockCache = new BlockCache(log, diskStore);
         var requestsCache = new DiskRequestsCache(Path.Join(config.DataPath, "requestscache"));
         var rpcConnector = GethConnector.GethConnector.Initialize(log, network, blockCache, requestsCache);
         if (rpcConnector == null) throw new Exception("Invalid Eth RPC information");
 
+        log.Log("Creating Archivist client instance...");
         var factory = new ArchivistNodeFactory(log, "datadir");
-        var addrsTokens = config.ArchivistEndpoint.Split(":");
+        var endpoint = config.ArchivistEndpoint;
+        var splitIndex = endpoint.LastIndexOf(':');
+        var host = endpoint.Substring(0, splitIndex);
+        var port = Convert.ToInt32(endpoint.Substring(splitIndex + 1));
         var instance = ArchivistInstance.CreateFromApiEndpoint(
             "cdt",
-            new Utils.Address("cdt", addrsTokens[0], Convert.ToInt32(addrsTokens[1]))
+            new Utils.Address("cdt", host, port)
         );
         var archivistNode = factory.CreateArchivistNode(instance);
 
@@ -62,6 +68,8 @@ public class Program
             new DoNothingChainEventHandler(),
             null
         ));
+     
+        log.Log("Activating chain-follower...");
     }
 
     private async Task Run()
