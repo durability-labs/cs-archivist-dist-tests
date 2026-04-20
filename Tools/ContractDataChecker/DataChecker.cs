@@ -12,6 +12,7 @@ namespace ContractDataChecker
         private readonly Configuration config;
         private readonly IArchivistNode archivistNode;
         private ChainState chainState = null!;
+        private string lastRequestId = string.Empty;
 
         public DataChecker(LogPrefixer log, Configuration config, IArchivistNode archivistNode)
         {
@@ -30,7 +31,15 @@ namespace ContractDataChecker
                 Log("No running requests known.");
                 return;
             }
+            Log($"{runningRequests.Length} running storage contracts...");
             var request = RandomUtils.GetOneRandom(runningRequests);
+            if (request.Id == lastRequestId)
+            {
+                Log("Same request ID selected as last time. Skip.");
+                return;
+            }
+            lastRequestId = request.Id;
+
             Log($"Selected running request: {request.Id}");
             Log($"Total size: {GetTotalSize(request)}");
             Log($"Finish: {Time.FormatTimestamp(request.FinishedUtc)} " +
