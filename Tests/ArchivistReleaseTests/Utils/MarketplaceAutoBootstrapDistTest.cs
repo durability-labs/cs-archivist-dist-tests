@@ -22,7 +22,11 @@ namespace ArchivistReleaseTests.Utils
         public void SetupMarketplace()
         {
             var geth = StartGethNode(s => s.WithName("geth").IsMiner());
-            var contracts = Ci.StartArchivistContracts(geth, BootstrapNode.Version);
+            var contracts = Ci.StartArchivistContracts(s => {
+                s.WithRpcNode(geth);
+                s.WithVersionInfo(BootstrapNode.Version);
+                OnDeployContracts(s);
+            });
             // Do not use TestRunTimeRange().From to initialize the chain monitor:
             // It'll find its earliest timestamps in the pre-mined blocks in the geth image
             // and completely screw with chain state tracking.
@@ -34,7 +38,7 @@ namespace ArchivistReleaseTests.Utils
         [TearDown]
         public void TearDownMarketplace()
         {
-            if (handle.ChainMonitor != null) handle.ChainMonitor.Stop();
+            if (handle != null && handle.ChainMonitor != null) handle.ChainMonitor.Stop();
         }
 
         protected IGethNode GetGeth()
@@ -102,6 +106,10 @@ namespace ArchivistReleaseTests.Utils
         }
 
         protected virtual void OnPeriod(PeriodReport report)
+        {
+        }
+
+        protected virtual void OnDeployContracts(IArchivistContractsSetup setup)
         {
         }
 
@@ -303,13 +311,20 @@ namespace ArchivistReleaseTests.Utils
 
         public IArchivistNode StartValidator()
         {
-            return StartArchivist(s => s
-                .WithName("validator")
-                .EnableMarketplace(GetGeth(), GetContracts(), m => m
-                    .WithInitial(StartingBalanceEth.Eth(), StartingBalanceTST.Tst())
-                    .AsValidator()
-                )
-            );
+            return StartValidator(s => { });
+        }
+
+        public IArchivistNode StartValidator(Action<IArchivistSetup> additional)
+        {
+            return StartArchivist(s =>
+            {
+                s.WithName("validator")
+                    .EnableMarketplace(GetGeth(), GetContracts(), m => m
+                        .WithInitial(StartingBalanceEth.Eth(), StartingBalanceTST.Tst())
+                        .AsValidator()
+                    );
+                additional(s);
+            });
         }
 
         public bool GetLogPeriodReports()

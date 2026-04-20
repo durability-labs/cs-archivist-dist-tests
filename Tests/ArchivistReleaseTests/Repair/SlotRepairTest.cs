@@ -3,6 +3,7 @@ using ArchivistContractsPlugin;
 using ArchivistContractsPlugin.ChainMonitor;
 using ArchivistContractsPlugin.Marketplace;
 using ArchivistReleaseTests.Utils;
+using FileUtils;
 using Nethereum.Hex.HexConvertors.Extensions;
 using NUnit.Framework;
 using Utils;
@@ -15,14 +16,33 @@ namespace ArchivistReleaseTests.Repair
         #region Setup
 
         private const int NumberOfFailures = 10;
+
         protected override int NumberOfHosts => 6;
         protected override int NumberOfClients => 1;
         protected override TestToken HostStartingBalance => DefaultPurchase.CollateralRequiredPerSlot * 1.1; // Each host can hold 1 slot.
         protected override TimeSpan HostAvailabilityMaxDuration => TimeSpan.FromDays(5.0);
-        
+        private TrackedFile originalFile = null!;
+
         #endregion
 
         private int proofsMissed = 0;
+
+        [SetUp]
+        public void Setup()
+        {
+            originalFile = GenerateTestFile(DefaultPurchase.UploadFilesize);
+        }
+
+        protected override void OnDeployContracts(IArchivistContractsSetup setup)
+        {
+            Log("TODO: In the current version, nodes will reserve slots even when they don't have enough tokens to fill them.");
+            Log("TODO: This causes the test to fail sometimes: A slot becomes reserved by 3 (default max reservations) hosts");
+            Log("TODO: that are already hosting a slot. They will fail to fill it, and the reservations will prevent anyone");
+            Log("TODO: else from filling the slot.");
+            Log("TODO: Github issue: https://github.com/durability-labs/archivist-node/issues/87");
+            Log("TODO: For now, we override the max-slot-reservations configuration.");
+            setup.WithMaxReservationsOverride(20);
+        }
 
         [Test]
         public void DoubleFailure()
@@ -60,21 +80,25 @@ namespace ArchivistReleaseTests.Repair
 
             client.Stop(waitTillStopped: true);
 
-            // Hold this situation 
+            HoldInitialSituation(hosts, contract);
+
+            for (var i = 0; i < NumberOfFailures; i++)
+            {
+                PerformFailureStep(i, numHostsPerFailure, hosts, contract);
+            }
+        }
+
+        private void HoldInitialSituation(List<IArchivistNode> hosts, IStoragePurchaseContract contract)
+        {
             Log("Holding initial situation to ensure contract is stable...");
             var config = GetContracts().Deployment.Config;
             WaitAndCheckNodesStaysAlive(config.PeriodDuration * 5, hosts);
 
             // No proofs were missed so far.
             Assert.That(proofsMissed, Is.EqualTo(0), $"Proofs were missed *BEFORE* any hosts were shut down.");
-            
+
             var requestState = GetContracts().GetRequestState(contract.PurchaseId.HexToByteArray());
             Assert.That(requestState, Is.EqualTo(RequestState.Started));
-
-            for (var i = 0; i < NumberOfFailures; i++)
-            {
-                PerformFailureStep(i, numHostsPerFailure, hosts, contract);
-            }
         }
 
         private void PerformFailureStep(int i, int numHostsPerFailure, List<IArchivistNode> hosts, IStoragePurchaseContract contract)
@@ -92,6 +116,7 @@ namespace ArchivistReleaseTests.Repair
 
             WaitForSlotFreedEvents(eventStartUtc, contract, selectedSlots);
             WaitForNewSlotFilledEvents(eventStartUtc, contract, selectedSlots);
+            AssertDataIsAvailable(contract.ContentId);
         }
 
         private SlotFill[] SelectOldestSlotFills(List<IArchivistNode> hosts, int numHostsPerFailure)
@@ -226,6 +251,17 @@ namespace ArchivistReleaseTests.Repair
                 });
         }
 
+        private void AssertDataIsAvailable(ContentId contentId)
+        {
+            Log("...");
+            var checker = StartArchivist(s => s.WithName("checker"));
+            var received = checker.DownloadContent(contentId);
+            originalFile.AssertIsEqual(received);
+
+            Log("Data is available.");
+            checker.Stop(waitTillStopped: false);
+        }
+
         private void WaitForNewEventWithTimeout(DateTime startUtc, DateTime timeoutUtc, Action waiter, Func<IArchivistContractsEvents, bool> checker)
         {
             var loopEnd = startUtc;
@@ -236,7 +272,6 @@ namespace ArchivistReleaseTests.Repair
                 var loopStart = loopEnd;
                 loopEnd = DateTime.UtcNow;
                 var events = GetContracts().GetEvents(new TimeRange(loopStart, loopEnd));
-
                 if (checker(events)) return;
                 waiter();
             }
@@ -245,7 +280,7 @@ namespace ArchivistReleaseTests.Repair
 
         private string GetLogContext(IStoragePurchaseContract contract, ulong[] slotIndices)
         {
-            return $"(requestId: '{contract.PurchaseId.ToLowerInvariant()}' slotIndices: {string.Join(",", slotIndices.Select(i => i.ToString()))}) - ";
+            return $"(slotIndices: {string.Join(",", slotIndices.Select(i => i.ToString()))}) - ";
         }
 
         private SlotFill[] GetSlotFillsByOldestHost(int number, SlotFill[] fills, List<IArchivistNode> hosts)
@@ -280,7 +315,7 @@ namespace ArchivistReleaseTests.Repair
 
         private IStoragePurchaseContract CreateStorageRequest(IArchivistNode client)
         {
-            var cid = client.UploadFile(GenerateTestFile(DefaultPurchase.UploadFilesize));
+            var cid = client.UploadFile(originalFile);
             return client.Marketplace.RequestStorage(new StoragePurchaseRequest(cid)
             {
                 Duration = HostAvailabilityMaxDuration / 2,

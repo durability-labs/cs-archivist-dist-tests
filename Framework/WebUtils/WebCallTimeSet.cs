@@ -33,7 +33,7 @@ namespace WebUtils
 
         public TimeSpan HttpCallRetryDelay()
         {
-            return TimeSpan.FromSeconds(1);
+            return TimeSpan.FromSeconds(10);
         }
     }
 

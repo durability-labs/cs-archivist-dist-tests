@@ -79,6 +79,7 @@ namespace ArchivistClient
             contractSubmittedUtc = DateTime.UtcNow;
             if (raiseHook) hooks.OnStorageContractSubmitted(this);
             LogSubmittedDuration();
+            LogEncodedCid();
             AssertDuration(PendingToSubmitted, timeout, nameof(PendingToSubmitted));
         }
 
@@ -95,6 +96,7 @@ namespace ArchivistClient
             WaitForStorageContractState(timeout, StoragePurchaseState.Started);
             contractStartedUtc = DateTime.UtcNow;
             LogStartedDuration();
+            LogEncodedCid();
             AssertDuration(SubmittedToStarted, timeout, nameof(SubmittedToStarted));
         }
 
@@ -180,6 +182,12 @@ namespace ArchivistClient
         {
             Log($"Pending to Submitted in {Time.FormatDuration(PendingToSubmitted)} " +
                 $"( < {Time.FormatDuration(Purchase.Expiry + gracePeriod)})");
+        }
+
+        private void LogEncodedCid()
+        {
+            // This ensures the encoded CID is fetched. Client node may go offline later.
+            Log($"Encoded CID: '{ContentId}'");
         }
 
         private void LogStartedDuration()

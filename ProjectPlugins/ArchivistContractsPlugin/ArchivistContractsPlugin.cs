@@ -1,5 +1,4 @@
 using Core;
-using GethPlugin;
 
 namespace ArchivistContractsPlugin
 {
@@ -34,15 +33,15 @@ namespace ArchivistContractsPlugin
         {
         }
 
-        public ArchivistContractsDeployment DeployContracts(CoreInterface ci, IGethNode gethNode, ArchivistClient.DebugInfoVersion versionInfo)
+        public ArchivistContractsDeployment DeployContracts(CoreInterface ci, Action<IArchivistContractsSetup> setup)
         {
-            return starter.Deploy(ci, gethNode, versionInfo);
+            return starter.Deploy(ci, setup);
         }
 
-        public IArchivistContracts WrapDeploy(IGethNode gethNode, ArchivistContractsDeployment deployment, IRequestsCache requestsCache)
+        public IArchivistContracts WrapDeploy(ArchivistContractsDeployment deployment, Action<IArchivistContractsSetup> setup)
         {
             deployment = SerializeGate.Gate(deployment);
-            return starter.Wrap(gethNode, deployment, requestsCache);
+            return starter.Wrap(deployment, setup);
         }
     }
 }

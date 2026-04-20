@@ -45,6 +45,7 @@ namespace DistTestCore
 
             config.AllowNamespaceOverride = false;
             config.Hooks = hooks;
+            config.ImagePullPolicy = GetEnvVarOrDefault("IMAGE_PULL_POLICY", "Always");
 
             return config;
         }

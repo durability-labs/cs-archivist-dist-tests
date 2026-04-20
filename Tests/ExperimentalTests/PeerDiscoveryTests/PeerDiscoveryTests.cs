@@ -31,7 +31,7 @@ namespace ExperimentalTests.PeerDiscoveryTests
         public void MarketplaceDoesNotInterfereWithPeerDiscovery()
         {
             var geth = StartGethNode(s => s.IsMiner());
-            var contracts = Ci.StartArchivistContracts(geth, BootstrapNode.Version);
+            var contracts = Ci.StartArchivistContracts(s => s.WithRpcNode(geth).WithVersionInfo(BootstrapNode.Version));
             var nodes = StartArchivist(2, s => s.EnableMarketplace(geth, contracts, m => m
                 .WithInitial(10.Eth(), 1000.TstWei())));
 

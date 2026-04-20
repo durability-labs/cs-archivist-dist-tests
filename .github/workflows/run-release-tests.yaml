@@ -8,6 +8,11 @@ on:
         description: "Archivist Docker image (example: 'durabilitylabs/archivist-node:0.0.1-dist-tests')"
         required: true
         type: string
+      namespace:
+        description: Kubernetes namespace for test jobs
+        required: false
+        type: string
+        default: 'devnet'
   workflow_call:
     inputs:
       source:
@@ -27,6 +32,14 @@ on:
         required: false
         type: string
         default: ''
+      namespace:
+        description: Kubernetes namespace for test jobs
+        required: false
+        type: string
+        default: 'devnet'
+    secrets:
+      KUBE_CONFIG:
+        required: true
 
 env:
   SOURCE: ${{ format('{0}/{1}', github.server_url, github.repository) }}
@@ -34,7 +47,7 @@ env:
   ARCHIVISTDOCKERIMAGE: durabilitylabs/archivist-node:latest-dist-tests
   TEST_TYPE: release-tests
   NAMEPREFIX: r-tests
-  NAMESPACE: default
+  NAMESPACE: ${{ inputs.namespace || 'devnet' }}
   JOB_MANIFEST: docker/job-release-tests.yaml
   COMMAND: dotnet test Tests/ArchivistReleaseTests
   KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
@@ -85,16 +98,16 @@ jobs:
           echo "Repository: ${{ env.SOURCE }}"
           echo "Branch: ${{ env.BRANCH }}"
           echo "Runner job: ${{ env.NAMEPREFIX }}"
-          echo "Runner pod: $(kubectl get pod --selector job-name=${{ env.NAMEPREFIX }} -ojsonpath='{.items[0].metadata.name}')"
+          echo "Runner pod: $(kubectl get pod -n ${{ env.NAMESPACE }} --selector job-name=${{ env.NAMEPREFIX }} -ojsonpath='{.items[0].metadata.name}')"
           echo "Runner namespace: ${{ env.NAMESPACE }}"
           echo "----"
 
       - name: Show Runner logs
         run: |
           # Variables
-          # We need more than 300 seconds because Auto Scaler may take 3 minutes to tun a node 
+          # We need more than 300 seconds because Auto Scaler may take 3 minutes to tun a node
           namespace="${{ env.NAMESPACE }}"
-          pod=$(kubectl get pod --selector job-name=${{ env.NAMEPREFIX }} -o jsonpath='{.items[0].metadata.name}')
+          pod=$(kubectl get pod -n ${{ env.NAMESPACE }} --selector job-name=${{ env.NAMEPREFIX }} -o jsonpath='{.items[0].metadata.name}')
 
           # Check Pod status
           WAIT=120

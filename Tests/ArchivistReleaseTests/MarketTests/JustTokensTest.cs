@@ -20,7 +20,10 @@ namespace ArchivistReleaseTests.MarketTests
             var node = Ci.StartArchivistNode();
             var blockCache = new BlockCache(GetTestLog());
             var geth = Ci.StartGethNode(blockCache, s => s.IsMiner());
-            var contracts = Ci.StartArchivistContracts(geth, node.Version);
+            var contracts = Ci.StartArchivistContracts(s => s
+                .WithRpcNode(geth)
+                .WithVersionInfo(node.Version)
+            );
 
             geth.SendEth(user1.EthAddress, 1.Eth());
             geth.SendEth(user2.EthAddress, 1.Eth());
