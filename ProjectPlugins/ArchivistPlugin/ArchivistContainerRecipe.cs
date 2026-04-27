@@ -1,3 +1,4 @@
+using Core;
 using GethPlugin;
 using KubernetesWorkflow;
 using KubernetesWorkflow.Recipe;
@@ -21,6 +22,7 @@ namespace ArchivistPlugin
 
         public override string AppName => "archivist";
         public override string Image => image;
+        public override string? ImagePullPolicy => EnvironmentVariables.GetNullableStringOrDefault("ARCHIVIST_IMAGE_PULL_POLICY");
 
         protected override void Initialize(StartupConfig startupConfig)
         {

@@ -29,7 +29,7 @@ namespace KubernetesWorkflow.Recipe
 
                 Initialize(config);
 
-                var recipe = new ContainerRecipe(DateTime.UtcNow, containerNumber, config.NameOverride, Image, resources, schedulingAffinity, commandOverride, setCriticalPriority,
+                var recipe = new ContainerRecipe(DateTime.UtcNow, containerNumber, config.NameOverride, Image, ImagePullPolicy, resources, schedulingAffinity, commandOverride, setCriticalPriority,
                     exposedPorts.ToArray(),
                     internalPorts.ToArray(),
                     envVars.ToArray(),
@@ -57,6 +57,7 @@ namespace KubernetesWorkflow.Recipe
 
         public abstract string AppName { get; }
         public abstract string Image { get; }
+        public virtual string? ImagePullPolicy => null;
         protected int ContainerNumber { get; private set; } = 0;
         protected int Index { get; private set; } = 0;
         protected abstract void Initialize(StartupConfig config);

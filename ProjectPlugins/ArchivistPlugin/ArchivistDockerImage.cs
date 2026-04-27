@@ -1,3 +1,5 @@
+using Core;
+
 namespace ArchivistPlugin
 {
     public class ArchivistDockerImage
@@ -7,9 +9,7 @@ namespace ArchivistPlugin
 
         public string GetArchivistDockerImage()
         {
-            var image = Environment.GetEnvironmentVariable("ARCHIVISTDOCKERIMAGE");
-            if (!string.IsNullOrEmpty(image)) return image;
-            return DefaultDockerImage;
+            return EnvironmentVariables.GetStringOrDefault("ARCHIVISTDOCKERIMAGE", DefaultDockerImage);
         }
     }
 }

@@ -1,4 +1,5 @@
 using ArchivistClient;
+using Core;
 using GethPlugin;
 using KubernetesWorkflow;
 using KubernetesWorkflow.Recipe;
@@ -13,10 +14,13 @@ namespace ArchivistContractsPlugin
         public const int PeriodSeconds = 60;
         public const int TimeoutSeconds = 30;
         public const int DowntimeSeconds = 128;
+        private const string DockerImageEnvVar = "ARCHIVIST_CONTRACTS_IMAGE";
+        private const string ImagePullPolicyEnvVar = "ARCHIVIST_CONTRACTS_IMAGE_PULL_POLICY";
         private readonly DebugInfoVersion versionInfo;
 
         public override string AppName => "archivist-contracts";
-        public override string Image => GetContractsDockerImage();
+        public override string Image => EnvironmentVariables.GetStringOrDefault(DockerImageEnvVar, GetDefaultContractsDockerImage());
+        public override string? ImagePullPolicy => EnvironmentVariables.GetNullableStringOrDefault(ImagePullPolicyEnvVar);
 
         public ArchivistContractsContainerRecipe(DebugInfoVersion versionInfo)
         {
@@ -61,7 +65,7 @@ namespace ArchivistContractsPlugin
             AddEnvVar("KEEP_ALIVE", "1");
         }
 
-        private string GetContractsDockerImage()
+        private string GetDefaultContractsDockerImage()
         {
             return $"durabilitylabs/archivist-contracts:sha-{versionInfo.Contracts}-dist-tests";
         }
