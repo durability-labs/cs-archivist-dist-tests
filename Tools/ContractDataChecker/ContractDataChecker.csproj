@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -8,12 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Framework\ArchivistNetworkConfig\ArchivistNetworkConfig.csproj" />
     <ProjectReference Include="..\..\Framework\ArgsUniform\ArgsUniform.csproj" />
+    <ProjectReference Include="..\..\Framework\BlockchainUtils\BlockchainUtils.csproj" />
     <ProjectReference Include="..\..\Framework\ChainFollowingApp\ChainFollowingApp.csproj" />
-    <ProjectReference Include="..\..\Framework\DiscordRewards\DiscordRewards.csproj" />
     <ProjectReference Include="..\..\Framework\GethConnector\GethConnector.csproj" />
     <ProjectReference Include="..\..\Framework\Logging\Logging.csproj" />
-    <ProjectReference Include="..\..\ProjectPlugins\GatewayClient\GatewayClient.csproj" />
+    <ProjectReference Include="..\..\ProjectPlugins\ArchivistContractsPlugin\ArchivistContractsPlugin.csproj" />
   </ItemGroup>
 
 </Project>
