@@ -38,6 +38,8 @@ public class Program
         var netConnector = new ArchivistNetworkConnector(log);
         var network = netConnector.GetConfig();
 
+        AddKnownHostsLogReplacements(log, network);
+
         log.Log("Initializing RPC connector...");
         var diskStore = new DiskBlockBucketStore(log, Path.Join(config.DataPath, "blockcache"));
         var blockCache = new BlockCache(log, diskStore);
@@ -71,6 +73,25 @@ public class Program
         ));
      
         log.Log("Activating chain-follower...");
+    }
+
+    private void AddKnownHostsLogReplacements(ILog log, ArchivistNetwork network)
+    {
+        foreach (var nodeGroup in network.Team.Nodes)
+        {
+            foreach (var instance in nodeGroup.Instances)
+            {
+                AddKnownHostLogReplacement(instance, log);
+            }
+        }
+    }
+
+    private void AddKnownHostLogReplacement(ArchivistNetworkTeamNodesVersionsInstancesEntry instance, ILog log)
+    {
+        if (string.IsNullOrEmpty(instance.EthAddress)) return;
+        if (string.IsNullOrEmpty(instance.Name)) return;
+
+        log.AddStringReplace(instance.EthAddress, instance.Name);
     }
 
     private async Task Run()
