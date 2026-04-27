@@ -2,6 +2,7 @@
 using ArchivistContractsPlugin.ChainMonitor;
 using ChainFollowingApp;
 using Logging;
+using Newtonsoft.Json;
 using Utils;
 
 namespace ContractDataChecker
@@ -41,10 +42,17 @@ namespace ContractDataChecker
             lastRequestId = request.Id;
 
             Log($"Selected running request: {request.Id}");
+            Log($"Slots: {request.Ask.Slots}");
+            Log($"Tolerance: {request.Ask.MaxSlotLoss}");
             Log($"Total size: {GetTotalSize(request)}");
             Log($"Finish: {Time.FormatTimestamp(request.FinishedUtc)} " +
                 $"(in {Time.FormatDuration(GetTimeTillFinish(request))}) ");
-
+            Log("Hosts:");
+            foreach (var address in request.Hosts.GetHosts())
+            {
+                Log($" - {address}");
+            }
+            
             var manifest = FetchManifest(request);
             if (manifest == null)
             {
@@ -58,7 +66,10 @@ namespace ContractDataChecker
                 OutputFailure(request, "TooBig");
                 return;
             }
-            Log("Manifest OK");
+
+            Log($"Manifest OK:{Environment.NewLine}" +
+                $"{JsonConvert.SerializeObject(manifest.Manifest, Formatting.Indented)}{Environment.NewLine}");
+
             if (!SuccessfulDownload(request))
             {
                 Log("Failed to download.");
@@ -150,8 +161,10 @@ namespace ContractDataChecker
             this.chainState = chainState;
         }
 
-        public async Task OnLoopStepFinished()
+        public async Task OnLoopStepFinished(bool isRealtime)
         {
+            if (!isRealtime) return;
+
             try
             {
                 CheckRandomRequestData();

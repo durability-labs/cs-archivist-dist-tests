@@ -33,6 +33,7 @@ public class Program
              new FileLog(Path.Combine(config.LogPath, "cdt"))
          )), "(CDT)");
 
+        log.Log("  --  [[ Contract Data Tester ]]  --");
         log.Log("Getting Archivist network configuration...");
         var netConnector = new ArchivistNetworkConnector(log);
         var network = netConnector.GetConfig();

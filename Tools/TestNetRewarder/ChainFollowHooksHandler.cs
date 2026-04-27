@@ -53,7 +53,7 @@ namespace TestNetRewarder
             await client.EnsureBotOnline(ct);
         }
 
-        public async Task OnLoopStepFinished()
+        public async Task OnLoopStepFinished(bool isRealtime)
         {
             var events = eventsFormatter.GetEvents();
             var errors = eventsFormatter.GetErrors();

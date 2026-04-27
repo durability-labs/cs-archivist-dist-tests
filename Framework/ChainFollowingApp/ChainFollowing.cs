@@ -10,7 +10,7 @@ namespace ChainFollowingApp
         Task OnInitialized(ChainState chainState, int recoveredRequests);
         Task OnRunStarting();
         Task OnLoopStepStarting();
-        Task OnLoopStepFinished();
+        Task OnLoopStepFinished(bool isRealtime);
         void OnError(string msg);
     }
 
@@ -78,7 +78,7 @@ namespace ChainFollowingApp
             {
                 await handlers.Hooks.OnLoopStepStarting();
                 await segmenter.ProcessNextSegment(ct);
-                await handlers.Hooks.OnLoopStepFinished();
+                await handlers.Hooks.OnLoopStepFinished(segmenter.IsRealtime);
                 await Task.Delay(100, ct);
             }
         }

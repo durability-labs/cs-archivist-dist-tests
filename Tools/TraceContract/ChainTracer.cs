@@ -3,7 +3,6 @@ using ArchivistContractsPlugin.ChainMonitor;
 using BlockchainUtils;
 using GethPlugin;
 using Logging;
-using Nethereum.Hex.HexConvertors.Extensions;
 using Utils;
 
 namespace TraceContract
