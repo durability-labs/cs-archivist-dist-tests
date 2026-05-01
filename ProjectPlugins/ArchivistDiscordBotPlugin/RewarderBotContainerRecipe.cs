@@ -1,4 +1,3 @@
-using Core;
 using KubernetesWorkflow.Recipe;
 using KubernetesWorkflow;
 using Utils;
@@ -12,8 +11,8 @@ namespace ArchivistDiscordBotPlugin
         private const string DefaultDockerImage = "durabilitylabs/archivist-rewarderbot:sha-f5ae024";
 
         public override string AppName => "discordbot-rewarder";
-        public override string Image => EnvironmentVariables.GetStringOrDefault(DockerImageEnvVar, DefaultDockerImage);
-        public override string? ImagePullPolicy => EnvironmentVariables.GetNullableStringOrDefault(ImagePullPolicyEnvVar);
+        public override string Image => EnvVar.GetOrDefault(DockerImageEnvVar, DefaultDockerImage);
+        public override string? ImagePullPolicy => EnvVar.GetNullableOrDefault(ImagePullPolicyEnvVar);
 
         protected override void Initialize(StartupConfig startupConfig)
         {

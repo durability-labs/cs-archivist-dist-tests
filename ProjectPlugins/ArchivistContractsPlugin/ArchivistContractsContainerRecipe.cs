@@ -1,8 +1,8 @@
 using ArchivistClient;
-using Core;
 using GethPlugin;
 using KubernetesWorkflow;
 using KubernetesWorkflow.Recipe;
+using Utils;
 
 namespace ArchivistContractsPlugin
 {
@@ -19,8 +19,8 @@ namespace ArchivistContractsPlugin
         private readonly DebugInfoVersion versionInfo;
 
         public override string AppName => "archivist-contracts";
-        public override string Image => EnvironmentVariables.GetStringOrDefault(DockerImageEnvVar, GetDefaultContractsDockerImage());
-        public override string? ImagePullPolicy => EnvironmentVariables.GetNullableStringOrDefault(ImagePullPolicyEnvVar);
+        public override string Image => EnvVar.GetOrDefault(DockerImageEnvVar, GetDefaultContractsDockerImage());
+        public override string? ImagePullPolicy => EnvVar.GetNullableOrDefault(ImagePullPolicyEnvVar);
 
         public ArchivistContractsContainerRecipe(DebugInfoVersion versionInfo)
         {

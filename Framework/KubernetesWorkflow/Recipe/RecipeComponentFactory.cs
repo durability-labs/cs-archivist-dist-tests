@@ -37,14 +37,14 @@ namespace KubernetesWorkflow.Recipe
             }
         }
 
-        public EnvVar CreateEnvVar(string name, int value)
+        public ContainerEnvVar CreateEnvVar(string name, int value)
         {
             return CreateEnvVar(name, value.ToString(CultureInfo.InvariantCulture));
         }
 
-        public EnvVar CreateEnvVar(string name, string value)
+        public ContainerEnvVar CreateEnvVar(string name, string value)
         {
-            return new EnvVar(name, value);
+            return new ContainerEnvVar(name, value);
         }
     }
 }

@@ -1,4 +1,4 @@
-using Core;
+using Utils;
 
 namespace ArchivistPlugin
 {
@@ -9,7 +9,7 @@ namespace ArchivistPlugin
 
         public string GetArchivistDockerImage()
         {
-            return EnvironmentVariables.GetStringOrDefault("ARCHIVISTDOCKERIMAGE", DefaultDockerImage);
+            return EnvVar.GetOrDefault("ARCHIVISTDOCKERIMAGE", DefaultDockerImage);
         }
     }
 }

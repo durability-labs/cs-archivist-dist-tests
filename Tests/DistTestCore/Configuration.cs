@@ -1,5 +1,6 @@
 using Core;
 using KubernetesWorkflow;
+using Utils;
 
 namespace DistTestCore
 {
@@ -11,10 +12,10 @@ namespace DistTestCore
 
         public Configuration()
         {
-            kubeConfigFile = EnvironmentVariables.GetNullableStringOrDefault("KUBECONFIG");
-            logPath = EnvironmentVariables.GetStringOrDefault("LOGPATH", "ArchivistTestLogs");
-            dataFilesPath = EnvironmentVariables.GetStringOrDefault("DATAFILEPATH", "TestDataFiles");
-            AlwaysDownloadContainerLogs = !string.IsNullOrEmpty(EnvironmentVariables.GetStringOrDefault("ALWAYS_LOGS", ""));
+            kubeConfigFile = EnvVar.GetNullableOrDefault("KUBECONFIG");
+            logPath = EnvVar.GetOrDefault("LOGPATH", "ArchivistTestLogs");
+            dataFilesPath = EnvVar.GetOrDefault("DATAFILEPATH", "TestDataFiles");
+            AlwaysDownloadContainerLogs = !string.IsNullOrEmpty(EnvVar.GetOrDefault("ALWAYS_LOGS", ""));
         }
 
         public Configuration(string? kubeConfigFile, string logPath, string dataFilesPath)
@@ -45,7 +46,7 @@ namespace DistTestCore
 
             config.AllowNamespaceOverride = false;
             config.Hooks = hooks;
-            config.ImagePullPolicy = EnvironmentVariables.GetStringOrDefault("IMAGE_PULL_POLICY", "Always");
+            config.ImagePullPolicy = EnvVar.GetOrDefault("IMAGE_PULL_POLICY", "Always");
 
             return config;
         }

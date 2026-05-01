@@ -5,7 +5,14 @@
         public static string GetOrDefault(string varName, string defaultValue)
         {
             var v = Environment.GetEnvironmentVariable(varName);
-            if (v == null) return defaultValue;
+            if (string.IsNullOrWhiteSpace(v)) return defaultValue;
+            return v;
+        }
+
+        public static string? GetNullableOrDefault(string varName, string? defaultValue = null)
+        {
+            var v = Environment.GetEnvironmentVariable(varName);
+            if (string.IsNullOrWhiteSpace(v)) return defaultValue;
             return v;
         }
 

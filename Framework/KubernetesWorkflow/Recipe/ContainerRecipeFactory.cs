@@ -8,7 +8,7 @@ namespace KubernetesWorkflow.Recipe
         private static readonly object createLock = new object();
         private readonly List<Port> exposedPorts = new List<Port>();
         private readonly List<Port> internalPorts = new List<Port>();
-        private readonly List<EnvVar> envVars = new List<EnvVar>();
+        private readonly List<ContainerEnvVar> envVars = new List<ContainerEnvVar>();
         private readonly PodLabels podLabels = new PodLabels();
         private readonly PodAnnotations podAnnotations = new PodAnnotations();
         private readonly List<VolumeMount> volumeMounts = new List<VolumeMount>();

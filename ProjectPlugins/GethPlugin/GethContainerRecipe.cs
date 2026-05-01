@@ -1,6 +1,6 @@
-using Core;
 using KubernetesWorkflow;
 using KubernetesWorkflow.Recipe;
+using Utils;
 
 namespace GethPlugin
 {
@@ -10,7 +10,7 @@ namespace GethPlugin
         private const string ImagePullPolicyEnvVar = "GETH_IMAGE_PULL_POLICY";
         private const string DefaultDockerImage = "durabilitylabs/dist-tests-geth:latest";
 
-        public static string DockerImage => EnvironmentVariables.GetStringOrDefault(DockerImageEnvVar, DefaultDockerImage);
+        public static string DockerImage => EnvVar.GetOrDefault(DockerImageEnvVar, DefaultDockerImage);
         public static TimeSpan BlockInterval { get; } = TimeSpan.FromSeconds(1.0);
         private const string defaultArgs = "--ipcdisable --syncmode full";
 
@@ -23,7 +23,7 @@ namespace GethPlugin
 
         public override string AppName => "geth";
         public override string Image => DockerImage;
-        public override string? ImagePullPolicy => EnvironmentVariables.GetNullableStringOrDefault(ImagePullPolicyEnvVar);
+        public override string? ImagePullPolicy => EnvVar.GetNullableOrDefault(ImagePullPolicyEnvVar);
 
         protected override void Initialize(StartupConfig startupConfig)
         {

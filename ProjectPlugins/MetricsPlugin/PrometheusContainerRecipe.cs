@@ -1,6 +1,6 @@
-using Core;
 using KubernetesWorkflow;
 using KubernetesWorkflow.Recipe;
+using Utils;
 
 namespace MetricsPlugin
 {
@@ -11,8 +11,8 @@ namespace MetricsPlugin
         private const string DefaultDockerImage = "durabilitylabs/dist-tests-prometheus:latest";
 
         public override string AppName => "prometheus";
-        public override string Image => EnvironmentVariables.GetStringOrDefault(DockerImageEnvVar, DefaultDockerImage);
-        public override string? ImagePullPolicy => EnvironmentVariables.GetNullableStringOrDefault(ImagePullPolicyEnvVar);
+        public override string Image => EnvVar.GetOrDefault(DockerImageEnvVar, DefaultDockerImage);
+        public override string? ImagePullPolicy => EnvVar.GetNullableOrDefault(ImagePullPolicyEnvVar);
 
         public const string PortTag = "prometheus_port_tag";
 

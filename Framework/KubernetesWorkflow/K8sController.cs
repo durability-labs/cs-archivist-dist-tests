@@ -4,7 +4,6 @@ using KubernetesWorkflow.Recipe;
 using KubernetesWorkflow.Types;
 using Logging;
 using Utils;
-using EnvVar = KubernetesWorkflow.Recipe.EnvVar;
 
 namespace KubernetesWorkflow
 {
@@ -690,7 +689,7 @@ namespace KubernetesWorkflow
             return recipe.EnvVars.Select(CreateEnvVar).ToList();
         }
 
-        private V1EnvVar CreateEnvVar(EnvVar envVar)
+        private V1EnvVar CreateEnvVar(ContainerEnvVar envVar)
         {
             return new V1EnvVar
             {
