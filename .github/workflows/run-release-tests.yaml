@@ -8,6 +8,62 @@ on:
         description: "Archivist Docker image (example: 'durabilitylabs/archivist-node:0.0.1-dist-tests')"
         required: true
         type: string
+      runner_image:
+        description: Runner image for the release-test job pod
+        required: false
+        type: string
+      runner_image_pull_policy:
+        description: Pull policy for the release-test job pod image
+        required: false
+        type: string
+      image_pull_policy:
+        description: Default pull policy for child test deployments
+        required: false
+        type: string
+      archivist_image_pull_policy:
+        description: Pull policy override for Archivist node deployments
+        required: false
+        type: string
+      archivist_contracts_image:
+        description: Contracts image override
+        required: false
+        type: string
+      archivist_contracts_image_pull_policy:
+        description: Pull policy override for contracts deployments
+        required: false
+        type: string
+      geth_docker_image:
+        description: Geth image override
+        required: false
+        type: string
+      geth_image_pull_policy:
+        description: Pull policy override for geth deployments
+        required: false
+        type: string
+      prometheus_docker_image:
+        description: Prometheus image override
+        required: false
+        type: string
+      prometheus_image_pull_policy:
+        description: Pull policy override for Prometheus deployments
+        required: false
+        type: string
+      archivist_discordbot_image:
+        description: Discord bot image override
+        required: false
+        type: string
+      archivist_discordbot_image_pull_policy:
+        description: Pull policy override for Discord bot deployments
+        required: false
+        type: string
+      archivist_rewarderbot_image:
+        description: Rewarder bot image override
+        required: false
+        type: string
+      archivist_rewarderbot_image_pull_policy:
+        description: Pull policy override for rewarder bot deployments
+        required: false
+        type: string
       namespace:
         description: Kubernetes namespace for test jobs
         required: false
@@ -27,6 +83,62 @@ on:
         description: "Archivist Docker image (example: 'durabilitylabs/archivist-node:0.0.1-dist-tests')"
         required: true
         type: string
+      runner_image:
+        description: Runner image for the release-test job pod
+        required: false
+        type: string
+      runner_image_pull_policy:
+        description: Pull policy for the release-test job pod image
+        required: false
+        type: string
+      image_pull_policy:
+        description: Default pull policy for child test deployments
+        required: false
+        type: string
+      archivist_image_pull_policy:
+        description: Pull policy override for Archivist node deployments
+        required: false
+        type: string
+      archivist_contracts_image:
+        description: Contracts image override
+        required: false
+        type: string
+      archivist_contracts_image_pull_policy:
+        description: Pull policy override for contracts deployments
+        required: false
+        type: string
+      geth_docker_image:
+        description: Geth image override
+        required: false
+        type: string
+      geth_image_pull_policy:
+        description: Pull policy override for geth deployments
+        required: false
+        type: string
+      prometheus_docker_image:
+        description: Prometheus image override
+        required: false
+        type: string
+      prometheus_image_pull_policy:
+        description: Pull policy override for Prometheus deployments
+        required: false
+        type: string
+      archivist_discordbot_image:
+        description: Discord bot image override
+        required: false
+        type: string
+      archivist_discordbot_image_pull_policy:
+        description: Pull policy override for Discord bot deployments
+        required: false
+        type: string
+      archivist_rewarderbot_image:
+        description: Rewarder bot image override
+        required: false
+        type: string
+      archivist_rewarderbot_image_pull_policy:
+        description: Pull policy override for rewarder bot deployments
+        required: false
+        type: string
       workflow_source:
         description: Workflow source
         required: false
@@ -44,7 +156,21 @@ on:
 env:
   SOURCE: ${{ format('{0}/{1}', github.server_url, github.repository) }}
   BRANCH: ${{ github.ref_name }}
+  RUNNER_IMAGE: durabilitylabs/cs-archivist-dist-tests:latest
+  RUNNER_IMAGE_PULL_POLICY: Always
+  IMAGE_PULL_POLICY: Always
   ARCHIVISTDOCKERIMAGE: durabilitylabs/archivist-node:latest-dist-tests
+  ARCHIVIST_IMAGE_PULL_POLICY: ''
+  ARCHIVIST_CONTRACTS_IMAGE: ''
+  ARCHIVIST_CONTRACTS_IMAGE_PULL_POLICY: ''
+  GETH_DOCKER_IMAGE: ''
+  GETH_IMAGE_PULL_POLICY: ''
+  PROMETHEUS_DOCKER_IMAGE: ''
+  PROMETHEUS_IMAGE_PULL_POLICY: ''
+  ARCHIVIST_DISCORDBOT_IMAGE: ''
+  ARCHIVIST_DISCORDBOT_IMAGE_PULL_POLICY: ''
+  ARCHIVIST_REWARDERBOT_IMAGE: ''
+  ARCHIVIST_REWARDERBOT_IMAGE_PULL_POLICY: ''
   TEST_TYPE: release-tests
   NAMEPREFIX: r-tests
   NAMESPACE: ${{ inputs.namespace || 'devnet' }}
@@ -66,15 +192,47 @@ jobs:
 
       - name: Variables
         run: |
+          trim() {
+            local value="$1"
+            value="${value#"${value%%[![:space:]]*}"}"
+            value="${value%"${value##*[![:space:]]}"}"
+            printf '%s' "$value"
+          }
+
+          set_from_input() {
+            local name="$1"
+            local input_value
+            input_value="$(trim "$2")"
+            if [[ -n "${input_value}" ]]; then
+              echo "${name}=${input_value}" >>"$GITHUB_ENV"
+            else
+              echo "${name}=$3" >>"$GITHUB_ENV"
+            fi
+          }
+
           RUNID=$(date +%Y%m%d-%H%M%S)
           echo "RUNID=${RUNID}" >> $GITHUB_ENV
           echo "TESTID=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
-          [[ -n "${{ inputs.source }}" ]] && echo "SOURCE=${{ inputs.source }}" >>"$GITHUB_ENV" || echo "SOURCE=${{ env.SOURCE }}" >>"$GITHUB_ENV"
-          [[ -n "${{ inputs.branch }}" ]] && echo "BRANCH=${{ inputs.branch }}" >>"$GITHUB_ENV" || echo "BRANCH=${{ env.BRANCH }}" >>"$GITHUB_ENV"
-          [[ -n "${{ inputs.archivistdockerimage }}" ]] && echo "ARCHIVISTDOCKERIMAGE=${{ inputs.archivistdockerimage }}" >>"$GITHUB_ENV" || echo "ARCHIVISTDOCKERIMAGE=${{ env.ARCHIVISTDOCKERIMAGE }}" >>"$GITHUB_ENV"
+          set_from_input SOURCE "${{ inputs.source }}" "${{ env.SOURCE }}"
+          set_from_input BRANCH "${{ inputs.branch }}" "${{ env.BRANCH }}"
+          set_from_input RUNNER_IMAGE "${{ inputs.runner_image }}" "${{ env.RUNNER_IMAGE }}"
+          set_from_input RUNNER_IMAGE_PULL_POLICY "${{ inputs.runner_image_pull_policy }}" "${{ env.RUNNER_IMAGE_PULL_POLICY }}"
+          set_from_input IMAGE_PULL_POLICY "${{ inputs.image_pull_policy }}" "${{ env.IMAGE_PULL_POLICY }}"
+          set_from_input ARCHIVISTDOCKERIMAGE "${{ inputs.archivistdockerimage }}" "${{ env.ARCHIVISTDOCKERIMAGE }}"
+          set_from_input ARCHIVIST_IMAGE_PULL_POLICY "${{ inputs.archivist_image_pull_policy }}" "${{ env.ARCHIVIST_IMAGE_PULL_POLICY }}"
+          set_from_input ARCHIVIST_CONTRACTS_IMAGE "${{ inputs.archivist_contracts_image }}" "${{ env.ARCHIVIST_CONTRACTS_IMAGE }}"
+          set_from_input ARCHIVIST_CONTRACTS_IMAGE_PULL_POLICY "${{ inputs.archivist_contracts_image_pull_policy }}" "${{ env.ARCHIVIST_CONTRACTS_IMAGE_PULL_POLICY }}"
+          set_from_input GETH_DOCKER_IMAGE "${{ inputs.geth_docker_image }}" "${{ env.GETH_DOCKER_IMAGE }}"
+          set_from_input GETH_IMAGE_PULL_POLICY "${{ inputs.geth_image_pull_policy }}" "${{ env.GETH_IMAGE_PULL_POLICY }}"
+          set_from_input PROMETHEUS_DOCKER_IMAGE "${{ inputs.prometheus_docker_image }}" "${{ env.PROMETHEUS_DOCKER_IMAGE }}"
+          set_from_input PROMETHEUS_IMAGE_PULL_POLICY "${{ inputs.prometheus_image_pull_policy }}" "${{ env.PROMETHEUS_IMAGE_PULL_POLICY }}"
+          set_from_input ARCHIVIST_DISCORDBOT_IMAGE "${{ inputs.archivist_discordbot_image }}" "${{ env.ARCHIVIST_DISCORDBOT_IMAGE }}"
+          set_from_input ARCHIVIST_DISCORDBOT_IMAGE_PULL_POLICY "${{ inputs.archivist_discordbot_image_pull_policy }}" "${{ env.ARCHIVIST_DISCORDBOT_IMAGE_PULL_POLICY }}"
+          set_from_input ARCHIVIST_REWARDERBOT_IMAGE "${{ inputs.archivist_rewarderbot_image }}" "${{ env.ARCHIVIST_REWARDERBOT_IMAGE }}"
+          set_from_input ARCHIVIST_REWARDERBOT_IMAGE_PULL_POLICY "${{ inputs.archivist_rewarderbot_image_pull_policy }}" "${{ env.ARCHIVIST_REWARDERBOT_IMAGE_PULL_POLICY }}"
           [[ -n "${{ inputs.nameprefix }}" ]] && NAMEPREFIX="`awk '{ print tolower($0) }' <<< ${{ inputs.nameprefix }}`" || NAMEPREFIX="`awk '{ print tolower($0) }' <<< ${{ env.NAMEPREFIX }}`"
           echo "NAMEPREFIX=${NAMEPREFIX}-${RUNID}" >>"$GITHUB_ENV"
-          [[ -n "${{ inputs.namespace }}" ]] && echo "NAMESPACE=${{ inputs.namespace }}" >>"$GITHUB_ENV" || echo "NAMESPACE=${{ env.NAMESPACE }}" >>"$GITHUB_ENV"
+          set_from_input NAMESPACE "${{ inputs.namespace }}" "${{ env.NAMESPACE }}"
           [[ -n "${{ inputs.command }}" ]] && COMMAND="${{ inputs.command }}" || COMMAND="${{ env.COMMAND }}"
           echo "COMMAND=$(jq -c 'split(" ")' <<< '"'${COMMAND}'"')" >>"$GITHUB_ENV"
 

@@ -11,10 +11,10 @@ namespace DistTestCore
 
         public Configuration()
         {
-            kubeConfigFile = GetNullableEnvVarOrDefault("KUBECONFIG", null);
-            logPath = GetEnvVarOrDefault("LOGPATH", "ArchivistTestLogs");
-            dataFilesPath = GetEnvVarOrDefault("DATAFILEPATH", "TestDataFiles");
-            AlwaysDownloadContainerLogs = !string.IsNullOrEmpty(GetEnvVarOrDefault("ALWAYS_LOGS", ""));
+            kubeConfigFile = EnvironmentVariables.GetNullableStringOrDefault("KUBECONFIG");
+            logPath = EnvironmentVariables.GetStringOrDefault("LOGPATH", "ArchivistTestLogs");
+            dataFilesPath = EnvironmentVariables.GetStringOrDefault("DATAFILEPATH", "TestDataFiles");
+            AlwaysDownloadContainerLogs = !string.IsNullOrEmpty(EnvironmentVariables.GetStringOrDefault("ALWAYS_LOGS", ""));
         }
 
         public Configuration(string? kubeConfigFile, string logPath, string dataFilesPath)
@@ -45,7 +45,7 @@ namespace DistTestCore
 
             config.AllowNamespaceOverride = false;
             config.Hooks = hooks;
-            config.ImagePullPolicy = GetEnvVarOrDefault("IMAGE_PULL_POLICY", "Always");
+            config.ImagePullPolicy = EnvironmentVariables.GetStringOrDefault("IMAGE_PULL_POLICY", "Always");
 
             return config;
         }
@@ -58,20 +58,6 @@ namespace DistTestCore
         public string GetFileManagerFolder()
         {
             return dataFilesPath;
-        }
-
-        private static string GetEnvVarOrDefault(string varName, string defaultValue)
-        {
-            var v = Environment.GetEnvironmentVariable(varName);
-            if (v == null) return defaultValue;
-            return v;
-        }
-
-        private static string? GetNullableEnvVarOrDefault(string varName, string? defaultValue)
-        {
-            var v = Environment.GetEnvironmentVariable(varName);
-            if (v == null) return defaultValue;
-            return v;
         }
     }
 }
