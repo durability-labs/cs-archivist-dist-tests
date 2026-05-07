@@ -85,13 +85,13 @@ namespace AutoClient.Modes.FolderStore
                         entry.PurchaseNodes,
                         entry.PurchaseTolerance
                     );
-                    HandleNewRequest(request);
-                    appEventHandler.OnPurchaseExtended();
+                    WaitForStartOfRequest(request);
+                    appEventHandler.OnPurchaseExtendSuccess();
                 }
                 catch (Exception exc)
                 {
                     log.Error("Failed to extend purchase: " + exc);
-                    appEventHandler.OnPurchaseFailure();
+                    appEventHandler.OnPurchaseExtendFailure();
                     throw;
                 }
             }
@@ -102,13 +102,13 @@ namespace AutoClient.Modes.FolderStore
                 try
                 {
                     var request = node.RequestStorage(new ContentId(cid));
-                    HandleNewRequest(request);
-                    appEventHandler.OnPurchaseSuccess();
+                    WaitForStartOfRequest(request);
+                    appEventHandler.OnPurchaseNewSuccess();
                 }
                 catch (Exception exc)
                 {
                     log.Error("Failed to start new purchase: " + exc);
-                    appEventHandler.OnPurchaseFailure();
+                    appEventHandler.OnPurchaseNewFailure();
                     throw;
                 }
             }
@@ -141,25 +141,17 @@ namespace AutoClient.Modes.FolderStore
                 }
             }
 
-            private void HandleNewRequest(IStoragePurchaseContract request)
+            private void WaitForStartOfRequest(IStoragePurchaseContract request)
             {
-                try
-                {
-                    request.WaitForStorageContractSubmitted();
-                    request.WaitForStorageContractStarted();
+                request.WaitForStorageContractSubmitted();
+                request.WaitForStorageContractStarted();
 
-                    entry.EncodedCid = request.ContentId.Id;
-                    entry.PurchaseNodes = request.Purchase.MinRequiredNumberOfNodes;
-                    entry.PurchaseTolerance = request.Purchase.NodeFailureTolerance;
-                    entry.PurchaseFinishedUtc = DateTime.UtcNow + request.Purchase.Duration;
+                entry.EncodedCid = request.ContentId.Id;
+                entry.PurchaseNodes = request.Purchase.MinRequiredNumberOfNodes;
+                entry.PurchaseTolerance = request.Purchase.NodeFailureTolerance;
+                entry.PurchaseFinishedUtc = DateTime.UtcNow + request.Purchase.Duration;
 
-                    Log($"Successfully started new purchase: '{request.PurchaseId}'");
-                }
-                catch
-                {
-                    appEventHandler.OnPurchaseFailure();
-                    throw;
-                }
+                Log($"Successfully started new purchase: '{request.PurchaseId}'");
             }
 
             private void Log(string v)
