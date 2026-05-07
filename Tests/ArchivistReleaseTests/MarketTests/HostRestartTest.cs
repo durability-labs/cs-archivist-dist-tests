@@ -48,7 +48,7 @@ namespace ArchivistReleaseTests.MarketTests
 
                 if (slots == null ||
                     slots.Length == 0 ||
-                    !slots.Any(s => s.SlotIndex == Convert.ToInt64(f.SlotFilledEvent.SlotIndex)))
+                    !slots.Any(s => Convert.ToInt64(s) == Convert.ToInt64(f.SlotFilledEvent.SlotIndex)))
                 {
                     // Expect a slot-freed event for this slot.
                     expectedSlotFreedEvents.Add(f.SlotFilledEvent.SlotIndex);

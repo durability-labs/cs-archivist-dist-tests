@@ -44,8 +44,7 @@ namespace ArchivistReleaseTests.MarketTests
             var host = fills.First().Host;
             var slots = host.Marketplace.GetSlots();
             // We select one slot of this host.
-            var slot = slots.First();
-            var slotId = slot.Id;
+            var slotId = slots.First();
 
             Log("The state of a successfully started slot should be 'proving'.");
             Assert.That(host.Marketplace.GetSlot(slotId).State, Is.EqualTo(StorageSlotState.Proving));
