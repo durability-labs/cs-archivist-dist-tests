@@ -178,10 +178,11 @@ namespace ArchivistClient
             return mapper.Map(collection);
         }
 
-        public StorageSlot[] GetSlots()
+        public string[] GetSlots()
         {
-            var collection = OnArchivist(api => api.GetActiveSlotsAsync());
-            return mapper.Map(collection);
+            return OnArchivist(api => api.GetActiveSlotsAsync())
+                .Select(p => p.ToLowerInvariant())
+                .ToArray();
         }
 
         public StorageSlotItem GetSlot(string slotId)
