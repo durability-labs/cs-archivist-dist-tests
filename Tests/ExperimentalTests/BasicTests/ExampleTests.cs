@@ -19,7 +19,7 @@ namespace ExperimentalTests.BasicTests
             var cid = primary.UploadFile(GenerateTestFile(5.MB()));
 
             var localDatasets = primary.LocalFiles();
-            CollectionAssert.Contains(localDatasets.Content.Select(c => c.Cid), cid);
+            Assert.That(localDatasets.Content.Select(c => c.Cid), Contains.Value(cid));
 
             var log = primary.DownloadLog();
 

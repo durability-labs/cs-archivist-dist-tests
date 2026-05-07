@@ -172,7 +172,7 @@ namespace ArchivistTests
             foreach (var node in nodes)
             {
                 var localDatasets = node.LocalFiles();
-                CollectionAssert.Contains(localDatasets.Content.Select(c => c.Cid), cid);
+                Assert.That(localDatasets.Content.Select(c => c.Cid), Has.One.EqualTo(cid));
             }
 
             Log("OK");

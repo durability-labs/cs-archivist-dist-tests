@@ -323,10 +323,7 @@ namespace KubernetesWorkflow
                                 {
                                     new V1NetworkPolicyPort
                                     {
-                                        Port = new IntstrIntOrString
-                                        {
-                                            Value = "53"
-                                        },
+                                        Port = 53, 
                                         Protocol = "UDP"
                                     }
                                 }
@@ -347,18 +344,12 @@ namespace KubernetesWorkflow
                                 {
                                     new V1NetworkPolicyPort
                                     {
-                                        Port = new IntstrIntOrString
-                                        {
-                                            Value = "80"
-                                        },
+                                        Port = 80,
                                         Protocol = "TCP"
                                     },
                                     new V1NetworkPolicyPort
                                     {
-                                        Port = new IntstrIntOrString
-                                        {
-                                            Value = "443"
-                                        },
+                                        Port = 443,
                                         Protocol = "TCP"
                                     }
                                 }

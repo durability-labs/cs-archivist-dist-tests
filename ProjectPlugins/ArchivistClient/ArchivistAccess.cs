@@ -178,17 +178,17 @@ namespace ArchivistClient
             return mapper.Map(collection);
         }
 
-        public StorageSlot[] GetSlots()
+        public StorageSlotItem[] GetSlots()
         {
-            var collection = OnArchivist(api => api.GetActiveSlotsAsync());
-            return mapper.Map(collection);
+            var slotIds = OnArchivist(api => api.GetActiveSlotsAsync());
+            return mapper.Map(slotIds, id => OnArchivist(api => api.GetActiveSlotByIdAsync(id)));
         }
 
         public StorageSlotItem GetSlot(string slotId)
         {
             var slot = OnArchivist(api => api.GetActiveSlotByIdAsync(slotId));
             if (slot == null) throw new Exception($"Unable to find slot by Id: '{slotId}'");
-            return mapper.Map(slot);
+            return mapper.Map(slot, slotId);
         }
 
         public string RequestStorage(StoragePurchaseRequest request)

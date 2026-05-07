@@ -45,16 +45,15 @@ namespace ArchivistReleaseTests.MarketTests
             var slots = host.Marketplace.GetSlots();
             // We select one slot of this host.
             var slot = slots.First();
-            var slotId = slot.Id;
 
             Log("The state of a successfully started slot should be 'proving'.");
-            Assert.That(host.Marketplace.GetSlot(slotId).State, Is.EqualTo(StorageSlotState.Proving));
+            Assert.That(slot.State, Is.EqualTo(StorageSlotState.Proving));
 
             Log("The RPC connection provider goes down.");
             rpcNode.Pause();
 
             Log("We expect the host to report and error state for this slot.");
-            WaitUntilSlotState(host, slotId, StorageSlotState.Errored);
+            WaitUntilSlotState(host, slot.SlotId, StorageSlotState.Errored);
 
             Log($"Apply a delay of {delayMinutes} minutes...");
             Thread.Sleep(TimeSpan.FromMinutes(delayMinutes));
@@ -63,7 +62,7 @@ namespace ArchivistReleaseTests.MarketTests
             rpcNode.Resume();
 
             Log("The host's slot should recover.");
-            WaitUntilSlotState(host, slotId, StorageSlotState.Proving);
+            WaitUntilSlotState(host, slot.SlotId, StorageSlotState.Proving);
         }
 
         [Test]
