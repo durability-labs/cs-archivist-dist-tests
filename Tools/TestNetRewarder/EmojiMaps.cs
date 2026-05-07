@@ -86,7 +86,8 @@ namespace TestNetRewarder
         public string SlotReservationsFull => "☑️";
         public string Finished => "☑";
         public string FinishedButExtended => "✅";
-        public string Cancelled => "🚫";
+        public string CancelledNew => "🚫";
+        public string CancelledRenewed => "☢";
         public string Failed => "❌";
         public string ProofSubmitted => "🎵";
         public string ProofReport => "🔎";

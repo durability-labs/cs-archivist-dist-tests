@@ -88,9 +88,9 @@ namespace TestNetRewarder
 
         public void OnRequestCancelled(RequestEvent requestEvent)
         {
-            AddRequestBlock(requestEvent, emojiMaps.Cancelled,
+            AddRequestBlock(requestEvent, GetCancelledEmoji(requestEvent.Request),
                 new MsgBlock(
-                    header: "Cancelled",
+                    header: GetCancelledHeader(requestEvent.Request),
                     content: [],
                     footer: string.Empty
                 )
@@ -248,6 +248,18 @@ namespace TestNetRewarder
         {
             if (request.ExtendsExistingContract != null) return "Renewed";
             return "Started";
+        }
+
+        private string GetCancelledHeader(IChainStateRequest request)
+        {
+            if (request.ExtendsExistingContract != null) return "Renew Cancelled";
+            return "Cancelled";
+        }
+
+        private string GetCancelledEmoji(IChainStateRequest request)
+        {
+            if (request.ExtendsExistingContract != null) return emojiMaps.CancelledRenewed;
+            return emojiMaps.CancelledNew;
         }
 
         private bool ShouldPublishPeriodReports()
