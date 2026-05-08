@@ -265,18 +265,20 @@ namespace ArchivistClient
                 onFail: f => { },
                 failFast: true);
 
-            var result = httpFactory.CreateHttp(GetHttpId(), h => CheckContainerCrashed()).OnClient(client => CallArchivist(client, action), noRetry);
+            var result = httpFactory.CreateHttp(GetHttpId(), h => CheckArchivistCrashed()).OnClient(client => CallArchivist(client, action), noRetry);
             return result;
         }
 
         private T OnArchivist<T>(Func<ArchivistApiClient, Task<T>> action)
         {
-            var result = httpFactory.CreateHttp(GetHttpId(), h => CheckContainerCrashed()).OnClient(client => CallArchivist(client, action));
+            var result = httpFactory.CreateHttp(GetHttpId(), h => CheckArchivistCrashed()).OnClient(client => CallArchivist(client, action));
             return result;
         }
 
         private T CallArchivist<T>(HttpClient client, Func<ArchivistApiClient, Task<T>> action)
         {
+            CheckArchivistCrashed();
+
             var address = GetAddress();
             var api = new ArchivistApiClient(client);
             api.BaseUrl = $"{address.Host}:{address.Port}/api/archivist/v1";
@@ -291,14 +293,14 @@ namespace ArchivistClient
             }
             finally
             {
-                CheckContainerCrashed();
+                CheckArchivistCrashed();
             }
         }
 
         private IEndpoint GetEndpoint()
         {
             return httpFactory
-                .CreateHttp(GetHttpId(), h => CheckContainerCrashed())
+                .CreateHttp(GetHttpId(), h => CheckArchivistCrashed())
                 .CreateEndpoint(GetAddress(), "/api/archivist/v1/", GetName());
         }
 
@@ -312,9 +314,9 @@ namespace ArchivistClient
             return GetAddress().ToString();
         }
 
-        private void CheckContainerCrashed()
+        private void CheckArchivistCrashed()
         {
-            if (processControl.HasCrashed()) throw new Exception($"Container {GetName()} has crashed.");
+            if (processControl.HasCrashed()) throw new Exception($"Archivist {GetName()} has crashed.");
         }
 
         private void Log(string msg)

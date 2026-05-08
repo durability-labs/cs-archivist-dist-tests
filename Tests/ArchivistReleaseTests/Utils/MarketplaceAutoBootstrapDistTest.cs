@@ -285,11 +285,8 @@ namespace ArchivistReleaseTests.Utils
 
         protected void AssertNoSlotsFreed(PeriodReport report)
         {
-            foreach (var c in report.FunctionCalls)
-            {
-                Assert.That(c.Name, Is.Not.EqualTo(nameof(FreeSlot1Function)));
-                Assert.That(c.Name, Is.Not.EqualTo(nameof(FreeSlotFunction)));
-            }
+            var calls = report.GetSlotsFreedCalls();
+            Assert.That(calls.Length, Is.EqualTo(0), $"FreeSlot calls: {string.Join(",", calls.Select(c => c.ToString()))}");
         }
 
         public IArchivistNodeGroup StartClients()
