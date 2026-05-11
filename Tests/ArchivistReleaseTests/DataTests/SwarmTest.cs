@@ -9,17 +9,19 @@ namespace ArchivistReleaseTests.DataTests
 {
     namespace SwarmTests
     {
-        [TestFixture(10, 20)]
+        [TestFixture(10, 20, 10)]
         public class SwarmTests : AutoBootstrapDistTest
         {
             private readonly int numberOfNodes;
             private readonly int filesizeMb;
+            private readonly int reruns;
             private IArchivistNodeGroup nodes = null!;
 
-            public SwarmTests(int numberOfNodes, int filesizeMb)
+            public SwarmTests(int numberOfNodes, int filesizeMb, int reruns)
             {
                 this.numberOfNodes = numberOfNodes;
                 this.filesizeMb = filesizeMb;
+                this.reruns = reruns;
             }
 
             [TearDown]
@@ -35,16 +37,20 @@ namespace ArchivistReleaseTests.DataTests
             }
 
             [Test]
-            public void Stream()
+            public void StreamManyToMany()
             {
                 var filesize = filesizeMb.MB();
                 nodes = StartArchivist(numberOfNodes);
-                var files = nodes.Select(n => UploadUniqueFilePerNode(n, filesize)).ToArray();
 
-                var tasks = ParallelDownloadEachFile(files);
-                Task.WaitAll(tasks);
+                Rerun(() =>
+                {
+                    var files = nodes.Select(n => UploadUniqueFilePerNode(n, filesize)).ToArray();
 
-                AssertAllFilesDownloadedCorrectly(files);
+                    var tasks = ParallelDownloadEachFile(files);
+                    Task.WaitAll(tasks);
+
+                    AssertAllFilesDownloadedCorrectly(files);
+                });
             }
 
             [Test]
@@ -52,12 +58,46 @@ namespace ArchivistReleaseTests.DataTests
             {
                 var filesize = filesizeMb.MB();
                 nodes = StartArchivist(numberOfNodes);
-                var files = nodes.Select(n => UploadUniqueFilePerNode(n, filesize)).ToArray();
 
-                var tasks = ParallelStreamlessDownloadEachFile(files);
-                Task.WaitAll(tasks);
+                Rerun(() =>
+                {
+                    var files = nodes.Select(n => UploadUniqueFilePerNode(n, filesize)).ToArray();
 
-                AssertAllFilesStreamlesslyDownloadedCorrectly(files);
+                    var tasks = ParallelStreamlessDownloadEachFile(files);
+                    Task.WaitAll(tasks);
+
+                    AssertAllFilesStreamlesslyDownloadedCorrectly(files);
+                });                
+            }
+
+            [Test]
+            public void StreamOneToMany()
+            {
+                var filesize = 420.MB();
+                nodes = StartArchivist(numberOfNodes);
+
+                Rerun(() =>
+                {
+                    var file = GenerateTestFile(filesize);
+                    var cid = nodes[0].UploadFile(file);
+
+                    var tasks = nodes.Select(n => Task.Run(() => n.DownloadContent(cid))).ToArray();
+                    Task.WaitAll(tasks);
+
+                    foreach (var task in tasks)
+                    {
+                        file.AssertIsEqual(task.Result);
+                    }
+                });
+            }
+
+            private void Rerun(Action action)
+            {
+                for (var i = 0; i < reruns; i++)
+                {
+                    Log("Run: " + i);
+                    action();
+                }
             }
 
             private SwarmTestNetworkFile UploadUniqueFilePerNode(IArchivistNode node, ByteSize fileSize)

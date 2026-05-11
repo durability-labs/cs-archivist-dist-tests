@@ -116,7 +116,7 @@ namespace ArchivistReleaseTests.Repair
 
             WaitForSlotFreedEvents(eventStartUtc, contract, selectedSlots);
             WaitForNewSlotFilledEvents(eventStartUtc, contract, selectedSlots);
-            AssertDataIsAvailable(contract.ContentId);
+            AssertDataIsAvailable(originalFile, contract.ContentId);
         }
 
         private SlotFill[] SelectOldestSlotFills(List<IArchivistNode> hosts, int numHostsPerFailure)
@@ -249,17 +249,6 @@ namespace ArchivistReleaseTests.Repair
                     }
                     return false;
                 });
-        }
-
-        private void AssertDataIsAvailable(ContentId contentId)
-        {
-            Log("...");
-            var checker = StartArchivist(s => s.WithName("checker"));
-            var received = checker.DownloadContent(contentId);
-            originalFile.AssertIsEqual(received);
-
-            Log("Data is available.");
-            checker.Stop(waitTillStopped: false);
         }
 
         private void WaitForNewEventWithTimeout(DateTime startUtc, DateTime timeoutUtc, Action waiter, Func<IArchivistContractsEvents, bool> checker)

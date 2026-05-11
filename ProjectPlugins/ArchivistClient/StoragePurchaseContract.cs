@@ -10,6 +10,7 @@ namespace ArchivistClient
         string PurchaseId { get; }
         StoragePurchaseRequest Purchase { get; }
         ContentId ContentId { get; }
+        DateTime GetExpectedFinishUtc();
         StoragePurchase? GetStatus();
         void WaitForStorageContractSubmitted();
         void WaitForStorageContractExpired();
@@ -60,6 +61,12 @@ namespace ArchivistClient
         public TimeSpan? PendingToSubmitted => contractSubmittedUtc - contractPendingUtc;
         public TimeSpan? SubmittedToStarted => contractStartedUtc - contractSubmittedUtc;
         public TimeSpan? SubmittedToFinished => contractFinishedUtc - contractSubmittedUtc;
+
+        public DateTime GetExpectedFinishUtc()
+        {
+            if (contractStartedUtc == null) throw new Exception("Contract not started yet. Can't predict finish-UTC");
+            return contractStartedUtc.Value + Purchase.Duration;
+        }
 
         public StoragePurchase? GetStatus()
         {

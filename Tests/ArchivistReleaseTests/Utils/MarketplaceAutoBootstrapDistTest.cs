@@ -4,6 +4,7 @@ using ArchivistContractsPlugin.ChainMonitor;
 using ArchivistContractsPlugin.Marketplace;
 using ArchivistPlugin;
 using ArchivistTests;
+using FileUtils;
 using GethPlugin;
 using Logging;
 using Nethereum.Hex.HexConvertors.Extensions;
@@ -287,6 +288,17 @@ namespace ArchivistReleaseTests.Utils
         {
             var calls = report.GetSlotsFreedCalls();
             Assert.That(calls.Length, Is.EqualTo(0), $"FreeSlot calls: {string.Join(",", calls.Select(c => c.ToString()))}");
+        }
+
+        protected void AssertDataIsAvailable(TrackedFile originalFile, ContentId contentId)
+        {
+            Log("...");
+            var checker = StartArchivist(s => s.WithName("checker"));
+            var received = checker.DownloadContent(contentId);
+            originalFile.AssertIsEqual(received);
+
+            Log("Data is available.");
+            checker.Stop(waitTillStopped: false);
         }
 
         public IArchivistNodeGroup StartClients()
