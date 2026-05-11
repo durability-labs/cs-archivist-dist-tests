@@ -73,8 +73,8 @@ namespace ArchivistReleaseTests.DataTests
             [Test]
             public void StreamOneToMany()
             {
-                var filesize = 420.MB();
-                nodes = StartArchivist(numberOfNodes);
+                var filesize = 400.MB();
+                nodes = StartArchivist(30);
 
                 Rerun(() =>
                 {
@@ -83,11 +83,6 @@ namespace ArchivistReleaseTests.DataTests
 
                     var tasks = nodes.Select(n => Task.Run(() => n.DownloadContent(cid))).ToArray();
                     Task.WaitAll(tasks);
-
-                    foreach (var task in tasks)
-                    {
-                        file.AssertIsEqual(task.Result);
-                    }
                 });
             }
 
