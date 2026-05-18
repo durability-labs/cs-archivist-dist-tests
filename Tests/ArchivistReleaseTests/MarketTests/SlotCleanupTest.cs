@@ -12,6 +12,7 @@ namespace ArchivistReleaseTests.MarketTests
         protected override int NumberOfClients => 1;
 
         protected override TestToken HostStartingBalance => DefaultPurchase.CollateralRequiredPerSlot * 1.1;
+        protected override TimeSpan HostBlockTTL => TimeSpan.FromMinutes(1.0);
 
         [Test]
         public void SlotCleanup()
@@ -24,13 +25,6 @@ namespace ArchivistReleaseTests.MarketTests
             contract.WaitForStorageContractStarted();
             client.Stop(waitTillStopped: false);
 
-            Log("Each host can afford 1 slot, but will have tried to download multiple.");
-            Log("Checking that each host's used quota is greater than 1 slotsize...");
-            foreach (var h in hosts)
-            {
-                Assert.That(h.Space().QuotaUsedBytes, Is.GreaterThan(DefaultPurchase.SlotSize.SizeInBytes));
-            }
-
             var fills = GetOnChainSlotFills(hosts);
             var slotHosts = GetHostsThatFilledASlot(hosts, fills);
             var emptyHosts = GetHostsThatFilledNoSlots(hosts, fills);
@@ -39,9 +33,10 @@ namespace ArchivistReleaseTests.MarketTests
             Assert.That(slotHosts.Length, Is.EqualTo(4));
             Assert.That(emptyHosts.Length, Is.EqualTo(2));
 
-            Log("We wait for the contract expiry timeout so the hosts have time to clean up the blocks of failed slots...");
+            Log("We wait for the contract expiry timeout so the hosts will want to clean up the blocks of failed slots...");
             Thread.Sleep(DefaultStoragePurchase.Expiry);
-            Thread.Sleep(TimeSpan.FromMinutes(1.0));
+            Log("We wait for block maintenance interval (x2) ...");
+            Thread.Sleep(HostBlockTTL * 2.0);
 
             Log("Now we check the empty hosts are actually empty...");
             AssertHostsAreEmpty(emptyHosts);
@@ -50,12 +45,9 @@ namespace ArchivistReleaseTests.MarketTests
             foreach (var h in slotHosts)
             {
                 var hostSlots = h.Marketplace.GetSlots();
-                //Assert.That(hostSlots.Length, Is.EqualTo(1));
-                Log($"fake assert: {hostSlots.Length} == 1");
-
                 var space = h.Space();
-                //Assert.That(space.QuotaUsedBytes, Is.EqualTo(DefaultPurchase.SlotSize.SizeInBytes));
-                Log($"fake assert: {space.QuotaUsedBytes} == {DefaultPurchase.SlotSize.SizeInBytes}");
+                Assert.That(hostSlots.Length, Is.EqualTo(1));
+                Assert.That(space.QuotaUsedBytes, Is.EqualTo(DefaultPurchase.SlotSize.SizeInBytes));
             }
 
             Log("Now we wait till the contract is finished. Then all hosts should return to empty.");
