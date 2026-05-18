@@ -13,7 +13,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ExperimentalTests\ExperimentalTests.csproj" />
+    <ProjectReference Include="..\..\Framework\BlockchainUtils\BlockchainUtils.csproj" />
+    <ProjectReference Include="..\..\ProjectPlugins\ArchivistClient\ArchivistClient.csproj" />
+    <ProjectReference Include="..\..\ProjectPlugins\ArchivistPlugin\ArchivistPlugin.csproj" />
+    <ProjectReference Include="..\DistTestCore\DistTestCore.csproj" />
   </ItemGroup>
 
 </Project>
