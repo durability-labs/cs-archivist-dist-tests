@@ -92,12 +92,22 @@ namespace ArchivistClient
 
         public void WaitForStorageContractExpired()
         {
+            if (!contractSubmittedUtc.HasValue)
+            {
+                WaitForStorageContractSubmitted();
+            }
+
             var timeout = Purchase.Expiry + gracePeriod + gracePeriod;
             WaitForStorageContractState(timeout, StoragePurchaseState.Cancelled);
         }
 
         public void WaitForStorageContractStarted()
         {
+            if (!contractSubmittedUtc.HasValue)
+            {
+                WaitForStorageContractSubmitted();
+            }
+
             var timeout = Purchase.Expiry + gracePeriod;
 
             WaitForStorageContractState(timeout, StoragePurchaseState.Started);
