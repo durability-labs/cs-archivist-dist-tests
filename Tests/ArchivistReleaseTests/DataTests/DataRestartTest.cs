@@ -1,4 +1,5 @@
-﻿using ArchivistTests;
+﻿using ArchivistClient;
+using ArchivistTests;
 using NUnit.Framework;
 using Utils;
 
@@ -14,13 +15,16 @@ namespace ArchivistReleaseTests.DataTests
 
             var file = GenerateTestFile(10.MB());
             var cid = node.UploadFile(file);
+            var initialSpace = node.Space();
 
             node.InPlaceRestart();
 
+            AssertEqualSpace(node, initialSpace);
             var download1 = node.DownloadContent(cid);
 
             node.InPlaceRestart();
 
+            AssertEqualSpace(node, initialSpace);
             var download2 = node.DownloadContent(cid);
 
             file.AssertIsEqual(download1);
@@ -57,6 +61,16 @@ namespace ArchivistReleaseTests.DataTests
             var downloaded = downloader.DownloadContent(cid);
 
             file.AssertIsEqual(downloaded);
+        }
+
+        private void AssertEqualSpace(IArchivistNode node, ArchivistSpace expected)
+        {
+            var actual = node.Space();
+
+            Assert.That(actual.QuotaMaxBytes, Is.EqualTo(expected.QuotaMaxBytes));
+            Assert.That(actual.TotalBlocks, Is.EqualTo(expected.TotalBlocks));
+            Assert.That(actual.QuotaUsedBytes, Is.EqualTo(expected.QuotaUsedBytes));
+            Assert.That(actual.QuotaReservedBytes, Is.EqualTo(expected.QuotaReservedBytes));
         }
     }
 }

@@ -32,7 +32,7 @@ namespace ArchivistClient
         private readonly IArchivistNodeHooks hooks;
         private readonly TimeSpan gracePeriod = TimeSpan.FromSeconds(60);
         private readonly DateTime contractPendingUtc = DateTime.UtcNow;
-        private DateTime? contractSubmittedUtc = DateTime.UtcNow;
+        private DateTime? contractSubmittedUtc;
         private DateTime? contractStartedUtc;
         private DateTime? contractFinishedUtc;
         private StoragePurchaseState lastState = StoragePurchaseState.Unknown;
@@ -64,8 +64,8 @@ namespace ArchivistClient
 
         public DateTime GetExpectedFinishUtc()
         {
-            if (contractStartedUtc == null) throw new Exception("Contract not started yet. Can't predict finish-UTC");
-            return contractStartedUtc.Value + Purchase.Duration;
+            if (contractSubmittedUtc == null) throw new Exception("Contract not started yet. Can't predict finish-UTC");
+            return contractSubmittedUtc.Value + Purchase.Duration;
         }
 
         public StoragePurchase? GetStatus()
