@@ -165,7 +165,7 @@ namespace FrameworkTests.Utils
             var seen = new List<int>();
             run.Iterate(seen.Add);
 
-            CollectionAssert.AreEqual(new[] { 2, 3, 4, 5 }, seen);
+            Assert.That(new[] { 2, 3, 4, 5 }, Is.EquivalentTo(seen));
         }
     }
 }

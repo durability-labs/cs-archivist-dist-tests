@@ -151,6 +151,7 @@ namespace DistTestCore
         private void DisposeTestLifecycle()
         {
             var testResult = GetTestResult();
+            Log(" => " + testResult);
             var testDuration = lifecycle.GetTestDuration();
             var data = lifecycle.GetPluginMetadata();
             CollectStatusLogData(lifecycle, data);

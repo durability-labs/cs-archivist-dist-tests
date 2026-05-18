@@ -1,5 +1,6 @@
 using Core;
 using KubernetesWorkflow;
+using Utils;
 
 namespace DistTestCore
 {
@@ -11,10 +12,10 @@ namespace DistTestCore
 
         public Configuration()
         {
-            kubeConfigFile = GetNullableEnvVarOrDefault("KUBECONFIG", null);
-            logPath = GetEnvVarOrDefault("LOGPATH", "ArchivistTestLogs");
-            dataFilesPath = GetEnvVarOrDefault("DATAFILEPATH", "TestDataFiles");
-            AlwaysDownloadContainerLogs = !string.IsNullOrEmpty(GetEnvVarOrDefault("ALWAYS_LOGS", ""));
+            kubeConfigFile = EnvVar.GetNullableOrDefault("KUBECONFIG");
+            logPath = EnvVar.GetOrDefault("LOGPATH", "ArchivistTestLogs");
+            dataFilesPath = EnvVar.GetOrDefault("DATAFILEPATH", "TestDataFiles");
+            AlwaysDownloadContainerLogs = !string.IsNullOrEmpty(EnvVar.GetOrDefault("ALWAYS_LOGS", ""));
         }
 
         public Configuration(string? kubeConfigFile, string logPath, string dataFilesPath)
@@ -45,6 +46,7 @@ namespace DistTestCore
 
             config.AllowNamespaceOverride = false;
             config.Hooks = hooks;
+            config.ImagePullPolicy = EnvVar.GetOrDefault("IMAGE_PULL_POLICY", "Always");
 
             return config;
         }
@@ -57,20 +59,6 @@ namespace DistTestCore
         public string GetFileManagerFolder()
         {
             return dataFilesPath;
-        }
-
-        private static string GetEnvVarOrDefault(string varName, string defaultValue)
-        {
-            var v = Environment.GetEnvironmentVariable(varName);
-            if (v == null) return defaultValue;
-            return v;
-        }
-
-        private static string? GetNullableEnvVarOrDefault(string varName, string? defaultValue)
-        {
-            var v = Environment.GetEnvironmentVariable(varName);
-            if (v == null) return defaultValue;
-            return v;
         }
     }
 }

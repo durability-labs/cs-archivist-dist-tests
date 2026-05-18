@@ -2,6 +2,7 @@ using ArchivistClient;
 using GethPlugin;
 using KubernetesWorkflow;
 using KubernetesWorkflow.Recipe;
+using Utils;
 
 namespace ArchivistContractsPlugin
 {
@@ -13,10 +14,13 @@ namespace ArchivistContractsPlugin
         public const int PeriodSeconds = 60;
         public const int TimeoutSeconds = 30;
         public const int DowntimeSeconds = 128;
+        private const string DockerImageEnvVar = "ARCHIVIST_CONTRACTS_IMAGE";
+        private const string ImagePullPolicyEnvVar = "ARCHIVIST_CONTRACTS_IMAGE_PULL_POLICY";
         private readonly DebugInfoVersion versionInfo;
 
         public override string AppName => "archivist-contracts";
-        public override string Image => GetContractsDockerImage();
+        public override string Image => EnvVar.GetOrDefault(DockerImageEnvVar, GetDefaultContractsDockerImage());
+        public override string? ImagePullPolicy => EnvVar.GetNullableOrDefault(ImagePullPolicyEnvVar);
 
         public ArchivistContractsContainerRecipe(DebugInfoVersion versionInfo)
         {
@@ -25,9 +29,9 @@ namespace ArchivistContractsPlugin
 
         protected override void Initialize(StartupConfig startupConfig)
         {
-            var config = startupConfig.Get<ArchivistContractsContainerConfig>();
+            var setup = startupConfig.Get<ArchivistContractsSetup>();
 
-            var address = config.GethNode.StartResult.Container.GetAddress(GethContainerRecipe.HttpPortTag);
+            var address = setup.RpcNode.StartResult.Container.GetAddress(GethContainerRecipe.HttpPortTag);
 
             SetSchedulingAffinity(notIn: "false");
 
@@ -39,8 +43,16 @@ namespace ArchivistContractsPlugin
             AddEnvVar("DISTTEST_SLASHPERCENTAGE", 20);
             AddEnvVar("DISTTEST_VALIDATORREWARD", 20);
             AddEnvVar("DISTTEST_DOWNTIMEPRODUCT", 131);
-            AddEnvVar("DISTTEST_MAXRESERVATIONS", 3);
             AddEnvVar("DISTTEST_MAXDURATION", Convert.ToInt32(TimeSpan.FromDays(30).TotalSeconds));
+
+            if (setup.MaxReservationsOverride.HasValue)
+            {
+                AddEnvVar("DISTTEST_MAXRESERVATIONS", setup.MaxReservationsOverride.Value);
+            }
+            else
+            {
+                AddEnvVar("DISTTEST_MAXRESERVATIONS", 3);
+            }
 
             // Customized values, required to operate in a network with
             // block frequency of 1.
@@ -53,7 +65,7 @@ namespace ArchivistContractsPlugin
             AddEnvVar("KEEP_ALIVE", "1");
         }
 
-        private string GetContractsDockerImage()
+        private string GetDefaultContractsDockerImage()
         {
             return $"durabilitylabs/archivist-contracts:sha-{versionInfo.Contracts}-dist-tests";
         }

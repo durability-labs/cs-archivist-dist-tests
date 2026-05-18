@@ -58,10 +58,11 @@ namespace AutoClient.Modes
 
         private void ExtendExistingPurchases(PurchaseRenewer purchaseRenewer)
         {
-            while (!app.Cts.IsCancellationRequested)
+            var maxRenews = 5;
+            while (!app.Cts.IsCancellationRequested && maxRenews > 0)
             {
                 if (!purchaseRenewer.Step()) return;
-
+                maxRenews--;
                 Thread.Sleep(TimeSpan.FromSeconds(3));
             }
         }

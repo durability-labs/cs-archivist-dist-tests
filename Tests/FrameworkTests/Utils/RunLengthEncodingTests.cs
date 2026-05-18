@@ -71,12 +71,12 @@ namespace FrameworkTests.Utils
             var set = new IndexSet(indices);
             var encoded = set.RunLengthEncoded();
 
-            CollectionAssert.AreEqual(new[]
+            Assert.That(new[]
             {
                 0, 3,
                 4, 1,
                 6, 2
-            }, encoded);
+            }, Is.EqualTo(encoded));
         }
 
         [Test]
@@ -93,12 +93,11 @@ namespace FrameworkTests.Utils
             var seen = new List<int>();
             set.Iterate(i => seen.Add(i));
 
-            CollectionAssert.AreEqual(new[]
-            {
+            Assert.That(new[] {
                 2, 3, 4, 5,
                 7,
                 9, 10
-            }, seen);
+            }, Is.EqualTo(seen));
         }
 
         [Test]
@@ -108,10 +107,9 @@ namespace FrameworkTests.Utils
             set.Set(11);
             var encoded = set.RunLengthEncoded();
 
-            CollectionAssert.AreEqual(new[]
-            {
-                11, 4
-            }, encoded);
+            Assert.That(new[]
+            { 11, 4
+            }, Is.EqualTo(encoded));
         }
 
         [Test]
@@ -121,10 +119,10 @@ namespace FrameworkTests.Utils
             set.Set(11);
             var encoded = set.RunLengthEncoded();
 
-            CollectionAssert.AreEqual(new[]
+            Assert.That(new[]
             {
-                8, 7
-            }, encoded);
+                8,7
+            }, Is.EqualTo(encoded));
         }
 
         [Test]
@@ -134,10 +132,10 @@ namespace FrameworkTests.Utils
             set.Set(15);
             var encoded = set.RunLengthEncoded();
 
-            CollectionAssert.AreEqual(new[]
+            Assert.That(new[]
             {
                 12, 4
-            }, encoded);
+            }, Is.EqualTo(encoded));
         }
 
         [Test]
@@ -147,10 +145,10 @@ namespace FrameworkTests.Utils
             set.Unset(11);
             var encoded = set.RunLengthEncoded();
 
-            CollectionAssert.AreEqual(new[]
+            Assert.That(new[]
             {
-                12, 3
-            }, encoded);
+                12 ,3
+            }, Is.EqualTo(encoded));
         }
 
         [Test]
@@ -160,10 +158,10 @@ namespace FrameworkTests.Utils
             set.Unset(14);
             var encoded = set.RunLengthEncoded();
 
-            CollectionAssert.AreEqual(new[]
+            Assert.That(new[]
             {
                 11, 3
-            }, encoded);
+            }, Is.EqualTo(encoded));
         }
 
         [Test]
@@ -173,11 +171,10 @@ namespace FrameworkTests.Utils
             set.Unset(12);
             var encoded = set.RunLengthEncoded();
 
-            CollectionAssert.AreEqual(new[]
+            Assert.That(new[]
             {
-                11, 1,
-                13, 2
-            }, encoded);
+                11, 1, 13, 2
+            }, Is.EqualTo(encoded));
         }
 
         private void AssertEqual(IndexSet set, int[] indices)
@@ -191,7 +188,7 @@ namespace FrameworkTests.Utils
             var seen = new List<int>();
             set.Iterate(i => seen.Add(i));
 
-            CollectionAssert.AreEqual(indices, seen);
+            Assert.That(indices, Is.EqualTo(seen));
         }
 
         private int[] GenerateRandomIndices()

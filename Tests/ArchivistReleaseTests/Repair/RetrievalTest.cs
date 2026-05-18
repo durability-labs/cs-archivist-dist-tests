@@ -1,4 +1,5 @@
 ﻿using ArchivistClient;
+using ArchivistContractsPlugin;
 using ArchivistReleaseTests.Utils;
 using NUnit.Framework;
 using Utils;
@@ -27,9 +28,14 @@ namespace ArchivistReleaseTests.Repair
         protected override int NumberOfHosts => 5;
         protected override int NumberOfClients => 1;
         protected override TestToken HostStartingBalance => DefaultPurchase.CollateralRequiredPerSlot * 1.1; // Each host can afford 1 slot.
-        protected override ByteSize HostQuota => DefaultPurchase.SlotSize.Multiply(1.1); // Each host can hold 1 slot.
         protected override TimeSpan HostAvailabilityMaxDuration => TimeSpan.FromDays(5.0);
         protected override bool MonitorProofPeriods => false;
+        protected override TimeSpan HostBlockTTL => TimeSpan.FromMinutes(1.0);
+
+        protected override void OnDeployContracts(IArchivistContractsSetup s)
+        {
+            s.WithMaxReservationsOverride(10);
+        }
 
         #endregion
 
@@ -52,25 +58,51 @@ namespace ArchivistReleaseTests.Repair
             var contractCid = contract.ContentId;
             client.Stop(waitTillStopped: true);
 
-            var fills = GetOnChainSlotFills(hosts).ToList();
+            var fills = GetOnChainSlotFills(hosts).ToArray();
             var fill1 = fills.Single(f => f.SlotFilledEvent.SlotIndex == stopSlotIndex1);
             var fill2 = fills.Single(f => f.SlotFilledEvent.SlotIndex == stopSlotIndex2);
+            var remainingHosts = fills.Where(f => 
+                    f.SlotFilledEvent.SlotIndex != stopSlotIndex1 &&
+                    f.SlotFilledEvent.SlotIndex != stopSlotIndex2
+                )
+                .Select(f => f.Host)
+                .ToArray();
 
             Log("Stopping 2 hosts that filled a slot.");
             fill1.Host.Stop(waitTillStopped: true);
             fill2.Host.Stop(waitTillStopped: true);
+
+            Log("We wait for the duration of 2 block-maintenance cleanup cycles.");
+            Log("This is because the remaining hosts may have downloaded (partially) the slots");
+            Log("that we are trying to remove from the network.");
+
+            Thread.Sleep(DefaultStoragePurchase.Expiry);
+            Thread.Sleep(HostBlockTTL * 2);
+
+            Log("Now we check that the remaining hosts are storing only the expected slotsizes.");
+            foreach (var h in remainingHosts)
+            {
+                var hostSlots = h.Marketplace.GetSlots();
+                Assert.That(hostSlots.Length, Is.EqualTo(1));
+
+                var space = h.Space();
+                Assert.That(space.QuotaUsedBytes, Is.EqualTo(DefaultPurchase.SlotSize.SizeInBytes));
+            }
 
             AssertContentIsRetrievableByNewNode(contractCid);
         }
 
         private void AssertContentIsRetrievableByNewNode(ContentId cid, bool isRetry = false)
         {
+            Log("Starting checker node...");
             var checker = StartArchivist(s => s.WithName("checker"));
             try
             {
+                Log("Checking entire dataset is retrievable...");
                 var file = checker.DownloadContent(cid);
                 if (file == null) throw new Exception("Failed to download content");
                 Assert.That(file.GetFilesize(), Is.EqualTo(DefaultPurchase.UploadFilesize));
+                Log("Success: Dataset is retrievable");
             }
             catch (Exception ex)
             {
@@ -83,6 +115,7 @@ namespace ArchivistReleaseTests.Repair
                 }
                 else
                 {
+                    Log("Failed: Dataset is lost");
                     throw;
                 }
             }

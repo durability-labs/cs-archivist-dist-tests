@@ -21,6 +21,7 @@ namespace ArchivistPlugin
 
         public override string AppName => "archivist";
         public override string Image => image;
+        public override string? ImagePullPolicy => EnvVar.GetNullableOrDefault("ARCHIVIST_IMAGE_PULL_POLICY");
 
         protected override void Initialize(StartupConfig startupConfig)
         {

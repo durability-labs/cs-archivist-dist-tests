@@ -6,8 +6,13 @@ namespace ArchivistDiscordBotPlugin
 {
     public class DiscordBotContainerRecipe : ContainerRecipeFactory
     {
+        private const string DockerImageEnvVar = "ARCHIVIST_DISCORDBOT_IMAGE";
+        private const string ImagePullPolicyEnvVar = "ARCHIVIST_DISCORDBOT_IMAGE_PULL_POLICY";
+        private const string DefaultDockerImage = "durabilitylabs/archivist-discordbot:sha-f5ae024";
+
         public override string AppName => "discordbot-bibliotech";
-        public override string Image => "durabilitylabs/archivist-discordbot:sha-f5ae024";
+        public override string Image => EnvVar.GetOrDefault(DockerImageEnvVar, DefaultDockerImage);
+        public override string? ImagePullPolicy => EnvVar.GetNullableOrDefault(ImagePullPolicyEnvVar);
 
         public static string RewardsPort = "bot_rewards_port";
 

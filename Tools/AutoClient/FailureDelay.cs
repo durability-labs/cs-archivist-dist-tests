@@ -28,17 +28,22 @@ namespace AutoClient
         {
         }
 
-        public void OnPurchaseExtended()
-        {
-            ReduceDelay();
-        }
-
-        public void OnPurchaseFailure()
+        public void OnPurchaseExtendFailure()
         {
             IncreaseDelay();
         }
 
-        public void OnPurchaseSuccess()
+        public void OnPurchaseExtendSuccess()
+        {
+            ReduceDelay();
+        }
+
+        public void OnPurchaseNewFailure()
+        {
+            IncreaseDelay();
+        }
+
+        public void OnPurchaseNewSuccess()
         {
             ReduceDelay();
         }

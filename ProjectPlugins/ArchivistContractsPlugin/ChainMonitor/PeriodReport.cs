@@ -48,6 +48,14 @@ namespace ArchivistContractsPlugin.ChainMonitor
         {
             return Requests.Sum(r => r.GetNumberOfProofsMissed());
         }
+
+        public FunctionCallReport[] GetSlotsFreedCalls()
+        {
+            return FunctionCalls.Where(f =>
+                f.Name == nameof(FreeSlotFunction) ||
+                f.Name == nameof(FreeSlot1Function)
+            ).ToArray();
+        }
     }
 
     public class PeriodRequestReport
@@ -61,7 +69,7 @@ namespace ArchivistContractsPlugin.ChainMonitor
             {
                 var newHost = contracts.GetSlotHost(currentRequest.Request.RequestId, s.Index);
                 var canMark = contracts.CanMarkProofAsMissing(s.SlotId, periodNumber);
-                var marked = IsProofMarkedAsMissing(markCalls, s.SlotId, periodNumber);
+                var marked = IsProofMarkedAsMissing(markCalls, s.SlotId);
                 return new PeriodRequestSlotReport(s, newHost, canMark, marked);
             }).ToArray();
 
@@ -120,9 +128,9 @@ namespace ArchivistContractsPlugin.ChainMonitor
             }
         }
 
-        private static bool IsProofMarkedAsMissing(MarkProofAsMissingFunction[] markCalls, byte[] slotId, ulong periodNumber)
+        private static bool IsProofMarkedAsMissing(MarkProofAsMissingFunction[] markCalls, byte[] slotId)
         {
-            return markCalls.Any(c => c.SlotId.ToHex() == slotId.ToHex() && c.Period == periodNumber);
+            return markCalls.Any(c => c.SlotId.ToHex() == slotId.ToHex());
         }
     }
 

@@ -53,7 +53,7 @@ namespace ArchivistPlugin
         public ProcessRecipe Initialize(ArchivistStartupConfig config)
         {
             args.Clear();
-            
+
             AddArg("--api-port", pc.ApiPort);
             AddArg("--api-bindaddr", "0.0.0.0");
 
@@ -64,7 +64,7 @@ namespace ArchivistPlugin
 
             // This makes the node announce itself to its local IP address.
             AddArg("--nat", $"extip:{pc.LocalIpAddrs.ToStringInvariant()}");
-            
+
             AddArg("--listen-addrs", $"/ip4/0.0.0.0/tcp/{pc.ListenPort}");
 
             if (!string.IsNullOrEmpty(config.BootstrapSpr))

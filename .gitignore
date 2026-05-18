@@ -6,4 +6,4 @@ Tools/AutoClient/datapath
 .editorconfig
 Tools/ArchivistGatewayService/datapath
 Tools/EphemeralClient/volumes
-Tools/ChainStateAPI/docker
+Tools/ContractDataChecker/docker/volumes

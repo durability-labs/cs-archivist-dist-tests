@@ -178,17 +178,17 @@ namespace ArchivistClient
             return mapper.Map(collection);
         }
 
-        public StorageSlot[] GetSlots()
+        public StorageSlotItem[] GetSlots()
         {
-            var collection = OnArchivist(api => api.GetActiveSlotsAsync());
-            return mapper.Map(collection);
+            var slotIds = OnArchivist(api => api.GetActiveSlotsAsync());
+            return mapper.Map(slotIds, id => OnArchivist(api => api.GetActiveSlotByIdAsync(id)));
         }
 
         public StorageSlotItem GetSlot(string slotId)
         {
             var slot = OnArchivist(api => api.GetActiveSlotByIdAsync(slotId));
             if (slot == null) throw new Exception($"Unable to find slot by Id: '{slotId}'");
-            return mapper.Map(slot);
+            return mapper.Map(slot, slotId);
         }
 
         public string RequestStorage(StoragePurchaseRequest request)
@@ -265,18 +265,20 @@ namespace ArchivistClient
                 onFail: f => { },
                 failFast: true);
 
-            var result = httpFactory.CreateHttp(GetHttpId(), h => CheckContainerCrashed()).OnClient(client => CallArchivist(client, action), noRetry);
+            var result = httpFactory.CreateHttp(GetHttpId(), h => CheckArchivistCrashed()).OnClient(client => CallArchivist(client, action), noRetry);
             return result;
         }
 
         private T OnArchivist<T>(Func<ArchivistApiClient, Task<T>> action)
         {
-            var result = httpFactory.CreateHttp(GetHttpId(), h => CheckContainerCrashed()).OnClient(client => CallArchivist(client, action));
+            var result = httpFactory.CreateHttp(GetHttpId(), h => CheckArchivistCrashed()).OnClient(client => CallArchivist(client, action));
             return result;
         }
 
         private T CallArchivist<T>(HttpClient client, Func<ArchivistApiClient, Task<T>> action)
         {
+            CheckArchivistCrashed();
+
             var address = GetAddress();
             var api = new ArchivistApiClient(client);
             api.BaseUrl = $"{address.Host}:{address.Port}/api/archivist/v1";
@@ -291,14 +293,14 @@ namespace ArchivistClient
             }
             finally
             {
-                CheckContainerCrashed();
+                CheckArchivistCrashed();
             }
         }
 
         private IEndpoint GetEndpoint()
         {
             return httpFactory
-                .CreateHttp(GetHttpId(), h => CheckContainerCrashed())
+                .CreateHttp(GetHttpId(), h => CheckArchivistCrashed())
                 .CreateEndpoint(GetAddress(), "/api/archivist/v1/", GetName());
         }
 
@@ -312,9 +314,9 @@ namespace ArchivistClient
             return GetAddress().ToString();
         }
 
-        private void CheckContainerCrashed()
+        private void CheckArchivistCrashed()
         {
-            if (processControl.HasCrashed()) throw new Exception($"Container {GetName()} has crashed.");
+            if (processControl.HasCrashed()) throw new Exception($"Archivist {GetName()} has crashed.");
         }
 
         private void Log(string msg)

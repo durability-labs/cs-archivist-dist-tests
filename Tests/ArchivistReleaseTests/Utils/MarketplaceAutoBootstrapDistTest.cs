@@ -4,6 +4,7 @@ using ArchivistContractsPlugin.ChainMonitor;
 using ArchivistContractsPlugin.Marketplace;
 using ArchivistPlugin;
 using ArchivistTests;
+using FileUtils;
 using GethPlugin;
 using Logging;
 using Nethereum.Hex.HexConvertors.Extensions;
@@ -22,7 +23,11 @@ namespace ArchivistReleaseTests.Utils
         public void SetupMarketplace()
         {
             var geth = StartGethNode(s => s.WithName("geth").IsMiner());
-            var contracts = Ci.StartArchivistContracts(geth, BootstrapNode.Version);
+            var contracts = Ci.StartArchivistContracts(s => {
+                s.WithRpcNode(geth);
+                s.WithVersionInfo(BootstrapNode.Version);
+                OnDeployContracts(s);
+            });
             // Do not use TestRunTimeRange().From to initialize the chain monitor:
             // It'll find its earliest timestamps in the pre-mined blocks in the geth image
             // and completely screw with chain state tracking.
@@ -34,7 +39,7 @@ namespace ArchivistReleaseTests.Utils
         [TearDown]
         public void TearDownMarketplace()
         {
-            if (handle.ChainMonitor != null) handle.ChainMonitor.Stop();
+            if (handle != null && handle.ChainMonitor != null) handle.ChainMonitor.Stop();
         }
 
         protected IGethNode GetGeth()
@@ -102,6 +107,10 @@ namespace ArchivistReleaseTests.Utils
         }
 
         protected virtual void OnPeriod(PeriodReport report)
+        {
+        }
+
+        protected virtual void OnDeployContracts(IArchivistContractsSetup setup)
         {
         }
 
@@ -277,11 +286,19 @@ namespace ArchivistReleaseTests.Utils
 
         protected void AssertNoSlotsFreed(PeriodReport report)
         {
-            foreach (var c in report.FunctionCalls)
-            {
-                Assert.That(c.Name, Is.Not.EqualTo(nameof(FreeSlot1Function)));
-                Assert.That(c.Name, Is.Not.EqualTo(nameof(FreeSlotFunction)));
-            }
+            var calls = report.GetSlotsFreedCalls();
+            Assert.That(calls.Length, Is.EqualTo(0), $"FreeSlot calls: {string.Join(",", calls.Select(c => c.ToString()))}");
+        }
+
+        protected void AssertDataIsAvailable(TrackedFile originalFile, ContentId contentId)
+        {
+            Log("...");
+            var checker = StartArchivist(s => s.WithName("checker"));
+            var received = checker.DownloadContent(contentId);
+            originalFile.AssertIsEqual(received);
+
+            Log("Data is available.");
+            checker.Stop(waitTillStopped: false);
         }
 
         public IArchivistNodeGroup StartClients()
@@ -303,13 +320,20 @@ namespace ArchivistReleaseTests.Utils
 
         public IArchivistNode StartValidator()
         {
-            return StartArchivist(s => s
-                .WithName("validator")
-                .EnableMarketplace(GetGeth(), GetContracts(), m => m
-                    .WithInitial(StartingBalanceEth.Eth(), StartingBalanceTST.Tst())
-                    .AsValidator()
-                )
-            );
+            return StartValidator(s => { });
+        }
+
+        public IArchivistNode StartValidator(Action<IArchivistSetup> additional)
+        {
+            return StartArchivist(s =>
+            {
+                s.WithName("validator")
+                    .EnableMarketplace(GetGeth(), GetContracts(), m => m
+                        .WithInitial(StartingBalanceEth.Eth(), StartingBalanceTST.Tst())
+                        .AsValidator()
+                    );
+                additional(s);
+            });
         }
 
         public bool GetLogPeriodReports()

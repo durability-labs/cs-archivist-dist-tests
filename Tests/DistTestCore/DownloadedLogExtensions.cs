@@ -21,7 +21,7 @@ namespace DistTestCore
                     errors.Add($"Found '{str}' in line '{line}'.");
                 }
             }
-            CollectionAssert.IsEmpty(errors);
+            Assert.That(errors, Is.Empty);
         }
 
         public static void AssertLogDoesNotContainLinesStartingWith(this IDownloadedLog log, params string[] unexpectedStrings)
@@ -37,7 +37,7 @@ namespace DistTestCore
                     }
                 }
             });
-            CollectionAssert.IsEmpty(errors);
+            Assert.That(errors, Is.Empty);
         }
     }
 }

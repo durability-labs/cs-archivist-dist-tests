@@ -112,7 +112,6 @@ namespace FileUtils
 
     public class RandomGenerator : IGenerator
     {
-        private readonly Random random = new Random();
         private readonly ByteSize size;
 
         public RandomGenerator(ByteSize size)
@@ -127,7 +126,7 @@ namespace FileUtils
             {
                 var size = Math.Min(bytesLeft, FileManager.ChunkSize);
                 var bytes = new byte[size];
-                random.NextBytes(bytes);
+                Random.Shared.NextBytes(bytes);
                 file.Write(bytes, 0, bytes.Length);
                 bytesLeft -= size;
             }

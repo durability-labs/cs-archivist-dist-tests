@@ -2,12 +2,13 @@ namespace KubernetesWorkflow.Recipe
 {
     public class ContainerRecipe
     {
-        public ContainerRecipe(DateTime recipeCreatedUtc, int number, string? nameOverride, string image, ContainerResources resources, SchedulingAffinity schedulingAffinity, CommandOverride commandOverride, bool setCriticalPriority, Port[] exposedPorts, Port[] internalPorts, EnvVar[] envVars, PodLabels podLabels, PodAnnotations podAnnotations, VolumeMount[] volumes, ContainerAdditionals additionals)
+        public ContainerRecipe(DateTime recipeCreatedUtc, int number, string? nameOverride, string image, string? imagePullPolicy, ContainerResources resources, SchedulingAffinity schedulingAffinity, CommandOverride commandOverride, bool setCriticalPriority, Port[] exposedPorts, Port[] internalPorts, ContainerEnvVar[] envVars, PodLabels podLabels, PodAnnotations podAnnotations, VolumeMount[] volumes, ContainerAdditionals additionals)
         {
             RecipeCreatedUtc = recipeCreatedUtc;
             Number = number;
             NameOverride = nameOverride;
             Image = image;
+            ImagePullPolicy = imagePullPolicy;
             Resources = resources;
             SchedulingAffinity = schedulingAffinity;
             CommandOverride = commandOverride;
@@ -41,9 +42,10 @@ namespace KubernetesWorkflow.Recipe
         public CommandOverride CommandOverride { get; }
         public bool SetCriticalPriority { get; }
         public string Image { get; }
+        public string? ImagePullPolicy { get; }
         public Port[] ExposedPorts { get; }
         public Port[] InternalPorts { get; }
-        public EnvVar[] EnvVars { get; }
+        public ContainerEnvVar[] EnvVars { get; }
         public PodLabels PodLabels { get; }
         public PodAnnotations PodAnnotations { get; }
         public VolumeMount[] Volumes { get; }
@@ -107,9 +109,9 @@ namespace KubernetesWorkflow.Recipe
         UDP
     }
 
-    public class EnvVar
+    public class ContainerEnvVar
     {
-        public EnvVar(string name, string value)
+        public ContainerEnvVar(string name, string value)
         {
             Name = name;
             Value = value;

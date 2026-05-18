@@ -23,7 +23,9 @@ namespace ArchivistReleaseTests.DataTests
         }
 
         [Test]
-        public void DeletesExpiredData()
+        [Combinatorial]
+        public void DeletesExpiredData(
+            [Values(1, 500)] int uploads)
         {
             var fileSize = 3.MB();
             var node = StartArchivist(s => WithFastBlockExpiry(s));
@@ -31,24 +33,21 @@ namespace ArchivistReleaseTests.DataTests
             var startSpace = node.Space();
             Assert.That(startSpace.QuotaUsedBytes, Is.EqualTo(0));
 
-            node.UploadFile(GenerateTestFile(fileSize));
+            for (var i = 0; i < uploads; i++)
+            {
+                node.UploadFile(GenerateTestFile(fileSize));
+            }
+
+            // This assumes that 3MB files can be uploaded 'uploads' times
+            // within the 'blockTtl' timeout. This should be true, the upload
+            // should be fast enough!
             var usedSpace = node.Space();
             var usedFiles = node.LocalFiles();
             Assert.That(usedSpace.QuotaUsedBytes, Is.GreaterThanOrEqualTo(fileSize.SizeInBytes));
-            Assert.That(usedSpace.FreeBytes, Is.LessThanOrEqualTo(startSpace.FreeBytes - fileSize.SizeInBytes));
-            Assert.That(usedFiles.Content.Length, Is.EqualTo(1));
+            Assert.That(usedSpace.FreeBytes, Is.LessThanOrEqualTo(startSpace.FreeBytes - (uploads * fileSize.SizeInBytes)));
+            Assert.That(usedFiles.Content.Length, Is.EqualTo(uploads));
 
-            Thread.Sleep(blockTtl * 2);
-
-            var cleanupSpace = node.Space();
-            var cleanupFiles = node.LocalFiles();
-
-            Assert.That(cleanupSpace.QuotaUsedBytes, Is.LessThan(usedSpace.QuotaUsedBytes));
-            Assert.That(cleanupSpace.FreeBytes, Is.GreaterThan(usedSpace.FreeBytes));
-            Assert.That(cleanupFiles.Content.Length, Is.EqualTo(0));
-
-            Assert.That(cleanupSpace.QuotaUsedBytes, Is.EqualTo(startSpace.QuotaUsedBytes));
-            Assert.That(cleanupSpace.FreeBytes, Is.EqualTo(startSpace.FreeBytes));
+            WaitAndAssertEmpty(node, usedSpace, startSpace);
         }
 
         [Test]
@@ -58,7 +57,10 @@ namespace ArchivistReleaseTests.DataTests
 
             var bootstrapNode = StartArchivist();
             var geth = StartGethNode(s => s.IsMiner());
-            var contracts = Ci.StartArchivistContracts(geth, bootstrapNode.Version);
+            var contracts = Ci.StartArchivistContracts(s => s
+                .WithRpcNode(geth)
+                .WithVersionInfo(bootstrapNode.Version)
+            );
             var node = StartArchivist(s => WithFastBlockExpiry(s)
                 .EnableMarketplace(geth, contracts, m => m.WithInitial(100.Eth(), 100.Tst()))
             );
@@ -74,17 +76,7 @@ namespace ArchivistReleaseTests.DataTests
             Assert.That(usedSpace.FreeBytes, Is.LessThanOrEqualTo(startSpace.FreeBytes - fileSize.SizeInBytes));
             Assert.That(usedFiles.Content.Length, Is.EqualTo(2));
 
-            Thread.Sleep(blockTtl * 2);
-
-            var cleanupSpace = node.Space();
-            var cleanupFiles = node.LocalFiles();
-
-            Assert.That(cleanupSpace.QuotaUsedBytes, Is.LessThan(usedSpace.QuotaUsedBytes));
-            Assert.That(cleanupSpace.FreeBytes, Is.GreaterThan(usedSpace.FreeBytes));
-            Assert.That(cleanupFiles.Content.Length, Is.EqualTo(0));
-
-            Assert.That(cleanupSpace.QuotaUsedBytes, Is.EqualTo(startSpace.QuotaUsedBytes));
-            Assert.That(cleanupSpace.FreeBytes, Is.EqualTo(startSpace.FreeBytes));
+            WaitAndAssertEmpty(node, usedSpace, startSpace);
         }
 
         [Test]
@@ -92,7 +84,10 @@ namespace ArchivistReleaseTests.DataTests
         {
             var bootstrapNode = StartArchivist(s => s.WithName("Bootstrap"));
             var geth = StartGethNode(s => s.IsMiner());
-            var contracts = Ci.StartArchivistContracts(geth, bootstrapNode.Version);
+            var contracts = Ci.StartArchivistContracts(s => s
+                .WithRpcNode(geth)
+                .WithVersionInfo(bootstrapNode.Version)
+            );
             var client = StartArchivist(s => WithFastBlockExpiry(s)
                 .WithName("client")
                 .WithBootstrapNode(bootstrapNode)
@@ -134,6 +129,21 @@ namespace ArchivistReleaseTests.DataTests
             var checker = StartArchivist(s => s.WithName("checker").WithBootstrapNode(bootstrapNode));
             var manifest = checker.DownloadManifestOnly(storeCid);
             Assert.That(manifest.Manifest.Protected, Is.True);
+        }
+
+        private void WaitAndAssertEmpty(IArchivistNode node, ArchivistSpace usedSpace, ArchivistSpace startSpace)
+        {
+            Thread.Sleep(blockTtl * 2);
+
+            var cleanupSpace = node.Space();
+            var cleanupFiles = node.LocalFiles();
+
+            Assert.That(cleanupSpace.QuotaUsedBytes, Is.LessThan(usedSpace.QuotaUsedBytes));
+            Assert.That(cleanupSpace.FreeBytes, Is.GreaterThan(usedSpace.FreeBytes));
+            Assert.That(cleanupFiles.Content.Length, Is.EqualTo(0));
+
+            Assert.That(cleanupSpace.QuotaUsedBytes, Is.EqualTo(startSpace.QuotaUsedBytes));
+            Assert.That(cleanupSpace.FreeBytes, Is.EqualTo(startSpace.FreeBytes));
         }
     }
 }

@@ -3,6 +3,7 @@ using ArchivistTests;
 using FileUtils;
 using Logging;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using Utils;
 
 namespace ExperimentalTests.DownloadConnectivityTests

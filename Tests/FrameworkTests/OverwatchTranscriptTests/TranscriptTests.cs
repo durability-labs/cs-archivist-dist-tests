@@ -1,6 +1,7 @@
 using Logging;
 using Newtonsoft.Json;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using OverwatchTranscript;
 using System.IO.Compression;
 

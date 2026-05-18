@@ -7,8 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Nethereum.Generators" Version="4.21.4" />
-    <PackageReference Include="Nethereum.Generators.Net" Version="4.21.4" />
+    <PackageReference Include="Nethereum.Generators" Version="6.0.0" />
+    <PackageReference Include="Nethereum.Generators.Net" Version="6.0.0" />
   </ItemGroup>
 
   <ItemGroup>

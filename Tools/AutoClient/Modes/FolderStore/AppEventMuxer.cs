@@ -5,9 +5,10 @@
         void OnFileProcessStarted();
         void OnUploadSuccess();
         void OnUploadFailure();
-        void OnPurchaseSuccess();
-        void OnPurchaseFailure();
-        void OnPurchaseExtended();
+        void OnPurchaseNewSuccess();
+        void OnPurchaseExtendSuccess();
+        void OnPurchaseNewFailure();
+        void OnPurchaseExtendFailure();
     }
 
     public class AppEventMuxer : IAppEventHandler
@@ -24,14 +25,24 @@
             foreach (var h in handlers) h.OnFileProcessStarted();
         }
 
-        public void OnPurchaseFailure()
+        public void OnPurchaseExtendFailure()
         {
-            foreach (var h in handlers) h.OnPurchaseFailure();
+            foreach (var h in handlers) h.OnPurchaseExtendFailure();
         }
 
-        public void OnPurchaseSuccess()
+        public void OnPurchaseExtendSuccess()
         {
-            foreach (var h in handlers) h.OnPurchaseSuccess();
+            foreach (var h in handlers) h.OnPurchaseExtendSuccess();
+        }
+
+        public void OnPurchaseNewFailure()
+        {
+            foreach (var h in handlers) h.OnPurchaseNewFailure();
+        }
+
+        public void OnPurchaseNewSuccess()
+        {
+            foreach (var h in handlers) h.OnPurchaseNewSuccess();
         }
 
         public void OnUploadFailure()
@@ -42,11 +53,6 @@
         public void OnUploadSuccess()
         {
             foreach (var h in handlers) h.OnUploadSuccess();
-        }
-
-        public void OnPurchaseExtended()
-        {
-            foreach (var h in handlers) h.OnPurchaseExtended();
         }
     }
 }

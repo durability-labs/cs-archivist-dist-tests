@@ -31,7 +31,7 @@ namespace ExperimentalTests.BasicTests
             );
 
             var geth = StartGethNode(s => s.IsMiner().WithName("disttest-geth"));
-            var contracts = Ci.StartArchivistContracts(geth, BootstrapNode.Version);
+            var contracts = Ci.StartArchivistContracts(s => s.WithRpcNode(geth).WithVersionInfo(BootstrapNode.Version));
 
             var numberOfHosts = 5;
             var hosts = StartArchivist(numberOfHosts, s => s

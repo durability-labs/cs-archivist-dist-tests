@@ -15,7 +15,7 @@ namespace ArchivistReleaseTests.DataTests
             var unknownCid = new ContentId("zDvZRwzkzHsok3Z8yMoiXE9EDBFwgr8WygB8s4ddcLzzSwwXAxLZ");
 
             var localFiles = node.LocalFiles().Content;
-            CollectionAssert.DoesNotContain(localFiles.Select(f => f.Cid), unknownCid);
+            Assert.That(localFiles.Select(f => f.Cid), Does.Not.Contain(unknownCid));
 
             try
             {

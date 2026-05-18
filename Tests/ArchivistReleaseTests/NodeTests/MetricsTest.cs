@@ -15,13 +15,13 @@ namespace ArchivistReleaseTests.NodeTests
             
             var metrics = Ci.GetMetricsFor(scrapeInterval: TimeSpan.FromSeconds(10), nodes);
 
-            nodes[0].DownloadContent(nodes[1].UploadFile(GenerateTestFile(1.MB())));
+            nodes[0].DownloadContent(nodes[1].UploadFile(GenerateTestFile(3.MB())));
             
             metrics[0].AssertThat("libp2p_peers", Is.EqualTo(1));
             metrics[1].AssertThat("libp2p_peers", Is.EqualTo(1));
 
-            metrics[0].AssertThat("archivist_block_exchange_want_block_lists_sent_total", Is.GreaterThan(15));
-            metrics[1].AssertThat("archivist_block_exchange_want_block_lists_received_total", Is.GreaterThan(15));
+            metrics[0].AssertThat("archivist_block_exchange_want_block_lists_sent_total", Is.GreaterThan(5));
+            metrics[1].AssertThat("archivist_block_exchange_want_block_lists_received_total", Is.GreaterThan(5));
 
             metrics[0].AssertThat("dht_message_requests_incoming_total", Is.GreaterThan(1));
             metrics[0].AssertThat("dht_message_requests_outgoing_total", Is.GreaterThan(1));

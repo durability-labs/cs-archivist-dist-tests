@@ -136,10 +136,10 @@ namespace ArchivistTests
                 {
                     foreach (var node in nodes)
                     {
-                        Assert.That(node.HasCrashed(), Is.False);
+                        Assert.That(node.HasCrashed(), Is.False, $"Node {node.GetName()} has crashed.");
 
                         var info = node.GetDebugInfo();
-                        Assert.That(!string.IsNullOrEmpty(info.Id));
+                        Assert.That(!string.IsNullOrEmpty(info.Id), $"Node {node.GetName()} failed to respond to debug/info call.");
                     }
                 });
         }
@@ -172,7 +172,7 @@ namespace ArchivistTests
             foreach (var node in nodes)
             {
                 var localDatasets = node.LocalFiles();
-                CollectionAssert.Contains(localDatasets.Content.Select(c => c.Cid), cid);
+                Assert.That(localDatasets.Content.Select(c => c.Cid), Has.One.EqualTo(cid));
             }
 
             Log("OK");

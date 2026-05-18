@@ -1,4 +1,3 @@
-using ArchivistClient;
 using ArchivistContractsPlugin.Marketplace;
 using Core;
 using GethPlugin;
@@ -19,15 +18,16 @@ namespace ArchivistContractsPlugin
             this.tools = tools;
         }
 
-        public ArchivistContractsDeployment Deploy(CoreInterface ci, IGethNode gethNode, DebugInfoVersion versionInfo)
+        public ArchivistContractsDeployment Deploy(CoreInterface ci, Action<IArchivistContractsSetup> setupBuilder)
         {
             Log("Starting Archivist SmartContracts container...");
+            var setup = CreateSetup(setupBuilder);
 
             var workflow = tools.CreateWorkflow();
-            var startupConfig = CreateStartupConfig(gethNode);
+            var startupConfig = CreateStartupConfig(setup);
             startupConfig.NameOverride = "archivist-contracts";
 
-            var recipe = new ArchivistContractsContainerRecipe(versionInfo);
+            var recipe = new ArchivistContractsContainerRecipe(setup.InfoVersion);
             Log($"Using image: {recipe.Image}");
 
             var containers = workflow.Start(1, recipe, startupConfig).WaitForOnline();
@@ -40,7 +40,7 @@ namespace ArchivistContractsPlugin
 
             try
             {
-                var result = DeployContract(container, workflow, gethNode);
+                var result = DeployContract(container, workflow, setup);
 
                 workflow.Stop(containers, waitTillStopped: false);
                 watcher.Stop();
@@ -56,12 +56,13 @@ namespace ArchivistContractsPlugin
             }
         }
 
-        public IArchivistContracts Wrap(IGethNode gethNode, ArchivistContractsDeployment deployment, IRequestsCache requestsCache)
+        public IArchivistContracts Wrap(ArchivistContractsDeployment deployment, Action<IArchivistContractsSetup> setupBuilder)
         {
-            return new ArchivistContractsAccess(tools.GetLog(), gethNode, deployment, requestsCache);
+            var setup = CreateSetup(setupBuilder);
+            return new ArchivistContractsAccess(tools.GetLog(), setup.RpcNode, deployment, setup.RequestsCache);
         }
 
-        private ArchivistContractsDeployment DeployContract(RunningContainer container, IStartupWorkflow workflow, IGethNode gethNode)
+        private ArchivistContractsDeployment DeployContract(RunningContainer container, IStartupWorkflow workflow, ArchivistContractsSetup setup)
         {
             Log("Deploying SmartContract...");
             WaitUntil(() =>
@@ -79,7 +80,7 @@ namespace ArchivistContractsPlugin
             if (string.IsNullOrEmpty(bytecode)) throw new Exception("bytecode not received.");
             EnsureCompatbility(abi, bytecode);
 
-            var interaction = new ContractInteractions(tools.GetLog(), gethNode);
+            var interaction = new ContractInteractions(tools.GetLog(), setup.RpcNode);
             var tokenAddress = interaction.GetTokenAddress(marketplaceAddress);
             Log("TokenAddress: " + tokenAddress);
 
@@ -89,12 +90,16 @@ namespace ArchivistContractsPlugin
 
             Log("Synced. Archivist SmartContracts deployed. Getting configuration...");
 
-            var config = GetMarketplaceConfiguration(marketplaceAddress, gethNode);
+            var config = GetMarketplaceConfiguration(marketplaceAddress, setup.RpcNode);
             Log("Got config: " + JsonConvert.SerializeObject(config));
 
             ConfigShouldEqual(config.Proofs.Period, ArchivistContractsContainerRecipe.PeriodSeconds, "Period");
             ConfigShouldEqual(config.Proofs.Timeout, ArchivistContractsContainerRecipe.TimeoutSeconds, "Timeout");
             ConfigShouldEqual(config.Proofs.Downtime, ArchivistContractsContainerRecipe.DowntimeSeconds, "Downtime");
+            if (setup.MaxReservationsOverride.HasValue)
+            {
+                ConfigShouldEqual(config.Reservations.MaxReservations, setup.MaxReservationsOverride.Value, "Max reservations override");
+            }
 
             return new ArchivistContractsDeployment(config, marketplaceAddress, abi);
         }
@@ -127,6 +132,13 @@ namespace ArchivistContractsPlugin
             }
         }
 
+        private ArchivistContractsSetup CreateSetup(Action<IArchivistContractsSetup> createSetup)
+        {
+            var builder = new ArchivistContractsSetupBuilder();
+            createSetup(builder);
+            return builder.Build();
+        }
+
         private void Log(string msg)
         {
             tools.GetLog().Log(msg);
@@ -138,11 +150,10 @@ namespace ArchivistContractsPlugin
             Log($"{msg} {Time.FormatDuration(duration)}");
         }
 
-        private StartupConfig CreateStartupConfig(IGethNode gethNode)
+        private StartupConfig CreateStartupConfig(ArchivistContractsSetup setup)
         {
             var startupConfig = new StartupConfig();
-            var contractsConfig = new ArchivistContractsContainerConfig(gethNode);
-            startupConfig.Add(contractsConfig);
+            startupConfig.Add(setup);
             return startupConfig;
         }
     }

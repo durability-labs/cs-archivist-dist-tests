@@ -4,7 +4,6 @@ using KubernetesWorkflow.Recipe;
 using KubernetesWorkflow.Types;
 using Logging;
 using Utils;
-using EnvVar = KubernetesWorkflow.Recipe.EnvVar;
 
 namespace KubernetesWorkflow
 {
@@ -324,10 +323,7 @@ namespace KubernetesWorkflow
                                 {
                                     new V1NetworkPolicyPort
                                     {
-                                        Port = new IntstrIntOrString
-                                        {
-                                            Value = "53"
-                                        },
+                                        Port = 53, 
                                         Protocol = "UDP"
                                     }
                                 }
@@ -348,18 +344,12 @@ namespace KubernetesWorkflow
                                 {
                                     new V1NetworkPolicyPort
                                     {
-                                        Port = new IntstrIntOrString
-                                        {
-                                            Value = "80"
-                                        },
+                                        Port = 80,
                                         Protocol = "TCP"
                                     },
                                     new V1NetworkPolicyPort
                                     {
-                                        Port = new IntstrIntOrString
-                                        {
-                                            Value = "443"
-                                        },
+                                        Port = 443,
                                         Protocol = "TCP"
                                     }
                                 }
@@ -497,7 +487,18 @@ namespace KubernetesWorkflow
 
         private IDictionary<string, string> GetRunnerNamespaceSelector()
         {
-            return new Dictionary<string, string> { { "kubernetes.io/metadata.name", "default" } };
+            return new Dictionary<string, string> { { "kubernetes.io/metadata.name", GetRunnerNamespace() } };
+        }
+
+        private static string GetRunnerNamespace()
+        {
+            const string saNamespacePath = "/var/run/secrets/kubernetes.io/serviceaccount/namespace";
+            if (File.Exists(saNamespacePath))
+            {
+                var ns = File.ReadAllText(saNamespacePath).Trim();
+                if (!string.IsNullOrEmpty(ns)) return ns;
+            }
+            return "default";
         }
 
         private IDictionary<string, string> GetPrometheusNamespaceSelector()
@@ -532,7 +533,7 @@ namespace KubernetesWorkflow
             {
                 Name = recipe.Name,
                 Image = recipe.Image,
-                ImagePullPolicy = "Always",
+                ImagePullPolicy = recipe.ImagePullPolicy ?? cluster.Configuration.ImagePullPolicy,
                 Ports = CreateContainerPorts(recipe),
                 Env = CreateEnv(recipe),
                 VolumeMounts = CreateContainerVolumeMounts(recipe),
@@ -679,7 +680,7 @@ namespace KubernetesWorkflow
             return recipe.EnvVars.Select(CreateEnvVar).ToList();
         }
 
-        private V1EnvVar CreateEnvVar(EnvVar envVar)
+        private V1EnvVar CreateEnvVar(ContainerEnvVar envVar)
         {
             return new V1EnvVar
             {

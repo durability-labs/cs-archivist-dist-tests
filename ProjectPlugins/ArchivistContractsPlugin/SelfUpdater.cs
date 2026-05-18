@@ -61,22 +61,22 @@ namespace ArchivistContractsPlugin
 
             foreach (var eventAbi in abiModel.Events)
             {
-                var d = new Nethereum.Generators.DTOs.EventDTOGenerator(eventAbi, "namespace", Nethereum.Generators.Core.CodeGenLanguage.CSharp);
+                var d = new Nethereum.Generators.DTOs.EventDTOGenerator(eventAbi, "namespace", "namespace", Nethereum.Generators.Core.CodeGenLanguage.CSharp);
                 lines += d.GenerateClass();
                 lines += "\r\n";
             }
 
             foreach (var errorAbi in abiModel.Errors)
             {
-                var e = new Nethereum.Generators.DTOs.ErrorDTOGenerator(errorAbi, "namespace", Nethereum.Generators.Core.CodeGenLanguage.CSharp);
+                var e = new Nethereum.Generators.DTOs.ErrorDTOGenerator(errorAbi, "namespace", "namespace", Nethereum.Generators.Core.CodeGenLanguage.CSharp);
                 lines += e.GenerateClass();
                 lines += "\r\n";
             }
 
             foreach (var funcAbi in abiModel.Functions)
             {
-                var f = new Nethereum.Generators.DTOs.FunctionOutputDTOGenerator(funcAbi, "namespace", Nethereum.Generators.Core.CodeGenLanguage.CSharp);
-                var ff = new Nethereum.Generators.CQS.FunctionCQSMessageGenerator(funcAbi, "namespace", "funcoutput", Nethereum.Generators.Core.CodeGenLanguage.CSharp);
+                var f = new Nethereum.Generators.DTOs.FunctionOutputDTOGenerator(funcAbi, "namespace", "namespace", Nethereum.Generators.Core.CodeGenLanguage.CSharp);
+                var ff = new Nethereum.Generators.CQS.FunctionCQSMessageGenerator(funcAbi, "namespace", "namespace", "funcoutput", Nethereum.Generators.Core.CodeGenLanguage.CSharp);
                 lines += f.GenerateClass();
                 lines += "\r\n";
                 lines += ff.GenerateClass();

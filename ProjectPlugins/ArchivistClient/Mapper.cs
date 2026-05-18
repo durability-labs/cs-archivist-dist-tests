@@ -87,29 +87,21 @@ namespace ArchivistClient
             );
         }
 
-        public StorageSlot[] Map(ICollection<ArchivistOpenApi.Slot> slots)
+        public StorageSlotItem[] Map(ICollection<string> slotIds, Func<string, ArchivistOpenApi.SalesSlot> lookup)
         {
-            return slots.Select(Map).ToArray(); 
+            return slotIds.Select(id => Map(lookup(id), id)).ToArray(); 
         }
 
-        public StorageSlotItem Map(ArchivistOpenApi.SalesSlot slot)
+        public StorageSlotItem Map(ArchivistOpenApi.SalesSlot slot, string slotId)
         {
             return new StorageSlotItem
             {
+                SlotId = slotId,
                 SlotIndex = slot.SlotIndex,
                 RequestId = slot.RequestId,
                 Request = Map(slot.Request),
                 State = Map(slot.State)
             };
-        }
-
-        public StorageSlot Map(ArchivistOpenApi.Slot slot)
-        {
-            return new StorageSlot(
-                id: slot.Id,
-                slotIndex: slot.SlotIndex,
-                request: Map(slot.Request)
-            );
         }
 
         public StoragePurchase Map(ArchivistOpenApi.Purchase purchase)

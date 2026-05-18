@@ -92,7 +92,12 @@ namespace TraceContract
                 marketplaceAddress: new ContractAddress(network.Marketplace.ContractAddress),
                 abi: network.Marketplace.ABI
             );
-            return ci.WrapArchivistContractsDeployment(geth, deployment, new DiskRequestsCache(Path.Combine(config.DataDir, "requests_cache")));
+            return ci.WrapArchivistContractsDeployment(deployment, s => s
+                .WithRpcNode(geth)
+                .WithRequestsCache(               
+                    new DiskRequestsCache(Path.Combine(config.DataDir, "requests_cache"))
+                )
+            );
         }
 
         private void DownloadStorageNodeLogs(TimeRange requestTimeRange, IPluginTools tools)

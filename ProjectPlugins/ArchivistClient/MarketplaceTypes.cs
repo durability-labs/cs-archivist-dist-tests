@@ -146,28 +146,6 @@ namespace ArchivistClient
         }
     }
 
-    public class StorageSlot
-    {
-        public StorageSlot(string id, StorageRequest request, long slotIndex)
-        {
-            Id = id;
-            Request = request;
-            SlotIndex = slotIndex;
-        }
-        
-        public string Id { get; }
-        public StorageRequest Request { get; }
-        public long SlotIndex { get; }
-
-        public void Log(ILog log)
-        {
-            log.Log($"Storage Slot: (" +
-                $"id: {Id}, " +
-                $"slotIndex: {SlotIndex}, " +
-                $"request: {Request.Id})");
-        }
-    }
-
     public enum StorageSlotState
     {
         Cancelled = 0,
@@ -187,6 +165,7 @@ namespace ArchivistClient
 
     public class StorageSlotItem
     {
+        public string SlotId { get; set; } = string.Empty;
         public long SlotIndex { get; set; }
         public string RequestId { get; set; } = string.Empty;
         public StorageRequest Request { get; set; } = new StorageRequest();
