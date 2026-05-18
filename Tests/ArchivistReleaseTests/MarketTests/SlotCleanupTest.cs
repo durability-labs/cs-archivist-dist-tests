@@ -23,6 +23,7 @@ namespace ArchivistReleaseTests.MarketTests
             var uploadCid = client.UploadFile(GenerateTestFile(DefaultPurchase.UploadFilesize));
             var contract = client.Marketplace.RequestStorage(new StoragePurchaseRequest(uploadCid));
             contract.WaitForStorageContractStarted();
+            var contractManifest = client.DownloadManifestOnly(contract.ContentId);
             client.Stop(waitTillStopped: false);
 
             var fills = GetOnChainSlotFills(hosts);
@@ -42,12 +43,17 @@ namespace ArchivistReleaseTests.MarketTests
             AssertHostsAreEmpty(emptyHosts);
 
             Log("And we check that the slot hosts are holding exactly 1 slot each...");
+
+            var slotBlocks = DefaultPurchase.SlotSize.DivUp(contractManifest.Manifest.BlockSize);
+            Log($"Slot size: {DefaultPurchase.SlotSize} - Block size: {contractManifest.Manifest.BlockSize}");
+            Log($"We expect {slotBlocks} slot blocks + 1 manifest block");
+
             foreach (var h in slotHosts)
             {
                 var hostSlots = h.Marketplace.GetSlots();
                 var space = h.Space();
                 Assert.That(hostSlots.Length, Is.EqualTo(1));
-                Assert.That(space.QuotaUsedBytes, Is.EqualTo(DefaultPurchase.SlotSize.SizeInBytes));
+                Assert.That(space.TotalBlocks, Is.EqualTo(slotBlocks + 1));
             }
 
             Log("Now we wait till the contract is finished. Then all hosts should return to empty.");
