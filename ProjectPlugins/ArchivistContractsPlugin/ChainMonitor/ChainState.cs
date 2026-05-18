@@ -352,6 +352,7 @@ namespace ArchivistContractsPlugin.ChainMonitor
             // this contract is an extend of the previous one.
             return requests.FirstOrDefault(r => 
                 r.Cid == newCid &&
+                r.State == RequestState.Started &&
                 r.FinishedUtc > DateTime.UtcNow
             );
         }
