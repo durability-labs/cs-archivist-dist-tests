@@ -39,6 +39,24 @@
             return true;
         }
 
+        public bool IsFullySet()
+        {
+            for (var i = 0; i < Length; i++)
+            {
+                if (!IsSet(i)) return false;
+            }
+            return true;
+        }
+
+        public bool IsFullyClear()
+        {
+            for (var i = 0; i < Length; i++)
+            {
+                if (IsSet(i)) return false;
+            }
+            return true;
+        }
+
         public void Set(int index)
         {
             if (IsSet(index)) return;

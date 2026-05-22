@@ -142,4 +142,28 @@ namespace ArchivistClient
             return JsonConvert.SerializeObject(this);
         }
     }
+
+    public class DatasetStatus
+    {
+        public ContentId Cid { get; set; } = new ContentId();
+        public DatasetStatusState State { get; set; }
+        public DateTime ExpiryUtc { get; set; }
+        public IndexSet Blocks { get; set; } = new IndexSet();
+
+        public override string ToString()
+        {
+            return $"(Cid:{Cid} State:{State} ExpiryUtc:{ExpiryUtc} Blocks:[{Blocks}])";
+        }
+    }
+
+    public enum DatasetStatusState
+    {
+        Pending,
+        Failure,
+        Storing,
+        Downloading,
+        Repairing,
+        Completed,
+        Deleting,
+    }
 }

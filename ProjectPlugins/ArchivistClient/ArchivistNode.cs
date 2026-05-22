@@ -27,6 +27,7 @@ namespace ArchivistClient
         LocalDataset DownloadManifestOnly(ContentId cid);
         LocalDatasetList LocalFiles();
         ArchivistSpace Space();
+        DatasetStatus GetDatasetStatus(ContentId cid);
         void ConnectToPeer(IArchivistNode node);
         DebugInfoVersion Version { get; }
         IMarketplaceAccess Marketplace { get; }
@@ -263,6 +264,13 @@ namespace ArchivistClient
             var space = archivistAccess.Space();
             Log($"Space: {space}");
             return space;
+        }
+
+        public DatasetStatus GetDatasetStatus(ContentId cid)
+        {
+            var status = archivistAccess.GetDatasetStatus(cid);
+            Log($"DatasetStatus: {status}");
+            return status;
         }
 
         public void ConnectToPeer(IArchivistNode node)

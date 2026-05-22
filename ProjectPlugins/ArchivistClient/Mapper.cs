@@ -46,6 +46,35 @@ namespace ArchivistClient
             };
         }
 
+        public DatasetStatus Map(ArchivistOpenApi.DatasetStatus datasetStatus)
+        {
+            return new DatasetStatus
+            {
+                Cid = new ContentId(datasetStatus.Cid),
+                State = Map(datasetStatus.Status),
+                ExpiryUtc = Time.ToUtcDateTime(datasetStatus.Expiry),
+                Blocks = Map(datasetStatus.Blocks),
+            };
+        }
+
+        private IndexSet Map(string bitmap)
+        {
+            if (!bitmap.StartsWith("0b")) throw new Exception($"Unexpected bitmap format: '{bitmap}'");
+            bitmap = bitmap.Substring(2);
+
+            var result = new IndexSet();
+            var index = 0;
+            foreach (var c in bitmap)
+            {
+                if (c == '1') result[index] = true;
+                else if (c == '0') result[index] = false;
+                else throw new Exception($"Unexpected bitmap format at index {index}: '{bitmap}'");
+                index++;
+            }
+
+            return result;
+        }
+
         public ArchivistOpenApi.SalesAvailability Map(CreateStorageAvailability availability)
         {
             return new ArchivistOpenApi.SalesAvailability
@@ -263,6 +292,29 @@ namespace ArchivistClient
             }
 
             return nodes.Select(Map).ToArray();
+        }
+
+        public DatasetStatusState Map(ArchivistOpenApi.DatasetStatusStatus status)
+        {
+            switch (status)
+            {
+                case ArchivistOpenApi.DatasetStatusStatus.Pending:
+                    return DatasetStatusState.Pending;
+                case ArchivistOpenApi.DatasetStatusStatus.Failure:
+                    return DatasetStatusState.Failure;
+                case ArchivistOpenApi.DatasetStatusStatus.Storing:
+                    return DatasetStatusState.Storing;
+                case ArchivistOpenApi.DatasetStatusStatus.Downloading:
+                    return DatasetStatusState.Downloading;
+                case ArchivistOpenApi.DatasetStatusStatus.Repairing:
+                    return DatasetStatusState.Repairing;
+                case ArchivistOpenApi.DatasetStatusStatus.Completed:
+                    return DatasetStatusState.Completed;
+                case ArchivistOpenApi.DatasetStatusStatus.Deleting:
+                    return DatasetStatusState.Deleting;
+                default:
+                    throw new NotSupportedException();
+            }
         }
 
         private Manifest MapManifest(ArchivistOpenApi.ManifestItem manifest)

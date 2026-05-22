@@ -162,6 +162,11 @@ namespace ArchivistClient
             return mapper.Map(OnArchivist(api => api.ListDataAsync()));
         }
 
+        public DatasetStatus GetDatasetStatus(ContentId cid)
+        {
+            return mapper.Map(OnArchivist(api => api.GetDatasetStatusAsync(cid.Id)));
+        }
+
         public void SalesAvailability(CreateStorageAvailability request)
         {
             var body = mapper.Map(request);
