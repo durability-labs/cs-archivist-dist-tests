@@ -6,8 +6,6 @@ namespace FrameworkTests.Utils
     [TestFixture]
     public class RunLengthEncodingTests
     {
-        private readonly Random random = new Random();
-
         [Test]
         public void EmptySet()
         {

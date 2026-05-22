@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using Utils;
 
 namespace FrameworkTests.Utils
 {
