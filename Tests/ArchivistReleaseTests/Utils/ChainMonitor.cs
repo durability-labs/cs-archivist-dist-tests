@@ -41,6 +41,7 @@ namespace ArchivistReleaseTests.Utils
         public void Stop()
         {
             log.Log("Stopping");
+            Thread.Sleep(updateInterval * 3);
             cts.Cancel();
             worker.Wait();
             log.Log("Slot Report:");
