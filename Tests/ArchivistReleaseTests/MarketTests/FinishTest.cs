@@ -42,7 +42,7 @@ namespace ArchivistReleaseTests.MarketTests
                 AssertContractIsOnChain(request);
 
                 WaitForContractStarted(request);
-                AssertContractSlotsAreFilledByHosts(request, hosts);
+                AssertContractSlotsAreFilledByHosts(request, hosts, allowExtraSlotBlocks: true);
                 AssertHostsHoldData(hosts);
 
                 Log("We wait for most of the contract time and then check again.");

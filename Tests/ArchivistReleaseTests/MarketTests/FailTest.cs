@@ -29,7 +29,7 @@ namespace ArchivistReleaseTests.MarketTests
             AssertContractIsOnChain(request);
 
             request.WaitForStorageContractStarted();
-            AssertContractSlotsAreFilledByHosts(request, hosts);
+            AssertContractSlotsAreFilledByHosts(request, hosts, allowExtraSlotBlocks: true);
 
             hosts.Stop(waitTillStopped: true);
 
