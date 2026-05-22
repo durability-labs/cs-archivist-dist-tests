@@ -152,7 +152,7 @@ namespace ArchivistClient
 
         public override string ToString()
         {
-            return $"(Cid:{Cid} State:{State} ExpiryUtc:{ExpiryUtc} Blocks:[{Blocks}])";
+            return $"(Cid:{Cid} State:{State} ExpiryUtc:{Time.FormatTimestamp(ExpiryUtc)} Blocks:[{Blocks}])";
         }
     }
 

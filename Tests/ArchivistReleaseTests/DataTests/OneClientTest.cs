@@ -45,21 +45,36 @@ namespace ArchivistReleaseTests.DataTests
 
         private void PerformOneClientTest(IArchivistNode primary)
         {
-            var testFile = GenerateTestFile(1.MB());
+            var filesize = 1.MB();
+            var testFile = GenerateTestFile(filesize);
 
             var contentType = "video/mp4";
             var filename = "testFilename";
-            var contentId = primary.UploadFile(testFile, contentType, filename);
+            var cid = primary.UploadFile(testFile, contentType, filename);
 
-            AssertNodesContainFile(contentId, primary);
+            AssertNodesContainFile(cid, primary);
 
-            var manifest = primary.DownloadManifestOnly(contentId).Manifest;
+            var manifest = primary.DownloadManifestOnly(cid).Manifest;
             Assert.That(manifest.Filename, Is.EqualTo(filename));
             Assert.That(manifest.Mimetype, Is.EqualTo(contentType));
 
-            var downloadedFile = primary.DownloadContent(contentId);
-
+            var downloadedFile = primary.DownloadContent(cid);
             testFile.AssertIsEqual(downloadedFile);
+
+            var space = primary.Space();
+            var expectedDataBlocks = (filesize.SizeInBytes / manifest.BlockSize.SizeInBytes);
+            Assert.That(space.QuotaUsedBytes, Is.EqualTo(filesize.SizeInBytes + 83)); // manifest size?
+            Assert.That(space.TotalBlocks, Is.EqualTo(expectedDataBlocks + 1));
+
+            var status = primary.GetDatasetStatus(cid);
+            Assert.Multiple(() =>
+            {
+                Assert.That(status.Cid.Id, Is.EqualTo(cid.Id));
+                Assert.That(status.State, Is.EqualTo(DatasetStatusState.Completed));
+                Assert.That(status.ExpiryUtc, Is.EqualTo(DateTime.UtcNow + TimeSpan.FromHours(24 * 30)).Within(TimeSpan.FromMinutes(30)));
+                Assert.That(status.Blocks.Length, Is.EqualTo(expectedDataBlocks));
+                Assert.That(status.Blocks.IsFullySet());
+            });
         }
     }
 }
