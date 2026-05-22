@@ -19,7 +19,7 @@ namespace ArchivistReleaseTests.MarketTests
             var firstContract = StartFirstContract(client);
 
             // Using the CID of the contract, we can create another one.
-            var secondContract = client.Marketplace.RequestStorage(new StoragePurchaseRequest(firstContract.ContentId));
+            var secondContract = client.Marketplace.RequestStorage(new StoragePurchaseRequest(firstContract.EncodedContentId));
 
             Assert.That(firstContract.PurchaseId, Is.Not.EqualTo(secondContract.PurchaseId));
 
@@ -38,7 +38,7 @@ namespace ArchivistReleaseTests.MarketTests
             var firstContract = StartFirstContract(client);
 
             // We use a different client node to renew the first contract.
-            var secondContract = otherClient.Marketplace.RequestStorage(new StoragePurchaseRequest(firstContract.ContentId));
+            var secondContract = otherClient.Marketplace.RequestStorage(new StoragePurchaseRequest(firstContract.EncodedContentId));
 
             Assert.That(firstContract.PurchaseId, Is.Not.EqualTo(secondContract.PurchaseId));
 

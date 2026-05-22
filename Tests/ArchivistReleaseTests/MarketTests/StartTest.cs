@@ -17,12 +17,11 @@ namespace ArchivistReleaseTests.MarketTests
             var client = clients.Single();
 
             var request = CreateStorageRequest(client);
-
             request.WaitForStorageContractSubmitted();
-            AssertContractIsOnChain(request);
 
+            AssertContractIsOnChain(request);
             WaitForContractStarted(request);
-            AssertContractSlotsAreFilledByHosts(request, hosts);
+            AssertContractSlotsAreFilledByHosts(request, hosts, allowExtraSlotBlocks: true);
         }
 
         private IStoragePurchaseContract CreateStorageRequest(IArchivistNode client)

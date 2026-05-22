@@ -76,7 +76,7 @@ namespace ArchivistReleaseTests.Utils
             // encoded dataset is divided over the nodes.
             // then each slot is rounded up to the nearest power-of-two blocks.
             var numBlocks = EncodedDatasetSize.DivUp(blockSize);
-            var numSlotBlocks = DivUp(numBlocks, Nodes);
+            var numSlotBlocks = Int.DivUp(numBlocks, Nodes);
 
             // Next power of two:
             var numSlotBlocksPow2 = IsOrNextPowerOf2(numSlotBlocks);
@@ -91,7 +91,7 @@ namespace ArchivistReleaseTests.Utils
             var ecM = Tolerance;
 
             // for each K blocks, we generate M parity blocks
-            var numParityBlocks = DivUp(numBlocks, ecK) * ecM;
+            var numParityBlocks = Int.DivUp(numBlocks, ecK) * ecM;
             var totalBlocks = numBlocks + numParityBlocks;
 
             return new ByteSize(blockSize.SizeInBytes * totalBlocks);
@@ -105,19 +105,6 @@ namespace ArchivistReleaseTests.Utils
         private TestToken CalculatePaymentPerSlot()
         {
             return PricePerByteSecond * SlotSize.SizeInBytes * Convert.ToInt64(Duration.TotalSeconds);
-        }
-
-        private int DivUp(int num, int over)
-        {
-            var result = 0;
-            var remain = num;
-            while (remain > over)
-            {
-                remain -= over;
-                result++;
-            }
-            if (remain > 0) result++;
-            return result;
         }
 
         private int IsOrNextPowerOf2(int n)

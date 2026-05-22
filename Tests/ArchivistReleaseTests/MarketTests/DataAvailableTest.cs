@@ -28,7 +28,7 @@ namespace ArchivistReleaseTests.MarketTests
             });
 
             request.WaitForStorageContractStarted();
-            var storedCid = request.ContentId;
+            var storedCid = request.EncodedContentId;
             var finishUtc = request.GetExpectedFinishUtc() - TimeSpan.FromMinutes(1.0);
             client.Stop(waitTillStopped: true);
 

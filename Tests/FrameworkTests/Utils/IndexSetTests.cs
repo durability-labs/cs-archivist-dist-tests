@@ -67,5 +67,15 @@ namespace FrameworkTests.Utils
 
             Assert.That(set.Length, Is.EqualTo(11));
         }
+
+        [Test]
+        public void Includes()
+        {
+            var setA = new IndexSet([0, 1, 2, 3, 4, 5, 6, 7]);
+            var setB = new IndexSet([2, 3, 5]);
+
+            Assert.That(setA.Includes(setB), Is.True);
+            Assert.That(setB.Includes(setA), Is.False);
+        }
     }
 }

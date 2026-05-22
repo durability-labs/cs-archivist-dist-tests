@@ -19,7 +19,7 @@ namespace ArchivistReleaseTests.DataTests
             var file = GenerateTestFile(10.MB());
             var bCid = clients[0].UploadFile(file);
             var request = clients[0].Marketplace.RequestStorage(new StoragePurchaseRequest(bCid));
-            var eCid = request.ContentId;
+            var eCid = request.EncodedContentId;
 
             Assert.That(bCid.Id, Is.Not.EqualTo(eCid.Id));
 
@@ -58,7 +58,7 @@ namespace ArchivistReleaseTests.DataTests
 
             // What happens when we request storage for it?
             var request = clients[0].Marketplace.RequestStorage(new StoragePurchaseRequest(bCid));
-            var eCid = request.ContentId;
+            var eCid = request.EncodedContentId;
 
             Assert.That(bCid.Id, Is.Not.EqualTo(eCid.Id));
 

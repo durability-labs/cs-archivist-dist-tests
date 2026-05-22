@@ -354,6 +354,28 @@ namespace ArchivistReleaseTests.Utils
                 .ToArray();
         }
 
+        public SlotFill[] KeepOnlyRecent(SlotFill[] fills)
+        {
+            // It's possible multiple fills exist for the same slot.
+            // (there was a free and then a repair)
+            // keep only the most recent fills per slot.
+
+            var map = new Dictionary<ulong, SlotFill>();
+            foreach (var f in fills)
+            {
+                var slotIndex = f.SlotFilledEvent.SlotIndex;
+                if (!map.ContainsKey(slotIndex)) map.Add(slotIndex, f);
+                else
+                {
+                    if (map[slotIndex].SlotFilledEvent.Block.Utc < f.SlotFilledEvent.Block.Utc)
+                    {
+                        map[slotIndex] = f;
+                    }
+                }
+            }
+            return map.Values.ToArray();
+        }
+
         public SlotFill[] GetOnChainSlotFills(IEnumerable<IArchivistNode> possibleHosts)
         {
             var events = GetContracts().GetEvents(GetTestRunTimeRange());
@@ -535,30 +557,55 @@ namespace ArchivistReleaseTests.Utils
             return cost.TstWei();
         }
 
-        protected void AssertContractSlotsAreFilledByHosts(IStoragePurchaseContract contract, IArchivistNodeGroup hosts)
+        protected void AssertContractSlotsAreFilledByHosts(IStoragePurchaseContract contract, IArchivistNodeGroup hosts, bool allowExtraSlotBlocks = false)
         {
-            var activeHosts = new Dictionary<int, SlotFill>();
-
+            var fills = Array.Empty<SlotFill>();
             Time.Retry(() =>
             {
-                var fills = GetOnChainSlotFills(hosts, contract.PurchaseId);
-                foreach (var fill in fills)
-                {
-                    var index = (int)fill.SlotFilledEvent.SlotIndex;
-                    if (!activeHosts.ContainsKey(index))
-                    {
-                        activeHosts.Add(index, fill);
-                    }
-                }
-
-                if (activeHosts.Count != contract.Purchase.MinRequiredNumberOfNodes) throw new Exception("Not all slots were filled...");
-
+                fills = GetOnChainSlotFills(hosts, contract.PurchaseId);
+                fills = KeepOnlyRecent(fills);
+                if (fills.Length != contract.Purchase.MinRequiredNumberOfNodes) throw new Exception("Not all slots were filled...");
             }, nameof(AssertContractSlotsAreFilledByHosts));
+
+            foreach (var f in fills)
+            {
+                AssertHostHoldsSlot(f, contract, allowExtraSlotBlocks);
+            }
+        }
+
+        private void AssertHostHoldsSlot(SlotFill f, IStoragePurchaseContract contract, bool allowExtras)
+        {
+            var manifest = f.Host.DownloadManifestOnly(contract.EncodedContentId);
+
+            var expectedBlocks = CalculateSlotBlockIndices(
+                blocksInDataset: manifest.Manifest.NumBlocks,
+                numHosts: contract.Purchase.MinRequiredNumberOfNodes,
+                slotIndex: (int)f.SlotFilledEvent.SlotIndex
+            );
+
+            AssertNodeHoldsDatasetBlocks(f.Host, contract.EncodedContentId, expectedBlocks, allowExtras);
+        }
+
+        private IndexSet CalculateSlotBlockIndices(int blocksInDataset, int numHosts, int slotIndex)
+        {
+            if (slotIndex >= numHosts) throw new Exception("What?");
+            var indexSet = new IndexSet();
+
+            var numSlotBlocks = Int.DivUp(blocksInDataset, numHosts);
+
+            var i = slotIndex * numSlotBlocks;
+            while (i < ((slotIndex + 1) * numSlotBlocks))
+            {
+                indexSet.Set(i);
+                i++;
+            }
+            Log($"For slotindex {slotIndex} of {blocksInDataset} blocks over {numHosts} hosts, expected: {indexSet}");
+            return indexSet;
         }
 
         protected void AssertContractIsOnChain(IStoragePurchaseContract contract)
         {
-            // Check the creation event.
+            Log("Check the creation event");
             AssertOnChainEvents(events =>
             {
                 var onChainRequests = events.GetEvents<StorageRequestedEventDTO>();
@@ -566,7 +613,7 @@ namespace ArchivistReleaseTests.Utils
                 throw new Exception($"OnChain request {contract.PurchaseId} not found...");
             }, nameof(AssertContractIsOnChain));
 
-            // Check that the getRequest call returns it.
+            Log("Check that the getRequest call returns it");
             var rid = contract.PurchaseId.HexToByteArray();
             var cachedRequest = GetContracts().GetRequest(rid);
             if (cachedRequest == null) throw new Exception($"Failed to get Request from {nameof(GetRequestFunction)}");

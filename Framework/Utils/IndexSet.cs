@@ -225,6 +225,17 @@
             return result;
         }
 
+        public bool Includes(IndexSet other)
+        {
+            var result = true;
+            other.Iterate(i =>
+            {
+                if (!IsSet(i)) result = false;
+            });
+
+            return result;
+        }
+
         public override bool Equals(object? obj)
         {
             if (obj is IndexSet set)

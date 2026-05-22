@@ -23,7 +23,7 @@ namespace ArchivistReleaseTests.MarketTests
             var uploadCid = client.UploadFile(GenerateTestFile(DefaultPurchase.UploadFilesize));
             var contract = client.Marketplace.RequestStorage(new StoragePurchaseRequest(uploadCid));
             contract.WaitForStorageContractStarted();
-            var contractManifest = client.DownloadManifestOnly(contract.ContentId);
+            var contractManifest = client.DownloadManifestOnly(contract.EncodedContentId);
             client.Stop(waitTillStopped: false);
 
             var fills = GetOnChainSlotFills(hosts);

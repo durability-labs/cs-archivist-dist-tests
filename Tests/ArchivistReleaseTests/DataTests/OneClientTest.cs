@@ -62,9 +62,8 @@ namespace ArchivistReleaseTests.DataTests
             testFile.AssertIsEqual(downloadedFile);
 
             var space = primary.Space();
-            var expectedDataBlocks = (filesize.SizeInBytes / manifest.BlockSize.SizeInBytes);
             Assert.That(space.QuotaUsedBytes, Is.EqualTo(filesize.SizeInBytes + 83)); // manifest size?
-            Assert.That(space.TotalBlocks, Is.EqualTo(expectedDataBlocks + 1));
+            Assert.That(space.TotalBlocks, Is.EqualTo(manifest.NumBlocks + 1));
 
             var status = primary.GetDatasetStatus(cid);
             Assert.Multiple(() =>
@@ -72,7 +71,7 @@ namespace ArchivistReleaseTests.DataTests
                 Assert.That(status.Cid.Id, Is.EqualTo(cid.Id));
                 Assert.That(status.State, Is.EqualTo(DatasetStatusState.Completed));
                 Assert.That(status.ExpiryUtc, Is.EqualTo(DateTime.UtcNow + TimeSpan.FromHours(24 * 30)).Within(TimeSpan.FromMinutes(30)));
-                Assert.That(status.Blocks.Length, Is.EqualTo(expectedDataBlocks));
+                Assert.That(status.Blocks.Length, Is.EqualTo(manifest.NumBlocks));
                 Assert.That(status.Blocks.IsFullySet());
             });
         }

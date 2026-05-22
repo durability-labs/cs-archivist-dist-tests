@@ -118,7 +118,7 @@ namespace ArchivistReleaseTests.DataTests
             });
             request.WaitForStorageContractSubmitted();
             request.WaitForStorageContractStarted();
-            var storeCid = request.ContentId;
+            var storeCid = request.EncodedContentId;
 
             var clientManifest = client.DownloadManifestOnly(storeCid);
             Assert.That(clientManifest.Manifest.Protected, Is.True);

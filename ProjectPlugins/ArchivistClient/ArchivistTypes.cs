@@ -76,6 +76,8 @@ namespace ArchivistClient
         public bool Protected { get; set; }
         public string Filename { get; set; } = string.Empty;
         public string Mimetype { get; set; } = string.Empty;
+
+        public int NumBlocks => DatasetSize.DivUp(BlockSize);
     }
 
     public class SalesRequestStorageRequest

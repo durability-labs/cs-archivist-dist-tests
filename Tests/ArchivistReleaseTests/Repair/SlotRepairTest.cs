@@ -116,7 +116,7 @@ namespace ArchivistReleaseTests.Repair
 
             WaitForSlotFreedEvents(eventStartUtc, contract, selectedSlots);
             WaitForNewSlotFilledEvents(eventStartUtc, contract, selectedSlots);
-            AssertDataIsAvailable(originalFile, contract.ContentId);
+            AssertDataIsAvailable(originalFile, contract.EncodedContentId);
         }
 
         private SlotFill[] SelectOldestSlotFills(List<IArchivistNode> hosts, int numHostsPerFailure)

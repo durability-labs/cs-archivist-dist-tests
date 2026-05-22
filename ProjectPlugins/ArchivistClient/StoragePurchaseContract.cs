@@ -9,7 +9,7 @@ namespace ArchivistClient
     {
         string PurchaseId { get; }
         StoragePurchaseRequest Purchase { get; }
-        ContentId ContentId { get; }
+        ContentId EncodedContentId { get; }
         DateTime GetExpectedFinishUtc();
         StoragePurchase? GetStatus();
         void WaitForStorageContractSubmitted();
@@ -49,7 +49,7 @@ namespace ArchivistClient
 
         public string PurchaseId { get; }
         public StoragePurchaseRequest Purchase { get; }
-        public ContentId ContentId
+        public ContentId EncodedContentId
         {
             get
             {
@@ -204,7 +204,7 @@ namespace ArchivistClient
         private void LogEncodedCid()
         {
             // This ensures the encoded CID is fetched. Client node may go offline later.
-            Log($"Encoded CID: '{ContentId}'");
+            Log($"Encoded CID: '{EncodedContentId}'");
         }
 
         private void LogStartedDuration()

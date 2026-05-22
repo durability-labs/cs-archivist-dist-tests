@@ -178,6 +178,27 @@ namespace ArchivistTests
             Log("OK");
         }
 
+        public void AssertNodeHoldsDatasetBlocks(IArchivistNode node, ContentId cid, IndexSet expectedIndices, bool allowExtras = false)
+        {
+            var actual = node.GetDatasetStatus(cid);
+
+            Log($"Expected: {expectedIndices} (allowExtras: {allowExtras})");
+            Log($"Actual: {actual.Blocks}");
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(actual.State, Is.EqualTo(DatasetStatusState.Completed));
+                if (allowExtras)
+                {
+                    Assert.That(actual.Blocks.Includes(expectedIndices));
+                }
+                else
+                {
+                    Assert.That(actual.Blocks, Is.EqualTo(expectedIndices));
+                }
+            });
+        }
+
         private string GetBasicNodeStatus(IArchivistNode node)
         {
             return JsonConvert.SerializeObject(node.GetDebugInfo(), Formatting.Indented) + Environment.NewLine +

@@ -146,7 +146,7 @@ namespace AutoClient.Modes.FolderStore
                 request.WaitForStorageContractSubmitted();
                 request.WaitForStorageContractStarted();
 
-                entry.EncodedCid = request.ContentId.Id;
+                entry.EncodedCid = request.EncodedContentId.Id;
                 entry.PurchaseNodes = request.Purchase.MinRequiredNumberOfNodes;
                 entry.PurchaseTolerance = request.Purchase.NodeFailureTolerance;
                 entry.PurchaseFinishedUtc = DateTime.UtcNow + request.Purchase.Duration;

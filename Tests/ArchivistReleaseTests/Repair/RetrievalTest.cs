@@ -55,7 +55,7 @@ namespace ArchivistReleaseTests.Repair
 
             var contract = CreateStorageRequest(client);
             contract.WaitForStorageContractStarted();
-            var contractCid = contract.ContentId;
+            var contractCid = contract.EncodedContentId;
             client.Stop(waitTillStopped: true);
 
             var fills = GetOnChainSlotFills(hosts).ToArray();
