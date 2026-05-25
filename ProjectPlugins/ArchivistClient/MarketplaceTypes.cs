@@ -3,44 +3,30 @@ using Utils;
 
 namespace ArchivistClient
 {
-    public static class DefaultStoragePurchase
-    {
-        public static ByteSize UploadFileSize => 32.MB();
-        public static TestToken PricePerBytePerSecond => 1000.TstWei();
-        public static TestToken CollateralPerByte => 1.TstWei();
-        public static int MinRequiredNumberOfNodes => 4;
-        public static int NodeFailureTolerance => 2;
-        public static int ProofProbability => 20;
-        public static TimeSpan Duration => TimeSpan.FromMinutes(20.0);
-        public static TimeSpan Expiry => TimeSpan.FromMinutes(10.0);
-    }
-
     public class StoragePurchaseRequest
     {
         public StoragePurchaseRequest(ContentId cid)
+            : this(cid, PurchaseParams.Default)
         {
-            ContentId = cid;
         }
 
-        public ContentId ContentId { get; }
-        public TestToken PricePerBytePerSecond { get; set; } = DefaultStoragePurchase.PricePerBytePerSecond;
-        public TestToken CollateralPerByte { get; set; } = DefaultStoragePurchase.CollateralPerByte;
-        public int MinRequiredNumberOfNodes { get; set; } = DefaultStoragePurchase.MinRequiredNumberOfNodes;
-        public int NodeFailureTolerance { get; set; } = DefaultStoragePurchase.NodeFailureTolerance;
-        public int ProofProbability { get; set; } = DefaultStoragePurchase.ProofProbability;
-        public TimeSpan Duration { get; set; } = DefaultStoragePurchase.Duration;
-        public TimeSpan Expiry { get; set; } = DefaultStoragePurchase.Expiry;
+        public StoragePurchaseRequest(ContentId cid, Func<PurchaseParams, PurchaseParams> decorator)
+            : this(cid, decorator(PurchaseParams.Default))
+        {
+        }
+
+        public StoragePurchaseRequest(ContentId cid, PurchaseParams purchaseParams)
+        {
+            Cid = cid;
+            PurchaseParams = purchaseParams.WithUploadFilesize(cid.KnownFilesize);
+        }
+
+        public ContentId Cid { get; }
+        public PurchaseParams PurchaseParams { get; }
 
         public void Log(ILog log)
         {
-            log.Log($"Requesting storage for: {ContentId.Id}... (" +
-                $"pricePerBytePerSecond: {PricePerBytePerSecond}, " +
-                $"collateralPerByte: {CollateralPerByte}, " +
-                $"minRequiredNumberOfNodes: {MinRequiredNumberOfNodes}, " +
-                $"nodeFailureTolerance: {NodeFailureTolerance}, " +
-                $"proofProbability: {ProofProbability}, " +
-                $"expiry: {Time.FormatDuration(Expiry)}, " +
-                $"duration: {Time.FormatDuration(Duration)})");
+            log.Log($"Requesting storage for: {Cid.Id} {PurchaseParams}");
         }
     }
 
@@ -92,8 +78,6 @@ namespace ArchivistClient
     public class StorageContent
     {
         public string Cid { get; set; } = string.Empty;
-        //public ErasureParameters Erasure { get; set; }
-        //public PoRParameters Por { get; set; }
     }
 
     public class CreateStorageAvailability

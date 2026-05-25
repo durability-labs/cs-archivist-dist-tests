@@ -99,23 +99,21 @@ namespace ArchivistReleaseTests.DataTests
                 .WithBootstrapNode(bootstrapNode)
                 .EnableMarketplace(geth, contracts, m => m.AsStorageNode().WithInitial(100.Eth(), 100.Tst()))
             );
-            foreach (var host in hosts) host.Marketplace.MakeStorageAvailable(new ArchivistClient.CreateStorageAvailability(
+            foreach (var host in hosts) host.Marketplace.MakeStorageAvailable(new CreateStorageAvailability(
                 maxDuration: TimeSpan.FromDays(2.0),
                 untilUtc: DateTime.UtcNow + TimeSpan.FromDays(30.0),
                 minPricePerBytePerSecond: 1.TstWei(),
                 maxCollateralPerByte: 10.Tst()));
 
             var uploadCid = client.UploadFile(GenerateTestFile(5.MB()));
-            var request = client.Marketplace.RequestStorage(new ArchivistClient.StoragePurchaseRequest(uploadCid)
-            {
-                CollateralPerByte = 1.TstWei(),
-                Duration = TimeSpan.FromDays(1.0),
-                Expiry = TimeSpan.FromHours(1.0),
-                MinRequiredNumberOfNodes = 3,
-                NodeFailureTolerance = 1,
-                PricePerBytePerSecond = 10.TstWei(),
-                ProofProbability = 99999
-            });
+            var request = client.Marketplace.RequestStorage(new StoragePurchaseRequest(uploadCid, p => p
+                .WithDuration(TimeSpan.FromDays(1.0))
+                .WithExpiry(TimeSpan.FromHours(1.0))
+                .WithNodes(3)
+                .WithTolerance(1)
+                .WithPricePerByteSecond(10.TstWei())
+                .WithProofProbability(99999)
+            ));
             request.WaitForStorageContractSubmitted();
             request.WaitForStorageContractStarted();
             var storeCid = request.EncodedContentId;

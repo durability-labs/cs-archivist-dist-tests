@@ -45,32 +45,30 @@ namespace AutoClient
         public IStoragePurchaseContract RequestStorage(ContentId cid)
         {
             var durability = GetDurabilityValues();
-            var result = node.Marketplace.RequestStorage(new StoragePurchaseRequest(cid)
-            {
-                CollateralPerByte = app.Config.CollateralPerByte.TstWei(),
-                Duration = GetDuration(),
-                Expiry = TimeSpan.FromMinutes(app.Config.ContractExpiryMinutes),
-                MinRequiredNumberOfNodes = durability.Nodes,
-                NodeFailureTolerance = durability.Tolerance,
-                PricePerBytePerSecond = GetPricePerBytePerSecond(),
-                ProofProbability = durability.ProofProbability
-            });
+            var result = node.Marketplace.RequestStorage(new StoragePurchaseRequest(cid, p => p
+                .WithCollateralPerByte(app.Config.CollateralPerByte.TstWei())
+                .WithDuration(GetDuration())
+                .WithExpiry(TimeSpan.FromMinutes(app.Config.ContractExpiryMinutes))
+                .WithNodes(durability.Nodes)
+                .WithTolerance(durability.Tolerance)
+                .WithPricePerByteSecond(GetPricePerBytePerSecond())
+                .WithProofProbability(durability.ProofProbability)
+            ));
             return result;
         }
 
         public IStoragePurchaseContract ExtendStorage(ContentId cid, int nodes, int tolerance)
         {
             var durability = GetDurabilityValues();
-            var result = node.Marketplace.RequestStorage(new StoragePurchaseRequest(cid)
-            {
-                CollateralPerByte = app.Config.CollateralPerByte.TstWei(),
-                Duration = GetDuration(),
-                Expiry = TimeSpan.FromMinutes(app.Config.ContractExpiryMinutes),
-                MinRequiredNumberOfNodes = nodes,
-                NodeFailureTolerance = tolerance,
-                PricePerBytePerSecond = GetPricePerBytePerSecond(),
-                ProofProbability = durability.ProofProbability
-            });
+            var result = node.Marketplace.RequestStorage(new StoragePurchaseRequest(cid, p => p
+                .WithCollateralPerByte(app.Config.CollateralPerByte.TstWei())
+                .WithDuration(GetDuration())
+                .WithExpiry(TimeSpan.FromMinutes(app.Config.ContractExpiryMinutes))
+                .WithNodes(nodes)
+                .WithTolerance(tolerance)
+                .WithPricePerByteSecond(GetPricePerBytePerSecond())
+                .WithProofProbability(durability.ProofProbability)
+            ));
             return result;
         }
 

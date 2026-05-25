@@ -72,16 +72,7 @@ namespace ArchivistReleaseTests.Utils
         protected virtual bool MonitorChainState { get; } = true;
         protected virtual bool MonitorProofPeriods { get; } = true;
         protected virtual bool LogPeriodReports { get; } = false;
-
-        protected PurchaseParams DefaultPurchase { get; } = new PurchaseParams(
-            nodes: DefaultStoragePurchase.MinRequiredNumberOfNodes,
-            tolerance: DefaultStoragePurchase.NodeFailureTolerance,
-            duration: DefaultStoragePurchase.Duration,
-            uploadFilesize: DefaultStoragePurchase.UploadFileSize,
-            pricePerByteSecond: DefaultStoragePurchase.PricePerBytePerSecond,
-            collateralPerByte: DefaultStoragePurchase.CollateralPerByte
-        );
-
+        
         protected TestToken DefaultAvailabilityMaxCollateralPerByte => 999999.Tst();
 
         protected virtual TimeSpan HostBlockTTL
@@ -406,7 +397,7 @@ namespace ArchivistReleaseTests.Utils
         {
             var fills = GetOnChainSlotFills(hosts);
             var submitUtc = GetContractOnChainSubmittedUtc(contract);
-            var finishUtc = submitUtc + contract.Purchase.Duration;
+            var finishUtc = submitUtc + contract.Purchase.PurchaseParams.Duration;
             var slotSize = Convert.ToInt64(contract.GetStatus()!.Request.Ask.SlotSize).Bytes();
             var expectedBalances = new Dictionary<EthAddress, TestToken>();
 
@@ -524,7 +515,7 @@ namespace ArchivistReleaseTests.Utils
             var fills = GetOnChainSlotFills(hosts);
             var result = 0.Tst();
             var submitUtc = GetContractOnChainSubmittedUtc(contract);
-            var finishUtc = submitUtc + contract.Purchase.Duration;
+            var finishUtc = submitUtc + contract.Purchase.PurchaseParams.Duration;
             var slotSize = Convert.ToInt64(contract.GetStatus()!.Request.Ask.SlotSize).Bytes();
 
             foreach (var fill in fills)
@@ -564,7 +555,7 @@ namespace ArchivistReleaseTests.Utils
             {
                 fills = GetOnChainSlotFills(hosts, contract.PurchaseId);
                 fills = KeepOnlyRecent(fills);
-                if (fills.Length != contract.Purchase.MinRequiredNumberOfNodes) throw new Exception("Not all slots were filled...");
+                if (fills.Length != contract.Purchase.PurchaseParams.Nodes) throw new Exception("Not all slots were filled...");
             }, nameof(AssertContractSlotsAreFilledByHosts));
 
             foreach (var f in fills)
@@ -573,20 +564,26 @@ namespace ArchivistReleaseTests.Utils
             }
         }
 
-        private void AssertHostHoldsSlot(SlotFill f, IStoragePurchaseContract contract, bool allowExtras)
+        protected void AssertHostHoldsSlot(SlotFill f, IStoragePurchaseContract contract, bool allowExtras)
         {
-            var manifest = f.Host.DownloadManifestOnly(contract.EncodedContentId);
+            var slots = f.Host.Marketplace.GetSlots();
+            var space = f.Host.Space();
 
+            Assert.That(slots.Count, Is.GreaterThanOrEqualTo(1));
+            Assert.That(slots.Any(s => s.SlotIndex == (long)f.SlotFilledEvent.SlotIndex), Is.True);
+            Assert.That(space.QuotaUsedBytes, Is.GreaterThanOrEqualTo(contract.Purchase.PurchaseParams.SlotSize.SizeInBytes));
+
+            var manifest = f.Host.DownloadManifestOnly(contract.EncodedContentId);
             var expectedBlocks = CalculateSlotBlockIndices(
                 blocksInDataset: manifest.Manifest.NumBlocks,
-                numHosts: contract.Purchase.MinRequiredNumberOfNodes,
+                numHosts: contract.Purchase.PurchaseParams.Nodes,
                 slotIndex: (int)f.SlotFilledEvent.SlotIndex
             );
 
             AssertNodeHoldsDatasetBlocks(f.Host, contract.EncodedContentId, expectedBlocks, allowExtras);
         }
 
-        private IndexSet CalculateSlotBlockIndices(int blocksInDataset, int numHosts, int slotIndex)
+        protected IndexSet CalculateSlotBlockIndices(int blocksInDataset, int numHosts, int slotIndex)
         {
             if (slotIndex >= numHosts) throw new Exception("What?");
             var indexSet = new IndexSet();
@@ -618,9 +615,9 @@ namespace ArchivistReleaseTests.Utils
             var cachedRequest = GetContracts().GetRequest(rid);
             if (cachedRequest == null) throw new Exception($"Failed to get Request from {nameof(GetRequestFunction)}");
             var r = cachedRequest.Request;
-            Assert.That(r.Ask.Duration, Is.EqualTo(contract.Purchase.Duration.TotalSeconds));
-            Assert.That(r.Ask.Slots, Is.EqualTo(contract.Purchase.MinRequiredNumberOfNodes));
-            Assert.That(((int)r.Ask.ProofProbability), Is.EqualTo(contract.Purchase.ProofProbability));
+            Assert.That(r.Ask.Duration, Is.EqualTo(contract.Purchase.PurchaseParams.Duration.TotalSeconds));
+            Assert.That(r.Ask.Slots, Is.EqualTo(contract.Purchase.PurchaseParams.Nodes));
+            Assert.That(((int)r.Ask.ProofProbability), Is.EqualTo(contract.Purchase.PurchaseParams.ProofProbability));
         }
 
         protected void AssertOnChainEvents(Action<IArchivistContractsEvents> onEvents, string description)

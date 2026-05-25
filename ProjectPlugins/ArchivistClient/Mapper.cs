@@ -39,18 +39,19 @@ namespace ArchivistClient
 
         public LocalDataset Map(ArchivistOpenApi.DataItem dataItem)
         {
+            var manifest = MapManifest(dataItem.Manifest);
             return new LocalDataset
             {
-                Cid = new ContentId(dataItem.Cid),
-                Manifest = MapManifest(dataItem.Manifest)
+                Cid = new ContentId(dataItem.Cid, manifest.DatasetSize),
+                Manifest = manifest
             };
         }
 
-        public DatasetStatus Map(ArchivistOpenApi.DatasetStatus datasetStatus)
+        public DatasetStatus Map(ArchivistOpenApi.DatasetStatus datasetStatus, ContentId sourceCid)
         {
             return new DatasetStatus
             {
-                Cid = new ContentId(datasetStatus.Cid),
+                Cid = new ContentId(datasetStatus.Cid, sourceCid.KnownFilesize),
                 State = Map(datasetStatus.Status),
                 ExpiryUtc = Time.ToUtcDateTime(datasetStatus.Expiry),
                 Blocks = Map(datasetStatus.Blocks),
@@ -90,13 +91,13 @@ namespace ArchivistClient
         {
             return new ArchivistOpenApi.StorageRequestCreation
             {
-                Duration = ToLong(purchase.Duration.TotalSeconds),
-                ProofProbability = ToDecInt(purchase.ProofProbability),
-                PricePerBytePerSecond = ToDecInt(purchase.PricePerBytePerSecond),
-                CollateralPerByte = ToDecInt(purchase.CollateralPerByte),
-                Expiry = ToLong(purchase.Expiry.TotalSeconds),
-                Nodes = Convert.ToInt32(purchase.MinRequiredNumberOfNodes),
-                Tolerance = Convert.ToInt32(purchase.NodeFailureTolerance)
+                Duration = ToLong(purchase.PurchaseParams.Duration.TotalSeconds),
+                ProofProbability = ToDecInt(purchase.PurchaseParams.ProofProbability),
+                PricePerBytePerSecond = ToDecInt(purchase.PurchaseParams.PricePerByteSecond),
+                CollateralPerByte = ToDecInt(purchase.PurchaseParams.CollateralPerByte),
+                Expiry = ToLong(purchase.PurchaseParams.Expiry.TotalSeconds),
+                Nodes = Convert.ToInt32(purchase.PurchaseParams.Nodes),
+                Tolerance = Convert.ToInt32(purchase.PurchaseParams.Tolerance)
             };
         }
 

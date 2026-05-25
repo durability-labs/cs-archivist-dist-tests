@@ -29,8 +29,8 @@ namespace ArchivistClient
         public IStoragePurchaseContract RequestStorage(StoragePurchaseRequest purchase)
         {
             purchase.Log(log);
-            if (purchase.Expiry < TimeSpan.FromMinutes(6.0)) throw new Exception($"Expiry should be at least 6 minutes. Was: {Time.FormatDuration(purchase.Expiry)}");
-            if (purchase.Duration < purchase.Expiry) throw new Exception($"Duration must be larger than expiry. Duration: {Time.FormatDuration(purchase.Duration)} Expiry: {Time.FormatDuration(purchase.Expiry)}");
+            if (purchase.PurchaseParams.Expiry < TimeSpan.FromMinutes(6.0)) throw new Exception($"Expiry should be at least 6 minutes. Was: {Time.FormatDuration(purchase.PurchaseParams.Expiry)}");
+            if (purchase.PurchaseParams.Duration < purchase.PurchaseParams.Expiry) throw new Exception($"Duration must be larger than expiry. Duration: {Time.FormatDuration(purchase.PurchaseParams.Duration)} Expiry: {Time.FormatDuration(purchase.PurchaseParams.Expiry)}");
 
             var swResult = Stopwatch.Measure(log, nameof(RequestStorage), () =>
             {

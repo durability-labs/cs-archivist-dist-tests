@@ -13,20 +13,18 @@ namespace ArchivistReleaseTests.MarketTests
 
         protected override int NumberOfHosts => 6;
         protected override int NumberOfClients => 1;
-        protected override TestToken HostStartingBalance => DefaultPurchase.CollateralRequiredPerSlot * 1.1; // Each host can hold 1 slot.
+        protected override TestToken HostStartingBalance => PurchaseParams.Default.CollateralRequiredPerSlot * 1.1; // Each host can hold 1 slot.
 
         #endregion
 
-        /// <summary>
-        /// This test is to guarantee that the proving period are correctly configured
-        /// in the testing environment. If this test fails, your block frequency
-        /// is not compatible with the configuration of your marketplace contracts.
-        /// And you can't trust any of the other marketplace-relate tests until this is fixed.
-        /// </summary>
         [Test]
-        [Ignore("Used to ensure correct marketplace configuration")]
         public void IsProofRequired()
         {
+            Log("This test is to guarantee that the proving period are correctly configured");
+            Log("in the testing environment. If this test fails, your block frequency");
+            Log("is not compatible with the configuration of your marketplace contracts.");
+            Log("And you can't trust any of the other marketplace-relate tests until this is fixed.");
+
             var mins = TimeSpan.FromMinutes(10.0);
 
             var (hosts, clients) = JumpStartHostsAndClients();
@@ -36,19 +34,19 @@ namespace ArchivistReleaseTests.MarketTests
             purchase.WaitForStorageContractStarted();
 
             var requestId = purchase.PurchaseId.HexToByteArray();
-            var numSlots = DefaultPurchase.Nodes;
+            var numSlots = PurchaseParams.Default.Nodes;
             var map = new Dictionary<ulong, PeriodSlot[]>();
 
             Log($"Checking IsProofRequired every second for {Time.FormatDuration(mins)}.");
             var endUtc = DateTime.UtcNow + mins;
 
-            var stopping = 0;
+            var stoppingAndFailed = 0;
             while (DateTime.UtcNow < endUtc)
             {
-                if (stopping > 0)
+                if (stoppingAndFailed > 0)
                 {
-                    stopping--;
-                    if (stopping == 0) Assert.Fail("Test failed");
+                    stoppingAndFailed--;
+                    if (stoppingAndFailed == 0) Assert.Fail("Test failed. Marketplace proving periods are misconfigured!");
                 }
 
                 Thread.Sleep(TimeSpan.FromSeconds(1));
@@ -88,7 +86,7 @@ namespace ArchivistReleaseTests.MarketTests
                         if (slot.Swapped > 1)
                         {
                             Log($"Index {i} has swapped for the second time this period. Test failed. Starting to stop...");
-                            stopping = 80; // This completes the current period + some extra.
+                            stoppingAndFailed = 80; // This completes the current period + some extra. Then reports the failure.
                         }
                     }
 
@@ -124,13 +122,12 @@ namespace ArchivistReleaseTests.MarketTests
 
         private IStoragePurchaseContract CreateStorageRequest(IArchivistNode client, TimeSpan minutes)
         {
-            var cid = client.UploadFile(GenerateTestFile(DefaultPurchase.UploadFilesize));
+            var cid = client.UploadFile(GenerateTestFile(PurchaseParams.Default.UploadFilesize));
             var config = GetContracts().Deployment.Config;
-            return client.Marketplace.RequestStorage(new StoragePurchaseRequest(cid)
-            {
-                Duration = minutes * 2.0,
-                ProofProbability = 1, // One proof every period. Free slot as quickly as possible.
-            });
+            return client.Marketplace.RequestStorage(new StoragePurchaseRequest(cid, p => p
+                .WithDuration(minutes * 2.0)
+                .WithProofProbability(1)
+            ));
         }
     }
 }

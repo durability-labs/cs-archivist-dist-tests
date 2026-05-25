@@ -19,7 +19,7 @@ namespace ArchivistReleaseTests.Repair
 
         protected override int NumberOfHosts => 6;
         protected override int NumberOfClients => 1;
-        protected override TestToken HostStartingBalance => DefaultPurchase.CollateralRequiredPerSlot * 1.1; // Each host can hold 1 slot.
+        protected override TestToken HostStartingBalance => PurchaseParams.Default.CollateralRequiredPerSlot * 1.1; // Each host can hold 1 slot.
         protected override TimeSpan HostAvailabilityMaxDuration => TimeSpan.FromDays(5.0);
         private TrackedFile originalFile = null!;
 
@@ -30,7 +30,7 @@ namespace ArchivistReleaseTests.Repair
         [SetUp]
         public void Setup()
         {
-            originalFile = GenerateTestFile(DefaultPurchase.UploadFilesize);
+            originalFile = GenerateTestFile(PurchaseParams.Default.UploadFilesize);
         }
 
         protected override void OnDeployContracts(IArchivistContractsSetup setup)
@@ -61,7 +61,7 @@ namespace ArchivistReleaseTests.Repair
 
             // Ensure enough hosts will survive each failure:
             var survivingHosts = NumberOfHosts - numHostsPerFailure;
-            var minRequiredHosts = DefaultStoragePurchase.MinRequiredNumberOfNodes - DefaultStoragePurchase.NodeFailureTolerance;
+            var minRequiredHosts = PurchaseParams.Default.Nodes - PurchaseParams.Default.Tolerance;
             Assert.That(survivingHosts, Is.GreaterThanOrEqualTo(minRequiredHosts),
                 "Test misconfigured: Not enough hosts will survive failure to reconstruct dataset.");
 
@@ -224,7 +224,7 @@ namespace ArchivistReleaseTests.Repair
         private void WaitForNewSlotFilledEvents(DateTime startUtc, IStoragePurchaseContract contract, ulong[] slotIndices)
         {
             var remaining = slotIndices.ToList();
-            var timeout = contract.Purchase.Expiry;
+            var timeout = contract.Purchase.PurchaseParams.Expiry;
             var context = GetLogContext(contract, slotIndices);
             Log($"{context} Timeout: {Time.FormatDuration(timeout)}");
 
@@ -310,11 +310,10 @@ namespace ArchivistReleaseTests.Repair
         private IStoragePurchaseContract CreateStorageRequest(IArchivistNode client)
         {
             var cid = client.UploadFile(originalFile);
-            return client.Marketplace.RequestStorage(new StoragePurchaseRequest(cid)
-            {
-                Duration = HostAvailabilityMaxDuration / 2,
-                ProofProbability = 1, // One proof every period. Free slot as quickly as possible.
-            });
+            return client.Marketplace.RequestStorage(new StoragePurchaseRequest(cid, p => p
+                .WithDuration(HostAvailabilityMaxDuration / 2)
+                .WithProofProbability(1)
+            ));
         }
     }
 }

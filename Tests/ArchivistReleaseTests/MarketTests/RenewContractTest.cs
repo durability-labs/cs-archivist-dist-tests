@@ -49,11 +49,8 @@ namespace ArchivistReleaseTests.MarketTests
 
         private IStoragePurchaseContract StartFirstContract(IArchivistNode client)
         {
-            var cid = client.UploadFile(GenerateTestFile(DefaultPurchase.UploadFilesize));
-            var firstContract = client.Marketplace.RequestStorage(new StoragePurchaseRequest(cid)
-            {
-                Duration = HostAvailabilityMaxDuration * 0.99
-            });
+            var cid = client.UploadFile(GenerateTestFile(PurchaseParams.Default.UploadFilesize));
+            var firstContract = client.Marketplace.RequestStorage(new StoragePurchaseRequest(cid, p => p.WithDuration(HostAvailabilityMaxDuration * 0.99)));
 
             firstContract.WaitForStorageContractStarted();
 

@@ -9,8 +9,8 @@ namespace ArchivistReleaseTests.MarketTests
     [TestFixture]
     public class HostRestartTest : MarketplaceAutoBootstrapDistTest
     {
-        protected override int NumberOfHosts => DefaultStoragePurchase.MinRequiredNumberOfNodes * 2;
-        protected override TestToken HostStartingBalance => DefaultPurchase.CollateralRequiredPerSlot * 1.1; // Each host can hold 1 slot.
+        protected override int NumberOfHosts => PurchaseParams.Default.Nodes * 2;
+        protected override TestToken HostStartingBalance => PurchaseParams.Default.CollateralRequiredPerSlot * 1.1; // Each host can hold 1 slot.
         protected override int NumberOfClients => 1;
 
         [Test]
@@ -20,13 +20,12 @@ namespace ArchivistReleaseTests.MarketTests
             var client = clients.Single();
 
             var purchase = client.Marketplace.RequestStorage(new StoragePurchaseRequest(
-                client.UploadFile(GenerateTestFile(DefaultPurchase.UploadFilesize))
-            )
-            {
-                Expiry = TimeSpan.FromHours(1),
-                Duration = HostAvailabilityMaxDuration - TimeSpan.FromSeconds(10),
-                ProofProbability = 1,
-            });
+                client.UploadFile(GenerateTestFile(PurchaseParams.Default.UploadFilesize)),
+                p => p
+                    .WithDuration(HostAvailabilityMaxDuration - TimeSpan.FromSeconds(10))
+                    .WithExpiry(TimeSpan.FromHours(1))
+                    .WithProofProbability(1)
+            ));
 
             purchase.WaitForStorageContractStarted();
 
@@ -59,7 +58,7 @@ namespace ArchivistReleaseTests.MarketTests
                 }
             }
 
-            WaitUntilProofsSubmitted(purchase.Purchase.MinRequiredNumberOfNodes);
+            WaitUntilProofsSubmitted(purchase.Purchase.PurchaseParams.Nodes);
 
             if (expectedSlotFreedEvents.Count == 0)
             {

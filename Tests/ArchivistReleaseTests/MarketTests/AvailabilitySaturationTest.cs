@@ -9,10 +9,10 @@ namespace ArchivistReleaseTests.MarketTests
     [TestFixture]
     public class AvailabilitySaturationTest : MarketplaceAutoBootstrapDistTest
     {
-        protected override int NumberOfHosts => DefaultPurchase.Nodes;
+        protected override int NumberOfHosts => PurchaseParams.Default.Nodes;
         protected override int NumberOfClients => 5;
         protected override bool MonitorProofPeriods => false;
-        protected override TestToken HostStartingBalance => DefaultPurchase.CollateralRequiredPerSlot * 1.1; // Each host can hold 1 slot.
+        protected override TestToken HostStartingBalance => PurchaseParams.Default.CollateralRequiredPerSlot * 1.1; // Each host can hold 1 slot.
 
         [Test]
         public void AvailabilityTest()
@@ -41,7 +41,7 @@ namespace ArchivistReleaseTests.MarketTests
             var client = clients.First();
             var purchase = client.Marketplace
                 .RequestStorage(new StoragePurchaseRequest(
-                client.UploadFile(GenerateTestFile(DefaultPurchase.UploadFilesize))
+                client.UploadFile(GenerateTestFile(PurchaseParams.Default.UploadFilesize))
             ));
             purchase.WaitForStorageContractStarted();
         }
@@ -52,7 +52,7 @@ namespace ArchivistReleaseTests.MarketTests
             Log("Uploading files...");
             var pairs = clients.Select(c =>
             {
-                var cid = c.UploadFile(GenerateTestFile(DefaultPurchase.UploadFilesize));
+                var cid = c.UploadFile(GenerateTestFile(PurchaseParams.Default.UploadFilesize));
                 return (c, cid);
             }
             ).ToArray();

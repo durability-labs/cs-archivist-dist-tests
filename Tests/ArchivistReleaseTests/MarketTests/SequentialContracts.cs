@@ -12,10 +12,11 @@ namespace ArchivistReleaseTests.MarketTests
         public SequentialContracts(int hosts, int slots, int tolerance, int sizeMb)
         {
             this.hosts = hosts;
-            purchaseParams = DefaultPurchase
+            purchaseParams = PurchaseParams.Default
                 .WithUploadFilesize(sizeMb.MB())
                 .WithNodes(slots)
-                .WithTolerance(tolerance);
+                .WithTolerance(tolerance)
+                .WithProofProbability(100000);
         }
 
         private readonly int hosts;
@@ -86,16 +87,12 @@ namespace ArchivistReleaseTests.MarketTests
         {
             var cid = client.UploadFile(GenerateTestFile(purchaseParams.UploadFilesize));
             var config = GetContracts().Deployment.Config;
-            return client.Marketplace.RequestStorage(new StoragePurchaseRequest(cid)
-            {
-                Duration = GetContractDuration(),
-                Expiry = GetContractExpiry(),
-                MinRequiredNumberOfNodes = purchaseParams.Nodes,
-                NodeFailureTolerance = purchaseParams.Tolerance,
-                PricePerBytePerSecond = purchaseParams.PricePerByteSecond,
-                ProofProbability = 100000,
-                CollateralPerByte = 1.TstWei()
-            });
+            return client.Marketplace.RequestStorage(new StoragePurchaseRequest(cid, p => purchaseParams
+                .WithDuration(GetContractDuration())
+                .WithExpiry(GetContractExpiry())
+                .WithTolerance(1)
+                .WithProofProbability(1)
+            ));
         }
 
         private TimeSpan GetContractExpiry()

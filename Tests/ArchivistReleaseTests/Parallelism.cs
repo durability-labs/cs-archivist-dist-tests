@@ -1,6 +1,6 @@
 using NUnit.Framework;
 
-[assembly: LevelOfParallelism(1)]
+[assembly: LevelOfParallelism(3)]
 namespace ArchivistReleaseTests
 {
 }

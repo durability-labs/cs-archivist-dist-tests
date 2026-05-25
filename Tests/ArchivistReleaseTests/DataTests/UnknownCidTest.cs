@@ -1,6 +1,7 @@
 using ArchivistClient;
 using ArchivistTests;
 using NUnit.Framework;
+using Utils;
 
 namespace ArchivistReleaseTests.DataTests
 {
@@ -12,7 +13,7 @@ namespace ArchivistReleaseTests.DataTests
         {
             var node = StartArchivist();
 
-            var unknownCid = new ContentId("zDvZRwzkzHsok3Z8yMoiXE9EDBFwgr8WygB8s4ddcLzzSwwXAxLZ");
+            var unknownCid = new ContentId("zDvZRwzkzHsok3Z8yMoiXE9EDBFwgr8WygB8s4ddcLzzSwwXAxLZ", 1.GB());
 
             var localFiles = node.LocalFiles().Content;
             Assert.That(localFiles.Select(f => f.Cid), Does.Not.Contain(unknownCid));

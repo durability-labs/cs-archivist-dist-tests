@@ -1,4 +1,5 @@
-﻿using ArchivistReleaseTests.Utils;
+﻿using ArchivistClient;
+using ArchivistReleaseTests.Utils;
 using NUnit.Framework;
 using Utils;
 
@@ -22,10 +23,7 @@ namespace ArchivistReleaseTests.MarketTests
 
             var file = GenerateTestFile(400.MB());
             var cid = client.UploadFile(file);
-            var request = client.Marketplace.RequestStorage(new ArchivistClient.StoragePurchaseRequest(cid)
-            {
-                Duration = contractDuration,
-            });
+            var request = client.Marketplace.RequestStorage(new StoragePurchaseRequest(cid, p => p.WithDuration(contractDuration)));
 
             request.WaitForStorageContractStarted();
             var storedCid = request.EncodedContentId;

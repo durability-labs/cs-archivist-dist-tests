@@ -24,13 +24,7 @@ namespace ArchivistReleaseTests.MarketTests
             var (hosts, clients, validator) = JumpStart();
             var client = clients.Single();
 
-            var request = client.Marketplace.RequestStorage(
-                new StoragePurchaseRequest(client.UploadFile(GenerateTestFile(10.MB())))
-                {
-                    ProofProbability = 1
-                }
-            );
-
+            var request = client.Marketplace.RequestStorage(new StoragePurchaseRequest(client.UploadFile(GenerateTestFile(10.MB())), p => p.WithProofProbability(1)));
             request.WaitForStorageContractStarted();
 
             Log("Starting ChainMonitor...");

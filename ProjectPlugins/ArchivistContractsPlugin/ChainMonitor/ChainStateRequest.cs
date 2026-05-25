@@ -41,18 +41,21 @@ namespace ArchivistContractsPlugin.ChainMonitor
 
             Log($"Created as {State}.");
 
+            var ask = cacheRequest.Request.Ask;
+            var slotSize = new ByteSize(Convert.ToInt64(ask.SlotSize));
+            var encodedSize = slotSize.Multiply(ask.Slots);
+
             Client = new EthAddress(cacheRequest.Request.Client);
-            Cid = new ContentId("z" + Base58.Encode(cacheRequest.Request.Content.Cid));
+            Cid = new ContentId("z" + Base58.Encode(cacheRequest.Request.Content.Cid), encodedSize);
             Hosts = new RequestHosts();
             ExtendsExistingContract = getIsExtend(Cid);
 
-            var ask = cacheRequest.Request.Ask;
             Ask = new ChainStateRequestAsk(
                 (int)ask.ProofProbability,
                 ask.PricePerBytePerSecond.TstWei(),
                 ask.CollateralPerByte.TstWei(),
                 ask.Slots,
-                new ByteSize(Convert.ToInt64(ask.SlotSize)),
+                slotSize,
                 TimeSpan.FromSeconds(ask.Duration),
                 ask.MaxSlotLoss
             );

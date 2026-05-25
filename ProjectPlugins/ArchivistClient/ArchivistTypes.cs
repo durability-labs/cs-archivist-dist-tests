@@ -96,14 +96,23 @@ namespace ArchivistClient
         public ContentId()
         {
             Id = string.Empty;
+            KnownFilesize = 0.Bytes();
         }
 
         public ContentId(string id)
         {
             Id = id;
+            KnownFilesize = 0.Bytes();
+        }
+
+        public ContentId(string id, ByteSize knownFilesize)
+        {
+            Id = id;
+            KnownFilesize = knownFilesize;
         }
 
         public string Id { get; }
+        public ByteSize KnownFilesize { get; }
 
         public override string ToString()
         {

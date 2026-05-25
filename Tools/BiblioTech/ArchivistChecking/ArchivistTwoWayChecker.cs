@@ -163,7 +163,7 @@ namespace BiblioTech.ArchivistChecking
             {
                 return archivistWrapper.OnArchivist(node =>
                 {
-                    return node.DownloadManifestOnly(new ContentId(receivedCid)).Manifest;
+                    return node.DownloadManifestOnly(new ContentId(receivedCid, 0.Bytes())).Manifest;
                 });
             }
             catch

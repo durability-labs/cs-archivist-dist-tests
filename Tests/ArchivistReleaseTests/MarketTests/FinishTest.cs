@@ -19,7 +19,7 @@ namespace ArchivistReleaseTests.MarketTests
             public FinishTest(int durationMinutes, int hosts, int slots, int tolerance)
             {
                 this.hosts = hosts;
-                purchaseParams = DefaultPurchase
+                purchaseParams = PurchaseParams.Default
                     .WithDuration(TimeSpan.FromMinutes(durationMinutes))
                     .WithNodes(slots)
                     .WithTolerance(tolerance);
@@ -43,54 +43,41 @@ namespace ArchivistReleaseTests.MarketTests
 
                 WaitForContractStarted(request);
                 AssertContractSlotsAreFilledByHosts(request, hosts, allowExtraSlotBlocks: true);
-                AssertHostsHoldData(hosts);
+
+                foreach (var h in hosts) h.GetDatasetStatus(request.EncodedContentId);
+
+                AssertHostsHoldData(hosts, request);
 
                 Log("We wait for most of the contract time and then check again.");
                 Sleep((request.GetExpectedFinishUtc() - DateTime.UtcNow) - TimeSpan.FromSeconds(30));
                 Log("We expect the contract to be running and the hosts to hold the data.");
                 Assert.That(request.GetStatus()?.IsStarted, Is.EqualTo(true));
-                AssertHostsHoldData(hosts);
+                AssertHostsHoldData(hosts, request);
 
                 request.WaitForStorageContractFinished();
 
                 Log("Now the request is finished.");
                 Log("We expect the hosts and client balances to reflect the payment for the provided storage.");
-                AssertClientHasPaidForContract(DefaultPurchase.PricePerByteSecond, client, request, hosts);
-                AssertHostsWerePaidForContract(DefaultPurchase.PricePerByteSecond, request, hosts);
+                AssertClientHasPaidForContract(PurchaseParams.Default.PricePerByteSecond, client, request, hosts);
+                AssertHostsWerePaidForContract(PurchaseParams.Default.PricePerByteSecond, request, hosts);
                 AssertHostsCollateralsAreUnchanged(hosts);
                 Log("We expect the hosts to be empty.");
                 AssertHostsAreEmpty(hosts);
             }
 
-            private void AssertHostsHoldData(IArchivistNodeGroup hosts)
+            private void AssertHostsHoldData(IArchivistNodeGroup hosts, IStoragePurchaseContract request)
             {
                 var fills = GetOnChainSlotFills(hosts);
                 foreach (var f in fills)
                 {
-                    AssertHostHoldsSlot(f);
+                    AssertHostHoldsSlot(f, request, allowExtras: true);
                 }
-            }
-
-            private void AssertHostHoldsSlot(SlotFill f)
-            {
-                // Host must hold at least 1 slot.
-                var slots = f.Host.Marketplace.GetSlots();
-                var space = f.Host.Space();
-
-                Assert.That(slots.Count, Is.GreaterThanOrEqualTo(1));
-                Assert.That(space.QuotaUsedBytes, Is.GreaterThanOrEqualTo(purchaseParams.SlotSize.SizeInBytes));
             }
 
             private IStoragePurchaseContract CreateStorageRequest(IArchivistNode client)
             {
                 var cid = client.UploadFile(GenerateTestFile(purchaseParams.UploadFilesize));
-                return client.Marketplace.RequestStorage(new StoragePurchaseRequest(cid)
-                {
-                    Duration = purchaseParams.Duration,
-                    MinRequiredNumberOfNodes = purchaseParams.Nodes,
-                    NodeFailureTolerance = purchaseParams.Tolerance,
-                    PricePerBytePerSecond = DefaultPurchase.PricePerByteSecond,
-                });
+                return client.Marketplace.RequestStorage(new StoragePurchaseRequest(cid, purchaseParams));
             }
         }
     }

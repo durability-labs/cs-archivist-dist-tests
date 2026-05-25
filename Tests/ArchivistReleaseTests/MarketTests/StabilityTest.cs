@@ -15,7 +15,7 @@ namespace ArchivistReleaseTests.MarketTests
         protected override int NumberOfHosts => 6;
         protected override int NumberOfClients => 1;
         protected override TimeSpan HostAvailabilityMaxDuration => TimeSpan.FromDays(5.0);
-        protected override TestToken HostStartingBalance => DefaultPurchase.CollateralRequiredPerSlot * 1.1; // Each host can hold 1 slot.
+        protected override TestToken HostStartingBalance => PurchaseParams.Default.CollateralRequiredPerSlot * 1.1; // Each host can hold 1 slot.
 
         #endregion
 
@@ -97,14 +97,13 @@ namespace ArchivistReleaseTests.MarketTests
 
         private IStoragePurchaseContract CreateStorageRequest(IArchivistNode client, TimeSpan minutes)
         {
-            var cid = client.UploadFile(GenerateTestFile(DefaultPurchase.UploadFilesize));
+            var cid = client.UploadFile(GenerateTestFile(PurchaseParams.Default.UploadFilesize));
             var config = GetContracts().Deployment.Config;
-            return client.Marketplace.RequestStorage(new StoragePurchaseRequest(cid)
-            {
-                Duration = minutes * 2.0,
-                Expiry = TimeSpan.FromMinutes(8.0),
-                ProofProbability = 1, // One proof every period. Free slot as quickly as possible.
-            });
+            return client.Marketplace.RequestStorage(new StoragePurchaseRequest(cid, p => p
+                .WithDuration(minutes * 2.0)
+                .WithExpiry(TimeSpan.FromMinutes(8.0))
+                .WithProofProbability(1)
+            ));
         }
     }
 }

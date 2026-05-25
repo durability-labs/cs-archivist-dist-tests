@@ -11,7 +11,7 @@ namespace ArchivistReleaseTests.MarketTests
         protected override int NumberOfHosts => 6;
         protected override int NumberOfClients => 1;
 
-        protected override TestToken HostStartingBalance => DefaultPurchase.CollateralRequiredPerSlot * 1.1;
+        protected override TestToken HostStartingBalance => PurchaseParams.Default.CollateralRequiredPerSlot * 1.1;
         protected override TimeSpan HostBlockTTL => TimeSpan.FromMinutes(1.0);
 
         [Test]
@@ -20,7 +20,7 @@ namespace ArchivistReleaseTests.MarketTests
             var (hosts, clients) = JumpStartHostsAndClients();
             var client = clients.Single();
 
-            var uploadCid = client.UploadFile(GenerateTestFile(DefaultPurchase.UploadFilesize));
+            var uploadCid = client.UploadFile(GenerateTestFile(PurchaseParams.Default.UploadFilesize));
             var contract = client.Marketplace.RequestStorage(new StoragePurchaseRequest(uploadCid));
             contract.WaitForStorageContractStarted();
             var contractManifest = client.DownloadManifestOnly(contract.EncodedContentId);
@@ -35,7 +35,7 @@ namespace ArchivistReleaseTests.MarketTests
             Assert.That(emptyHosts.Length, Is.EqualTo(2));
 
             Log("We wait for the contract expiry timeout so the hosts will want to clean up the blocks of failed slots...");
-            Sleep(DefaultStoragePurchase.Expiry);
+            Sleep(PurchaseParams.Default.Expiry);
             Log("We wait for block maintenance interval (x2) ...");
             Sleep(HostBlockTTL * 2.0);
 
@@ -44,8 +44,8 @@ namespace ArchivistReleaseTests.MarketTests
 
             Log("And we check that the slot hosts are holding exactly 1 slot each...");
 
-            var slotBlocks = DefaultPurchase.SlotSize.DivUp(contractManifest.Manifest.BlockSize);
-            Log($"Slot size: {DefaultPurchase.SlotSize} - Block size: {contractManifest.Manifest.BlockSize}");
+            var slotBlocks = PurchaseParams.Default.SlotSize.DivUp(contractManifest.Manifest.BlockSize);
+            Log($"Slot size: {PurchaseParams.Default.SlotSize} - Block size: {contractManifest.Manifest.BlockSize}");
             Log($"We expect {slotBlocks} slot blocks + 1 manifest block");
 
             foreach (var h in slotHosts)

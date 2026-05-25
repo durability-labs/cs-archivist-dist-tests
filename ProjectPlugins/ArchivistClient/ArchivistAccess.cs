@@ -164,7 +164,7 @@ namespace ArchivistClient
 
         public DatasetStatus GetDatasetStatus(ContentId cid)
         {
-            return mapper.Map(OnArchivist(api => api.GetDatasetStatusAsync(cid.Id)));
+            return mapper.Map(OnArchivist(api => api.GetDatasetStatusAsync(cid.Id)), cid);
         }
 
         public void SalesAvailability(CreateStorageAvailability request)
@@ -199,7 +199,7 @@ namespace ArchivistClient
         public string RequestStorage(StoragePurchaseRequest request)
         {
             var body = mapper.Map(request);
-            return OnArchivist(api => api.CreateStorageRequestAsync(request.ContentId.Id, body));
+            return OnArchivist(api => api.CreateStorageRequestAsync(request.Cid.Id, body));
         }
 
         public ArchivistSpace Space()

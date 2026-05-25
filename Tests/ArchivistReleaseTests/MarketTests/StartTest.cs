@@ -26,7 +26,7 @@ namespace ArchivistReleaseTests.MarketTests
 
         private IStoragePurchaseContract CreateStorageRequest(IArchivistNode client)
         {
-            var cid = client.UploadFile(GenerateTestFile(DefaultPurchase.UploadFilesize));
+            var cid = client.UploadFile(GenerateTestFile(PurchaseParams.Default.UploadFilesize));
             return client.Marketplace.RequestStorage(new StoragePurchaseRequest(cid));
         }
     }

@@ -21,7 +21,7 @@ namespace ArchivistReleaseTests.MarketTests
         {
             this.numberOfDeceptiveRequests = numberOfDeceptiveRequests;
 
-            largePurchaseParams = DefaultPurchase.WithUploadFilesize(100.MB());
+            largePurchaseParams = PurchaseParams.Default.WithUploadFilesize(100.MB());
         }
 
         protected override int NumberOfHosts => 5;
@@ -32,16 +32,13 @@ namespace ArchivistReleaseTests.MarketTests
         {
             Log($"Creating a storage request with {largePurchaseParams.SlotSize} slots, copying the on-chain request and waiting until it expires...");
             var client = StartClients().Single();
-            var clientRequest = client.Marketplace.RequestStorage(new StoragePurchaseRequest(
-                client.UploadFile(GenerateTestFile(largePurchaseParams.UploadFilesize)))
-                {
-                    // No host will pick up a request with this collateral requirement:
-                    CollateralPerByte = DefaultAvailabilityMaxCollateralPerByte + 10.Tst()
-
-                    // The purpose of this call is to:
-                    // A) Get the large dataset encoded/verifiable and available in the client node
-                    // 2) Get the request from chain, so we can manipulate it and post malicious copies.
-                }
+            var cid = client.UploadFile(GenerateTestFile(largePurchaseParams.UploadFilesize));
+            var clientRequest = client.Marketplace.RequestStorage(new StoragePurchaseRequest(cid,
+                // No host will pick up a request with this collateral requirement:
+                p => p.WithCollateralPerByte(DefaultAvailabilityMaxCollateralPerByte + 10.Tst()))
+                // The purpose of this call is to:
+                // A) Get the large dataset encoded/verifiable and available in the client node
+                // 2) Get the request from chain, so we can manipulate it and post malicious copies.
             );
 
             clientRequest.WaitForStorageContractSubmitted();
@@ -146,7 +143,7 @@ namespace ArchivistReleaseTests.MarketTests
                 "When they download the manifest, they should know something's wrong and disregard the request. " +
                 "We check that they don't fill any deceptive contract slots for the duration of the request expiry.");
 
-            WaitAndCheck(nameof(AssertHostsIgnoreDeceptiveRequest), DefaultStoragePurchase.Expiry, TimeSpan.FromSeconds(30), () =>
+            WaitAndCheck(PurchaseParams.Default.Expiry, TimeSpan.FromSeconds(30), () =>
             {
                 foreach (var id in deceptiveRequestIds)
                 {

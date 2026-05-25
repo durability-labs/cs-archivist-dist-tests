@@ -27,7 +27,7 @@ namespace ArchivistReleaseTests.Repair
 
         protected override int NumberOfHosts => 5;
         protected override int NumberOfClients => 1;
-        protected override TestToken HostStartingBalance => DefaultPurchase.CollateralRequiredPerSlot * 1.1; // Each host can afford 1 slot.
+        protected override TestToken HostStartingBalance => PurchaseParams.Default.CollateralRequiredPerSlot * 1.1; // Each host can afford 1 slot.
         protected override TimeSpan HostAvailabilityMaxDuration => TimeSpan.FromDays(5.0);
         protected override bool MonitorProofPeriods => false;
         protected override TimeSpan HostBlockTTL => TimeSpan.FromMinutes(1.0);
@@ -75,7 +75,7 @@ namespace ArchivistReleaseTests.Repair
             Log("We wait for the duration of 2 block-maintenance cleanup cycles.");
             Log("This is because the remaining hosts may have downloaded (partially) the slots");
             Log("that we are trying to remove from the network.");
-            Sleep(DefaultStoragePurchase.Expiry);
+            Sleep(PurchaseParams.Default.Expiry);
             Sleep(HostBlockTTL * 2);
 
             Log("Now we check that the remaining hosts are storing only the expected slotsizes.");
@@ -85,7 +85,7 @@ namespace ArchivistReleaseTests.Repair
                 Assert.That(hostSlots.Length, Is.EqualTo(1));
 
                 var space = h.Space();
-                Assert.That(space.QuotaUsedBytes, Is.EqualTo(DefaultPurchase.SlotSize.SizeInBytes));
+                Assert.That(space.QuotaUsedBytes, Is.EqualTo(PurchaseParams.Default.SlotSize.SizeInBytes));
             }
 
             AssertContentIsRetrievableByNewNode(contractCid);
@@ -100,7 +100,7 @@ namespace ArchivistReleaseTests.Repair
                 Log("Checking entire dataset is retrievable...");
                 var file = checker.DownloadContent(cid);
                 if (file == null) throw new Exception("Failed to download content");
-                Assert.That(file.GetFilesize(), Is.EqualTo(DefaultPurchase.UploadFilesize));
+                Assert.That(file.GetFilesize(), Is.EqualTo(PurchaseParams.Default.UploadFilesize));
                 Log("Success: Dataset is retrievable");
             }
             catch (Exception ex)
@@ -122,7 +122,7 @@ namespace ArchivistReleaseTests.Repair
 
         private IStoragePurchaseContract CreateStorageRequest(IArchivistNode client)
         {
-            var cid = client.UploadFile(GenerateTestFile(DefaultPurchase.UploadFilesize));
+            var cid = client.UploadFile(GenerateTestFile(PurchaseParams.Default.UploadFilesize));
             return client.Marketplace.RequestStorage(new StoragePurchaseRequest(cid));
         }
     }

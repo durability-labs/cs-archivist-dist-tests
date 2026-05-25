@@ -34,7 +34,6 @@ namespace ArchivistReleaseTests.DataTests
         }
 
         [Test]
-        [Ignore("Crashes node attempting encoding. Issue: https://github.com/durability-labs/archivist-node/issues/1185")]
         public void PartiallyDeletedDatasets()
         {
             var clients = StartClients(s => s
@@ -42,14 +41,14 @@ namespace ArchivistReleaseTests.DataTests
                 .WithBlockMaintenanceInterval(TimeSpan.FromSeconds(10.0))
                 .WithBlockTTL(TimeSpan.FromSeconds(30.0)));
 
-            var file = GenerateTestFile(2.MB());
+            var file = GenerateTestFile(6.MB());
             var bCid = clients[0].UploadFile(file);
 
             var space = clients[0].Space();
             var update = space;
             while (space.QuotaUsedBytes == update.QuotaUsedBytes)
             {
-                Sleep(TimeSpan.FromSeconds(3.0));
+                Thread.Sleep(TimeSpan.FromSeconds(10.0));
                 update = clients[0].Space();
             }
 
@@ -62,7 +61,7 @@ namespace ArchivistReleaseTests.DataTests
                 var request = clients[0].Marketplace.RequestStorage(new StoragePurchaseRequest(bCid));
                 Assert.Fail("Created storage request for partial dataset. Should have failed.");
             }
-            catch (AggregateException)
+            catch (TimeoutException)
             {
                 Log("Call failed successfully!");
             }

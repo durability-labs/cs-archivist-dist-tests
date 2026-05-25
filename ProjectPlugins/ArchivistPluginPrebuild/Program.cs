@@ -20,13 +20,19 @@ public static class Program
         var clientFile = Path.Combine(clientRoot, "obj", "openapiClient.cs");
         var targetFile = Path.Combine(pluginRoot, "ApiChecker.cs");
 
-        // Force client rebuild by deleting previous artifact.
-        File.Delete(clientFile);
-
         var hash = CreateHash(openApiFile);
         // This hash is used to verify that the Archivist docker image being used is compatible
         // with the openapi.yaml being used by the Archivist plugin.
         // If the openapi.yaml files don't match, an exception is thrown.
+
+        if (IsCurrentHash(hash, targetFile))
+        {
+            Console.WriteLine("Hash of openapi.yaml is unchanged.");
+            return;
+        }
+
+        // Force client rebuild by deleting previous artifact.
+        File.Delete(clientFile);
 
         SearchAndInject(hash, targetFile);
 
@@ -71,6 +77,11 @@ public static class Program
         var lines = File.ReadAllLines(targetFile);
         Inject(lines, hash);
         File.WriteAllLines(targetFile, lines);
+    }
+
+    private static bool IsCurrentHash(string expectedHash, string targetFile)
+    {
+        return File.ReadAllText(targetFile).Contains(expectedHash);
     }
 
     private static void Inject(string[] lines, string hash)

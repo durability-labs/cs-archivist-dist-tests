@@ -65,7 +65,7 @@ namespace ArchivistClient
         public DateTime GetExpectedFinishUtc()
         {
             if (contractSubmittedUtc == null) throw new Exception("Contract not started yet. Can't predict finish-UTC");
-            return contractSubmittedUtc.Value + Purchase.Duration;
+            return contractSubmittedUtc.Value + Purchase.PurchaseParams.Duration;
         }
 
         public StoragePurchase? GetStatus()
@@ -73,14 +73,14 @@ namespace ArchivistClient
             var status = archivistAccess.GetPurchaseStatus(PurchaseId);
             if (status != null)
             {
-                encodedContentId = new ContentId(status.Request.Content.Cid);
+                encodedContentId = new ContentId(status.Request.Content.Cid, Purchase.PurchaseParams.EncodedDatasetSize);
             }
             return status;
         }
 
         public void WaitForStorageContractSubmitted()
         {
-            var timeout = Purchase.Expiry + gracePeriod;
+            var timeout = Purchase.PurchaseParams.Expiry + gracePeriod;
             var raiseHook = lastState != StoragePurchaseState.Submitted;
             WaitForStorageContractState(timeout, StoragePurchaseState.Submitted, sleep: 200);
             contractSubmittedUtc = DateTime.UtcNow;
@@ -97,7 +97,7 @@ namespace ArchivistClient
                 WaitForStorageContractSubmitted();
             }
 
-            var timeout = Purchase.Expiry + gracePeriod + gracePeriod;
+            var timeout = Purchase.PurchaseParams.Expiry + gracePeriod + gracePeriod;
             WaitForStorageContractState(timeout, StoragePurchaseState.Cancelled);
         }
 
@@ -108,7 +108,7 @@ namespace ArchivistClient
                 WaitForStorageContractSubmitted();
             }
 
-            var timeout = Purchase.Expiry + gracePeriod;
+            var timeout = Purchase.PurchaseParams.Expiry + gracePeriod;
 
             WaitForStorageContractState(timeout, StoragePurchaseState.Started);
             contractStartedUtc = DateTime.UtcNow;
@@ -124,7 +124,7 @@ namespace ArchivistClient
                 WaitForStorageContractStarted();
             }
             var currentContractTime = DateTime.UtcNow - contractSubmittedUtc!.Value;
-            var timeout = (Purchase.Duration - currentContractTime) + gracePeriod;
+            var timeout = (Purchase.PurchaseParams.Duration - currentContractTime) + gracePeriod;
             WaitForStorageContractState(timeout, StoragePurchaseState.Finished);
             contractFinishedUtc = DateTime.UtcNow;
             LogFinishedDuration();
@@ -138,7 +138,7 @@ namespace ArchivistClient
                 WaitForStorageContractStarted();
             }
             var currentContractTime = DateTime.UtcNow - contractSubmittedUtc!.Value;
-            var timeout = (Purchase.Duration - currentContractTime) + gracePeriod;
+            var timeout = (Purchase.PurchaseParams.Duration - currentContractTime) + gracePeriod;
             var minTimeout = TimeNeededToFailEnoughProofsToFreeASlot(config);
 
             if (timeout < minTimeout)
@@ -198,7 +198,7 @@ namespace ArchivistClient
         private void LogSubmittedDuration()
         {
             Log($"Pending to Submitted in {Time.FormatDuration(PendingToSubmitted)} " +
-                $"( < {Time.FormatDuration(Purchase.Expiry + gracePeriod)})");
+                $"( < {Time.FormatDuration(Purchase.PurchaseParams.Expiry + gracePeriod)})");
         }
 
         private void LogEncodedCid()
@@ -210,13 +210,13 @@ namespace ArchivistClient
         private void LogStartedDuration()
         {
             Log($"Submitted to Started in {Time.FormatDuration(SubmittedToStarted)} " +
-                $"( < {Time.FormatDuration(Purchase.Expiry + gracePeriod)})");
+                $"( < {Time.FormatDuration(Purchase.PurchaseParams.Expiry + gracePeriod)})");
         }
 
         private void LogFinishedDuration()
         {
             Log($"Submitted to Finished in {Time.FormatDuration(SubmittedToFinished)} " +
-                $"( < {Time.FormatDuration(Purchase.Duration + gracePeriod)})");
+                $"( < {Time.FormatDuration(Purchase.PurchaseParams.Duration + gracePeriod)})");
         }
 
         private void AssertDuration(TimeSpan? span, TimeSpan max, string message)

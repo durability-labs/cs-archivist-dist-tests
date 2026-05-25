@@ -147,9 +147,9 @@ namespace AutoClient.Modes.FolderStore
                 request.WaitForStorageContractStarted();
 
                 entry.EncodedCid = request.EncodedContentId.Id;
-                entry.PurchaseNodes = request.Purchase.MinRequiredNumberOfNodes;
-                entry.PurchaseTolerance = request.Purchase.NodeFailureTolerance;
-                entry.PurchaseFinishedUtc = DateTime.UtcNow + request.Purchase.Duration;
+                entry.PurchaseNodes = request.Purchase.PurchaseParams.Nodes;
+                entry.PurchaseTolerance = request.Purchase.PurchaseParams.Tolerance;
+                entry.PurchaseFinishedUtc = DateTime.UtcNow + request.Purchase.PurchaseParams.Duration;
 
                 Log($"Successfully started new purchase: '{request.PurchaseId}'");
             }

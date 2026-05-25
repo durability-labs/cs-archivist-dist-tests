@@ -64,13 +64,12 @@ namespace ArchivistReleaseTests.MarketTests
         private IStoragePurchaseContract CreateStorageRequest(IArchivistNode client)
         {
             var cid = client.UploadFile(GenerateTestFile(3.MB()));
-            return client.Marketplace.RequestStorage(new StoragePurchaseRequest(cid)
-            {
-                Duration = HostAvailabilityMaxDuration / 2,
-                MinRequiredNumberOfNodes = NumberOfHosts,
-                NodeFailureTolerance = SlotTolerance,
-                ProofProbability = 1, // Require a proof every period
-            });
+            return client.Marketplace.RequestStorage(new StoragePurchaseRequest(cid, p => p
+                .WithDuration(HostAvailabilityMaxDuration / 2)
+                .WithNodes(NumberOfHosts)
+                .WithTolerance(SlotTolerance)
+                .WithProofProbability(1) // Require a proof every period
+            ));
         }
     }
 }

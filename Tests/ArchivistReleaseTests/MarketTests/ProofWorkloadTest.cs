@@ -30,13 +30,12 @@ namespace ArchivistReleaseTests.MarketTests
             var client = clients.Single();
 
             var request = client.Marketplace.RequestStorage(
-                new StoragePurchaseRequest(client.UploadFile(GenerateTestFile(maxProofsPerPeriod.MB())))
-                {
-                    ProofProbability = 1,
-                    MinRequiredNumberOfNodes = maxProofsPerPeriod,
-                    NodeFailureTolerance = 1
-                });
-
+                new StoragePurchaseRequest(client.UploadFile(GenerateTestFile(maxProofsPerPeriod.MB())), p => p
+                .WithNodes(maxProofsPerPeriod)
+                .WithTolerance(1)
+                .WithProofProbability(1)
+            ));
+            
             request.WaitForStorageContractFinished();
         }
     }

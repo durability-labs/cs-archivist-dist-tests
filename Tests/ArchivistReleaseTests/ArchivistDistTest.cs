@@ -190,11 +190,11 @@ namespace ArchivistTests
                 Assert.That(actual.State, Is.EqualTo(DatasetStatusState.Completed));
                 if (allowExtras)
                 {
-                    Assert.That(actual.Blocks.Includes(expectedIndices));
+                    Assert.That(actual.Blocks.Includes(expectedIndices), $"{node.GetName()} is not holding the expected block indices. (extras allowed)");
                 }
                 else
                 {
-                    Assert.That(actual.Blocks, Is.EqualTo(expectedIndices));
+                    Assert.That(actual.Blocks, Is.EqualTo(expectedIndices), $"{node.GetName()} is not holding the expected block indices. (strict, no extras allowed)");
                 }
             });
         }

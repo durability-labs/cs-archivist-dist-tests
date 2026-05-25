@@ -21,7 +21,7 @@ namespace ArchivistTests.Helpers
 
         public FullConnectivityHelper(ILog log, IFullConnectivityImplementation implementation, int numberOfTries)
         {
-            this.log = log;
+            this.log = new LogPrefixer(log, "(ConnectivityHelper) ");
             this.implementation = implementation;
             this.numberOfTries = numberOfTries;
         }
@@ -40,7 +40,7 @@ namespace ArchivistTests.Helpers
             var pairs = CreatePairs(entries);
 
             Log($"Created {pairs.Count} unique pairs. Each pair gets {numberOfTries} tries to resolve connectivity in both directions.");
-            for (var i = 0; i < numberOfTries; i++)
+            for (var i = 0; pairs.Any() && i < numberOfTries; i++)
             {
                 CheckAndRemoveSuccessful(pairs);
                 Log($"{pairs.Count} remaining after try {i}");

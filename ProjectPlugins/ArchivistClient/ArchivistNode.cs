@@ -199,7 +199,7 @@ namespace ArchivistClient
 
             Log($"Uploaded file {file.Describe()}. Received contentId: '{response}'.");
 
-            var cid = new ContentId(response);
+            var cid = new ContentId(response, size);
             hooks.OnFileUploaded(uniqueId, size, cid);
             return cid;
         }

@@ -169,12 +169,11 @@ namespace ArchivistReleaseTests.MarketTests
 
         private IStoragePurchaseContract CreateStorageRequest(IArchivistNode client)
         {
-            var cid = client.UploadFile(GenerateTestFile(DefaultPurchase.UploadFilesize));
-            return client.Marketplace.RequestStorage(new StoragePurchaseRequest(cid)
-            {
-                Duration = HostAvailabilityMaxDuration * 0.75,
-                ProofProbability = 1
-            });
+            var cid = client.UploadFile(GenerateTestFile(PurchaseParams.Default.UploadFilesize));
+            return client.Marketplace.RequestStorage(new StoragePurchaseRequest(cid, p => p
+                .WithDuration(HostAvailabilityMaxDuration * 0.75)
+                .WithProofProbability(1)
+            ));
         }
     }
 }
