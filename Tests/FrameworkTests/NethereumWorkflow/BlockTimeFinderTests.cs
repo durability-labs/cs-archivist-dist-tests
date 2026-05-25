@@ -65,8 +65,8 @@ namespace FrameworkTests.NethereumWorkflow
             var b1Number = finder.GetHighestBlockNumberBefore(momentBetween);
             var b2Number = finder.GetLowestBlockNumberAfter(momentBetween);
 
-            Assert.That(b1Number?.BlockNumber, Is.EqualTo(b1.Number));
-            Assert.That(b2Number?.BlockNumber, Is.EqualTo(b2.Number));
+            Assert.That(b1Number.BlockNumber, Is.EqualTo(b1.Number));
+            Assert.That(b2Number.BlockNumber, Is.EqualTo(b2.Number));
         }
 
         [Test]
@@ -76,7 +76,7 @@ namespace FrameworkTests.NethereumWorkflow
 
             var firstNumber = finder.GetLowestBlockNumberAfter(first.JustBefore);
 
-            Assert.That(firstNumber?.BlockNumber, Is.EqualTo(first.Number));
+            Assert.That(firstNumber.BlockNumber, Is.EqualTo(first.Number));
         }
 
         [Test]
@@ -86,7 +86,7 @@ namespace FrameworkTests.NethereumWorkflow
 
             var firstNumber = finder.GetHighestBlockNumberBefore(first.JustAfter);
 
-            Assert.That(firstNumber?.BlockNumber, Is.EqualTo(first.Number));
+            Assert.That(firstNumber.BlockNumber, Is.EqualTo(first.Number));
         }
 
         [Test]
@@ -96,7 +96,7 @@ namespace FrameworkTests.NethereumWorkflow
 
             var lastNumber = finder.GetLowestBlockNumberAfter(last.JustBefore);
 
-            Assert.That(lastNumber?.BlockNumber, Is.EqualTo(last.Number));
+            Assert.That(lastNumber.BlockNumber, Is.EqualTo(last.Number));
         }
 
         [Test]
@@ -106,7 +106,7 @@ namespace FrameworkTests.NethereumWorkflow
 
             var lastNumber = finder.GetHighestBlockNumberBefore(last.JustAfter);
 
-            Assert.That(lastNumber?.BlockNumber, Is.EqualTo(last.Number));
+            Assert.That(lastNumber.BlockNumber, Is.EqualTo(last.Number));
         }
 
         [Test]
@@ -116,7 +116,7 @@ namespace FrameworkTests.NethereumWorkflow
 
             var firstNumber = finder.GetHighestBlockNumberBefore(first.Time);
 
-            Assert.That(firstNumber?.BlockNumber, Is.EqualTo(first.Number));
+            Assert.That(firstNumber.BlockNumber, Is.EqualTo(first.Number));
         }
 
         [Test]
@@ -126,27 +126,27 @@ namespace FrameworkTests.NethereumWorkflow
 
             var lastNumber = finder.GetLowestBlockNumberAfter(last.Time);
 
-            Assert.That(lastNumber?.BlockNumber, Is.EqualTo(last.Number));
+            Assert.That(lastNumber.BlockNumber, Is.EqualTo(last.Number));
         }
 
         [Test]
-        public void FailsToFindBlockBeforeFrontOfChain_history()
+        public void FindsFirstBlockWhenGettingBlockBeforeFrontOfChain_history()
         {
             var first = blocks.First().Value;
 
-            var notFound = finder.GetHighestBlockNumberBefore(first.JustBefore);
+            var found = finder.GetHighestBlockNumberBefore(first.JustBefore);
 
-            Assert.That(notFound, Is.Null);
+            Assert.That(found.BlockNumber, Is.EqualTo(first.Number));
         }
 
         [Test]
-        public void FailsToFindBlockAfterTailOfChain_future()
+        public void FindsLastBlockWhenGettingBlockAfterTailOfChain_future()
         {
             var last = blocks.Last().Value;
 
-            var notFound = finder.GetLowestBlockNumberAfter(last.JustAfter);
+            var found = finder.GetLowestBlockNumberAfter(last.JustAfter);
 
-            Assert.That(notFound, Is.Null);
+            Assert.That(found.BlockNumber, Is.EqualTo(last.Number));
         }
 
         [Test]
@@ -170,7 +170,9 @@ namespace FrameworkTests.NethereumWorkflow
         {
             if (expected == null)
             {
-                Assert.That(actual, Is.Null);
+                // This is covered by other tests: The previous-next at the beginning and end of the chain
+                // will return the head and tail blocks.
+                Assert.That(actual, Is.Not.Null);
             }
             else
             {
