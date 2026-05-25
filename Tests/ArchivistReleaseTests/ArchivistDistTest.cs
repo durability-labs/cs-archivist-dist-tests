@@ -129,8 +129,7 @@ namespace ArchivistTests
 
         public void WaitAndCheckNodesStaysAlive(TimeSpan duration, params IArchivistNode[] nodes)
         {
-            WaitAndCheck(nameof(WaitAndCheckNodesStaysAlive),
-                duration,
+            WaitAndCheck(duration,
                 loopTime: TimeSpan.FromSeconds(3.0),
                 check: () =>
                 {
@@ -141,12 +140,13 @@ namespace ArchivistTests
                         var info = node.GetDebugInfo();
                         Assert.That(!string.IsNullOrEmpty(info.Id), $"Node {node.GetName()} failed to respond to debug/info call.");
                     }
-                });
+                },
+                skipFrames: 1);
         }
 
-        public void WaitAndCheck(string name, TimeSpan duration, TimeSpan loopTime, Action check)
+        public void WaitAndCheck(TimeSpan duration, TimeSpan loopTime, Action check, int skipFrames = 0)
         {
-            Log($"{name}: {Time.FormatDuration(duration)}...");
+            Log($"{Time.FormatDuration(duration)}...", 1 + skipFrames);
 
             Assert.That(duration.TotalSeconds, Is.GreaterThan(loopTime.TotalSeconds));
 
@@ -157,7 +157,7 @@ namespace ArchivistTests
                 check();
             }
 
-            Log($"{name}: OK");
+            Log($"OK", 1 + skipFrames);
         }
 
         public void AssertNodesContainFile(ContentId cid, IArchivistNodeGroup nodes)

@@ -55,8 +55,7 @@ namespace ArchivistReleaseTests.MarketTests
             Log("We expect the host to report and error state for this slot.");
             WaitUntilSlotState(host, slot.SlotId, StorageSlotState.Errored);
 
-            Log($"Apply a delay of {delayMinutes} minutes...");
-            Thread.Sleep(TimeSpan.FromMinutes(delayMinutes));
+            Sleep(TimeSpan.FromMinutes(delayMinutes));
 
             Log("We restore the RPC connecting...");
             rpcNode.Resume();
@@ -94,7 +93,7 @@ namespace ArchivistReleaseTests.MarketTests
 
             // There's no way to check the validator status directly. We wait a while.
             Log("We wait 5 periods. That should be enough to free the slot if the validator was looking.");
-            Thread.Sleep(GetPeriodDuration() * 5);
+            Sleep(GetPeriodDuration() * 5);
 
             Assert.That(numMarkedAsMissing, Is.EqualTo(0));
             Log("But the validator was offline, so no proof was marked as missing.");

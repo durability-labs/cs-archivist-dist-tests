@@ -45,7 +45,7 @@ namespace ArchivistReleaseTests.MarketTests
                 }
             }
 
-            Thread.Sleep(TimeSpan.FromSeconds(12.0));
+            Sleep(TimeSpan.FromSeconds(12.0));
         }
 
         private void Generation(IArchivistNodeGroup clients, IArchivistNodeGroup hosts)

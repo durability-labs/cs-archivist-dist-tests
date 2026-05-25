@@ -185,7 +185,7 @@ namespace ArchivistTests.Helpers
 
             private PeerConnectionState Check(Entry from, Entry to)
             {
-                Thread.Sleep(10);
+                Thread.Sleep(100);
 
                 try
                 {

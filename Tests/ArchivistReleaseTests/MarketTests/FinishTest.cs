@@ -46,7 +46,7 @@ namespace ArchivistReleaseTests.MarketTests
                 AssertHostsHoldData(hosts);
 
                 Log("We wait for most of the contract time and then check again.");
-                Thread.Sleep((request.GetExpectedFinishUtc() - DateTime.UtcNow) - TimeSpan.FromSeconds(30));
+                Sleep((request.GetExpectedFinishUtc() - DateTime.UtcNow) - TimeSpan.FromSeconds(30));
                 Log("We expect the contract to be running and the hosts to hold the data.");
                 Assert.That(request.GetStatus()?.IsStarted, Is.EqualTo(true));
                 AssertHostsHoldData(hosts);

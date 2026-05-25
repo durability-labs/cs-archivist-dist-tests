@@ -17,6 +17,7 @@ namespace ArchivistReleaseTests.DataTests
             var tasks = nodes.Select(n => Task<bool>.Run(() => RunInterruptUploadTest(n)));
             Task.WaitAll(tasks.ToArray());
 
+            Log("We expect no crashes to be visible in the node logs.");
             Assert.That(tasks.Select(t => t.Result).All(r => r == true));
 
             WaitAndCheckNodesStaysAlive(TimeSpan.FromMinutes(2), nodes);
@@ -24,6 +25,7 @@ namespace ArchivistReleaseTests.DataTests
 
         private bool RunInterruptUploadTest(IArchivistNode node)
         {
+            Log("Starting upload, then interrupting it...");
             var file = GenerateTestFile(300.MB());
 
             var process = StartCurlUploadProcess(node, file);

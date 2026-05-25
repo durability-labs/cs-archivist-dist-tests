@@ -116,12 +116,17 @@ namespace DistTestCore
             return lifecycle.TestNamespace;
         }
 
-        public void Log(string msg)
+        public void Log(string msg, int skipFrames = 0)
         {
-            var callerName = DebugStack.GetCallerName(skipFrames: 0);
+            var callerName = DebugStack.GetCallerName(skipFrames);
             msg = $"({callerName}) {msg}";
             TestContext.Progress.WriteLine(msg);
             GetTestLog().Log(msg);
+        }
+
+        public void Sleep(TimeSpan delay)
+        {
+            Log($"Sleep: {Time.FormatDuration(delay)}", 1);
         }
 
         public void Debug(string msg)

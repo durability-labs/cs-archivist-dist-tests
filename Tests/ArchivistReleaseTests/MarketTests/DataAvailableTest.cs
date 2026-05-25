@@ -34,7 +34,7 @@ namespace ArchivistReleaseTests.MarketTests
 
             while (DateTime.UtcNow < finishUtc)
             {
-                Thread.Sleep(checkInterval);
+                Sleep(checkInterval);
 
                 AssertDataIsAvailable(file, storedCid);
             }

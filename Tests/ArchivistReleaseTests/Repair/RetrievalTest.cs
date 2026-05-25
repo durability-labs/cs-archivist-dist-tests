@@ -75,9 +75,8 @@ namespace ArchivistReleaseTests.Repair
             Log("We wait for the duration of 2 block-maintenance cleanup cycles.");
             Log("This is because the remaining hosts may have downloaded (partially) the slots");
             Log("that we are trying to remove from the network.");
-
-            Thread.Sleep(DefaultStoragePurchase.Expiry);
-            Thread.Sleep(HostBlockTTL * 2);
+            Sleep(DefaultStoragePurchase.Expiry);
+            Sleep(HostBlockTTL * 2);
 
             Log("Now we check that the remaining hosts are storing only the expected slotsizes.");
             foreach (var h in remainingHosts)

@@ -20,7 +20,7 @@ namespace ArchivistReleaseTests.DataTests
             var startSpace = downloader.Space();
             var localDataset = downloader.DownloadManifestOnly(cid);
 
-            Thread.Sleep(1000);
+            Sleep(TimeSpan.FromSeconds(3));
 
             var spaceDiff = startSpace.FreeBytes - downloader.Space().FreeBytes;
 

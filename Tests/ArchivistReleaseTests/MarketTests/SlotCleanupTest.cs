@@ -35,9 +35,9 @@ namespace ArchivistReleaseTests.MarketTests
             Assert.That(emptyHosts.Length, Is.EqualTo(2));
 
             Log("We wait for the contract expiry timeout so the hosts will want to clean up the blocks of failed slots...");
-            Thread.Sleep(DefaultStoragePurchase.Expiry);
+            Sleep(DefaultStoragePurchase.Expiry);
             Log("We wait for block maintenance interval (x2) ...");
-            Thread.Sleep(HostBlockTTL * 2.0);
+            Sleep(HostBlockTTL * 2.0);
 
             Log("Now we check the empty hosts are actually empty...");
             AssertHostsAreEmpty(emptyHosts);
@@ -58,7 +58,7 @@ namespace ArchivistReleaseTests.MarketTests
 
             Log("Now we wait till the contract is finished. Then all hosts should return to empty.");
             contract.WaitForStorageContractFinished();
-            Thread.Sleep(TimeSpan.FromMinutes(1.0));
+            Sleep(TimeSpan.FromMinutes(1.0));
 
             AssertHostsAreEmpty(hosts);
         }

@@ -49,27 +49,25 @@ namespace ArchivistReleaseTests.DataTests
             var update = space;
             while (space.QuotaUsedBytes == update.QuotaUsedBytes)
             {
-                Thread.Sleep(TimeSpan.FromSeconds(3.0));
+                Sleep(TimeSpan.FromSeconds(3.0));
                 update = clients[0].Space();
             }
 
             Assert.That(update.QuotaUsedBytes, Is.LessThan(space.QuotaUsedBytes));
-            // The dataset is partially deleted.
+            Log("The dataset is partially deleted.");
 
-            // What happens when we request storage for it?
-            var request = clients[0].Marketplace.RequestStorage(new StoragePurchaseRequest(bCid));
-            var eCid = request.EncodedContentId;
+            Log("We expect a call to create a storage request for this dataset will fail.");
+            try
+            {
+                var request = clients[0].Marketplace.RequestStorage(new StoragePurchaseRequest(bCid));
+                Assert.Fail("Created storage request for partial dataset. Should have failed.");
+            }
+            catch (AggregateException)
+            {
+                Log("Call failed successfully!");
+            }
 
-            Assert.That(bCid.Id, Is.Not.EqualTo(eCid.Id));
-
-            var basic = clients[0].DownloadManifestOnly(bCid);
-            var encoded = clients[0].DownloadManifestOnly(eCid);
-            Assert.That(basic.Manifest.Protected, Is.False);
-            Assert.That(encoded.Manifest.Protected, Is.True);
-
-            var decoded = clients[1].DownloadContent(eCid);
-
-            file.AssertIsEqual(decoded);
+            WaitAndCheckNodesStaysAlive(TimeSpan.FromMinutes(1), clients);
         }
     }
 }

@@ -124,7 +124,7 @@ namespace ArchivistReleaseTests.DataTests
             Assert.That(clientManifest.Manifest.Protected, Is.True);
 
             client.Stop(waitTillStopped: true);
-            Thread.Sleep(blockTtl * 2.0);
+            Sleep(blockTtl * 2.0);
 
             var checker = StartArchivist(s => s.WithName("checker").WithBootstrapNode(bootstrapNode));
             var manifest = checker.DownloadManifestOnly(storeCid);
@@ -133,7 +133,7 @@ namespace ArchivistReleaseTests.DataTests
 
         private void WaitAndAssertEmpty(IArchivistNode node, ArchivistSpace usedSpace, ArchivistSpace startSpace)
         {
-            Thread.Sleep(blockTtl * 2);
+            Sleep(blockTtl * 2);
 
             var cleanupSpace = node.Space();
             var cleanupFiles = node.LocalFiles();
