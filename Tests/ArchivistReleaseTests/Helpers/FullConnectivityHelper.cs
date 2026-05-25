@@ -14,14 +14,16 @@ namespace ArchivistTests.Helpers
 
     public class FullConnectivityHelper
     {
-        private static string Nl = Environment.NewLine;
+        private static readonly string Nl = Environment.NewLine;
         private readonly ILog log;
         private readonly IFullConnectivityImplementation implementation;
+        private readonly int numberOfTries;
 
-        public FullConnectivityHelper(ILog log, IFullConnectivityImplementation implementation)
+        public FullConnectivityHelper(ILog log, IFullConnectivityImplementation implementation, int numberOfTries)
         {
             this.log = log;
             this.implementation = implementation;
+            this.numberOfTries = numberOfTries;
         }
 
         public void AssertFullyConnected(IEnumerable<IArchivistNode> nodes)
@@ -37,16 +39,17 @@ namespace ArchivistTests.Helpers
             var entries = CreateEntries(nodes);
             var pairs = CreatePairs(entries);
 
-            // Each pair gets two chances.
-            CheckAndRemoveSuccessful(pairs);
-            CheckAndRemoveSuccessful(pairs);
+            Log($"Created {pairs.Count} unique pairs. Each pair gets {numberOfTries} tries to resolve connectivity in both directions.");
+            for (var i = 0; i < numberOfTries; i++)
+            {
+                CheckAndRemoveSuccessful(pairs);
+                Log($"{pairs.Count} remaining after try {i}");
+            }
 
             if (pairs.Any())
             {
                 var pairDetails = string.Join(Nl, pairs.SelectMany(p => p.GetResultMessages()));
-
                 Log($"Connections failed:{Nl}{pairDetails}");
-
                 Assert.Fail(string.Join(Nl, pairs.SelectMany(p => p.GetResultMessages())));
             }
             else
@@ -73,7 +76,6 @@ namespace ArchivistTests.Helpers
         private Entry[] CreateEntries(IArchivistNode[] nodes)
         {
             var entries = nodes.Select(n => new Entry(n)).ToArray();
-
             var errors = entries
                             .Select(e => implementation.ValidateEntry(e, entries))
                             .Where(s => !string.IsNullOrEmpty(s))

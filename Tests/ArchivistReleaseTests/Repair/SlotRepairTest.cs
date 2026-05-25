@@ -105,6 +105,11 @@ namespace ArchivistReleaseTests.Repair
         {
             Log($"Failure step: {i}");
             Log($"Running hosts: [{string.Join(", ", hosts.Select(GetNameAndBalance))}]");
+            Log("Blocks:");
+            foreach (var h in hosts)
+            {
+                h.GetDatasetStatus(contract.EncodedContentId);
+            }
 
             StartNewHosts(hosts, numHostsPerFailure);
 

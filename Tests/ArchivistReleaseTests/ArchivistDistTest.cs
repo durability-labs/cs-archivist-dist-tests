@@ -81,14 +81,14 @@ namespace ArchivistTests
             return Ci.StartGethNode(blockCache, setup);
         }
 
-        public PeerConnectionTestHelpers CreatePeerConnectionTestHelpers()
+        public PeerConnectionTestHelpers CreatePeerConnectionTestHelpers(int numTries = 2)
         {
-            return new PeerConnectionTestHelpers(GetTestLog());
+            return new PeerConnectionTestHelpers(GetTestLog(), numTries);
         }
 
-        public PeerDownloadTestHelpers CreatePeerDownloadTestHelpers(TimeSpan downloadTimeout)
+        public PeerDownloadTestHelpers CreatePeerDownloadTestHelpers(TimeSpan downloadTimeout, int numTries = 2)
         {
-            return new PeerDownloadTestHelpers(GetTestLog(), GetFileManager(), downloadTimeout);
+            return new PeerDownloadTestHelpers(GetTestLog(), numTries, GetFileManager(), downloadTimeout);
         }
 
         public void AssertBalance(IArchivistContracts contracts, IArchivistNode archivistNode, Constraint constraint, string msg)

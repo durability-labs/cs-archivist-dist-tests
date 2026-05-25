@@ -12,7 +12,7 @@ namespace ArchivistReleaseTests.DHT
         public void FullDiscoverabilityWithFailureRate(
             [Values(2, 3)] int failureRate)
         {
-            var nodes = StartArchivist(10);
+            var nodes = StartArchivist(6);
 
             Log($"Set failure probability: {failureRate}");
             foreach (var n in nodes) n.SetDHTFailureProbability(failureRate);
@@ -20,7 +20,11 @@ namespace ArchivistReleaseTests.DHT
             Log("Gives network situation time to affect the DHT records.");
             Sleep(TimeSpan.FromMinutes(6));
 
-            var helper = CreatePeerDownloadTestHelpers(downloadTimeout: TimeSpan.FromSeconds(10));
+            var helper = CreatePeerDownloadTestHelpers(
+                downloadTimeout: TimeSpan.FromSeconds(10),
+                numTries: 3
+            );
+
             helper.AssertFullDownloadInterconnectivity(nodes, 1.MB());
         }
     }

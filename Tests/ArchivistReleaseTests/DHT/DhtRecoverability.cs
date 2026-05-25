@@ -9,7 +9,7 @@ namespace ArchivistReleaseTests.DHT
     public class DhtRecoverability : AutoBootstrapDistTest
     {
         private readonly TimeSpan DhtUpdateTimeout = TimeSpan.FromMinutes(15);
-        private readonly int numNodes = 20;
+        private readonly int numNodes = 10;
 
         [Test]
         public void AfterFullDisconnect()

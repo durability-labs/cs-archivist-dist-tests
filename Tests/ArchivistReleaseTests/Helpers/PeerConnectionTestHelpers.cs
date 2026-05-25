@@ -8,9 +8,9 @@ namespace ArchivistTests.Helpers
     {
         private readonly FullConnectivityHelper helper;
 
-        public PeerConnectionTestHelpers(ILog log)
+        public PeerConnectionTestHelpers(ILog log, int numTries)
         {
-            helper = new FullConnectivityHelper(log, this);
+            helper = new FullConnectivityHelper(log, this, numTries);
         }
 
         public void AssertFullyConnected(IEnumerable<IArchivistNode> nodes)

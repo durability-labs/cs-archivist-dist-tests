@@ -98,7 +98,7 @@ namespace ArchivistReleaseTests.MarketTests
             Assert.That(numMarkedAsMissing, Is.EqualTo(0));
             Log("But the validator was offline, so no proof was marked as missing.");
 
-            Thread.Sleep(TimeSpan.FromMinutes(delayMinutes));
+            Sleep(TimeSpan.FromMinutes(delayMinutes));
 
             Log("The RPC connection provider is restored.");
             rpcNode.Resume();

@@ -13,9 +13,9 @@ namespace ArchivistTests.Helpers
         private readonly TimeSpan downloadTimeout;
         private ByteSize testFileSize;
 
-        public PeerDownloadTestHelpers(ILog log, IFileManager fileManager, TimeSpan downloadTimeout)
+        public PeerDownloadTestHelpers(ILog log, int numberOfTries, IFileManager fileManager, TimeSpan downloadTimeout)
         {
-            helper = new FullConnectivityHelper(log, this);
+            helper = new FullConnectivityHelper(log, this, numberOfTries);
             testFileSize = 1.MB();
             this.fileManager = fileManager;
             this.downloadTimeout = downloadTimeout;
