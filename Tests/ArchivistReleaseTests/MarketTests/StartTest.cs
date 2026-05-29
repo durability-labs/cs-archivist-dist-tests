@@ -1,4 +1,5 @@
 using ArchivistClient;
+using ArchivistPlugin;
 using ArchivistReleaseTests.Utils;
 using NUnit.Framework;
 
@@ -18,10 +19,24 @@ namespace ArchivistReleaseTests.MarketTests
 
             var request = CreateStorageRequest(client);
             request.WaitForStorageContractSubmitted();
+            var clientDataset = client.GetDatasetStatus(request.EncodedContentId);
+            Assert.That(clientDataset.Blocks.Length, Is.EqualTo(128));
 
             AssertContractIsOnChain(request);
             WaitForContractStarted(request);
+            AssertAllDatasetsAreSameLength(hosts, clientDataset, request);
             AssertContractSlotsAreFilledByHosts(request, hosts, allowExtraSlotBlocks: true);
+        }
+
+        private void AssertAllDatasetsAreSameLength(IArchivistNodeGroup hosts, DatasetStatus clientDataset, IStoragePurchaseContract request)
+        {
+            Assert.Multiple(() =>
+            {
+                foreach (var h in hosts)
+                {
+                    Assert.That(h.GetDatasetStatus(request.EncodedContentId).Blocks.Length, Is.EqualTo(clientDataset.Blocks.Length));
+                }
+            });
         }
 
         private IStoragePurchaseContract CreateStorageRequest(IArchivistNode client)

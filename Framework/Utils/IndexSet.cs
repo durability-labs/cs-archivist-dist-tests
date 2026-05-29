@@ -135,6 +135,17 @@
 
         public override string ToString()
         {
+            if (Length > 0)
+            {
+                var result = "";
+                for (var i = 0; i < Length; i++)
+                {
+                    if (IsSet(i)) result += "1";
+                    else result += "_";
+                }
+                return $"<{result}>";
+            }
+
             return string.Join("&", runs.Select(r => r.Value.ToString()).ToArray());
         }
 
