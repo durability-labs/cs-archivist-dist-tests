@@ -1,6 +1,6 @@
 ﻿namespace Utils
 {
-    public partial class IndexSet
+    public class IndexSet
     {
         private readonly SortedList<int, Run> runs = new SortedList<int, Run>();
 
@@ -133,70 +133,6 @@
             return Encode().ToArray();
         }
 
-        public override string ToString()
-        {
-            return string.Join("&", runs.Select(r => r.Value.ToString()).ToArray());
-        }
-
-        private void UpdateLengthFromRuns()
-        {
-            Length = Math.Max(Length,
-                runs.Values.Max(r => r.Start + r.Length)
-            );
-        }
-
-        private void UpdateLengthFromIndexTouch(int index)
-        {
-            Length = Math.Max(Length, index + 1);
-        }
-
-        private IEnumerable<int> Encode()
-        {
-            foreach (var pair in runs)
-            {
-                yield return pair.Value.Start;
-                yield return pair.Value.Length;
-            }
-        }
-
-        private Run? GetRunAt(int index)
-        {
-            foreach (var run in runs.Values)
-            {
-                if (run.Includes(index)) return run;
-            }
-            return null;
-        }
-
-        private Run? GetRunExact(int index)
-        {
-            if (runs.ContainsKey(index)) return runs[index];
-            return null;
-        }
-
-        private void HandleUpdate(RunUpdate runUpdate)
-        {
-            foreach (var removeRun in runUpdate.RemoveRuns) runs.Remove(removeRun.Start);
-            foreach (var newRun in runUpdate.NewRuns) runs.Add(newRun.Start, newRun);
-        }
-
-        private void CreateNewRun(int index)
-        {
-            if (runs.ContainsKey(index + 1))
-            {
-                var length = runs[index + 1].Length + 1;
-                runs.Add(index, new Run(index, length));
-                runs.Remove(index + 1);
-            }
-            else
-            {
-                runs.Add(index, new Run(index, 1));
-            }
-        }
-    }
-
-    public partial class IndexSet
-    {
         public IndexSet Overlap(IndexSet other)
         {
             var result = new IndexSet();
@@ -264,6 +200,67 @@
             return obj1.Equals(obj2);
         }
         public static bool operator !=(IndexSet? obj1, IndexSet? obj2) => !(obj1 == obj2);
+
+        public override string ToString()
+        {
+            return string.Join("&", runs.Select(r => r.Value.ToString()).ToArray());
+        }
+
+        private void UpdateLengthFromRuns()
+        {
+            Length = Math.Max(Length,
+                runs.Values.Max(r => r.Start + r.Length)
+            );
+        }
+
+        private void UpdateLengthFromIndexTouch(int index)
+        {
+            Length = Math.Max(Length, index + 1);
+        }
+
+        private IEnumerable<int> Encode()
+        {
+            foreach (var pair in runs)
+            {
+                yield return pair.Value.Start;
+                yield return pair.Value.Length;
+            }
+        }
+
+        private Run? GetRunAt(int index)
+        {
+            foreach (var run in runs.Values)
+            {
+                if (run.Includes(index)) return run;
+            }
+            return null;
+        }
+
+        private Run? GetRunExact(int index)
+        {
+            if (runs.ContainsKey(index)) return runs[index];
+            return null;
+        }
+
+        private void HandleUpdate(RunUpdate runUpdate)
+        {
+            foreach (var removeRun in runUpdate.RemoveRuns) runs.Remove(removeRun.Start);
+            foreach (var newRun in runUpdate.NewRuns) runs.Add(newRun.Start, newRun);
+        }
+
+        private void CreateNewRun(int index)
+        {
+            if (runs.ContainsKey(index + 1))
+            {
+                var length = runs[index + 1].Length + 1;
+                runs.Add(index, new Run(index, length));
+                runs.Remove(index + 1);
+            }
+            else
+            {
+                runs.Add(index, new Run(index, 1));
+            }
+        }
     }
 
     public class Run
