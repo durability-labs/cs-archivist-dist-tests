@@ -173,6 +173,9 @@ namespace ArchivistTests
             {
                 var localDatasets = node.LocalFiles();
                 Assert.That(localDatasets.Content.Select(c => c.Cid), Has.One.EqualTo(cid));
+
+                var dataset = node.GetDatasetStatus(cid);
+                Assert.That(dataset.Blocks.IsFullySet());
             }
 
             Log("OK");
