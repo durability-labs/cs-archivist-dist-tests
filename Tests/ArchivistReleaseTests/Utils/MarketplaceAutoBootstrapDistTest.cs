@@ -590,13 +590,13 @@ namespace ArchivistReleaseTests.Utils
 
             var numSlotBlocks = Int.DivUp(blocksInDataset, numHosts);
 
-            var i = slotIndex * numSlotBlocks;
-            while (i < ((slotIndex + 1) * numSlotBlocks))
+            var firstSlotBlockIndex = slotIndex * numSlotBlocks;
+            var lastSlotBlockIndex = (slotIndex + 1) * numSlotBlocks;
+
+            for (var i = 0; i < blocksInDataset; i++)
             {
-                indexSet.Set(i);
-                i++;
+                indexSet[i] = firstSlotBlockIndex <= i && i < lastSlotBlockIndex;
             }
-            Log($"For slotindex {slotIndex} of {blocksInDataset} blocks over {numHosts} hosts, expected: {indexSet}");
             return indexSet;
         }
 

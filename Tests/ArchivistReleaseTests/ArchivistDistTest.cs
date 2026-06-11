@@ -185,8 +185,8 @@ namespace ArchivistTests
         {
             var actual = node.GetDatasetStatus(cid);
 
-            Log($"{node.GetName()} Expected: {expectedIndices} (allowExtras: {allowExtras})");
-            Log($"{node.GetName()} Actual: {actual.Blocks}");
+            Log($"{node.GetName()} Expected: {expectedIndices}");
+            Log($"{node.GetName()} Actual:   {actual.Blocks}");
 
             Assert.Multiple(() =>
             {

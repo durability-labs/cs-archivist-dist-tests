@@ -54,22 +54,17 @@ namespace ArchivistClient
                 Cid = new ContentId(datasetStatus.Cid, sourceCid.KnownFilesize),
                 State = Map(datasetStatus.Status),
                 ExpiryUtc = Time.ToUtcDateTime(datasetStatus.Expiry),
-                Blocks = Map(datasetStatus.Blocks),
+                Blocks = Map(datasetStatus.HasBlocks),
             };
         }
 
-        private IndexSet Map(string bitmap)
+        private IndexSet Map(IEnumerable<bool> bitmap)
         {
-            if (!bitmap.StartsWith("0b")) throw new Exception($"Unexpected bitmap format: '{bitmap}'");
-            bitmap = bitmap.Substring(2);
-
             var result = new IndexSet();
             var index = 0;
-            foreach (var c in bitmap)
+            foreach (var b in bitmap)
             {
-                if (c == '1') result[index] = true;
-                else if (c == '0') result[index] = false;
-                else throw new Exception($"Unexpected bitmap format at index {index}: '{bitmap}'");
+                result[index] = b;
                 index++;
             }
 
