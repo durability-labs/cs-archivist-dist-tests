@@ -56,6 +56,11 @@ namespace ArchivistReleaseTests.MarketTests
                 Assert.That(space.TotalBlocks, Is.EqualTo(slotBlocks + 1));
             }
 
+            foreach (var f in fills)
+            {
+                AssertHostHoldsSlot(f, contract, allowExtras: false);
+            }
+
             Log("Now we wait till the contract is finished. Then all hosts should return to empty.");
             contract.WaitForStorageContractFinished();
             Sleep(TimeSpan.FromMinutes(1.0));

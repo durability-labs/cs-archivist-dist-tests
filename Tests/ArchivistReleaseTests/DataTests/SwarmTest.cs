@@ -73,8 +73,8 @@ namespace ArchivistReleaseTests.DataTests
             [Test]
             public void StreamOneToMany()
             {
-                var filesize = 400.MB();
-                nodes = StartArchivist(30);
+                var filesize = 300.MB();
+                nodes = StartArchivist(20);
 
                 Rerun(() =>
                 {

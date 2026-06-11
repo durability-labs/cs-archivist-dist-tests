@@ -127,6 +127,7 @@ namespace DistTestCore
         public void Sleep(TimeSpan delay)
         {
             Log($"Sleep: {Time.FormatDuration(delay)}", 1);
+            Thread.Sleep(delay);
         }
 
         public void Debug(string msg)
