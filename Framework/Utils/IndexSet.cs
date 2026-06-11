@@ -133,6 +133,22 @@
             return Encode().ToArray();
         }
 
+        public override string ToString()
+        {
+            if (Length > 0)
+            {
+                var result = "";
+                for (var i = 0; i < Length; i++)
+                {
+                    if (IsSet(i)) result += "1";
+                    else result += "_";
+                }
+                return $"<{result}>";
+            }
+
+            return string.Join("&", runs.Select(r => r.Value.ToString()).ToArray());
+        }
+
         public IndexSet Overlap(IndexSet other)
         {
             var result = new IndexSet();
@@ -200,11 +216,6 @@
             return obj1.Equals(obj2);
         }
         public static bool operator !=(IndexSet? obj1, IndexSet? obj2) => !(obj1 == obj2);
-
-        public override string ToString()
-        {
-            return string.Join("&", runs.Select(r => r.Value.ToString()).ToArray());
-        }
 
         private void UpdateLengthFromRuns()
         {
