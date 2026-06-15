@@ -52,7 +52,7 @@ namespace ArchivistPlugin
         public ArchivistLogLevel DiscV5 { get; set; }
         public ArchivistLogLevel Libp2p { get; set; }
         public ArchivistLogLevel ContractClock { get; set; } = ArchivistLogLevel.Warn;
-        public ArchivistLogLevel? BlockExchange { get; }
+        public ArchivistLogLevel? BlockExchange { get; } = ArchivistLogLevel.Info;
         public ArchivistLogLevel JsonSerialize { get; set; } = ArchivistLogLevel.Warn;
         public ArchivistLogLevel MarketplaceInfra { get; set; } = ArchivistLogLevel.Warn;
     }
