@@ -32,11 +32,6 @@ namespace ArchivistReleaseTests.Repair
         protected override bool MonitorProofPeriods => false;
         protected override TimeSpan HostBlockTTL => TimeSpan.FromMinutes(1.0);
 
-        protected override void OnDeployContracts(IArchivistContractsSetup s)
-        {
-            s.WithMaxReservationsOverride(10);
-        }
-
         #endregion
 
         [Test]

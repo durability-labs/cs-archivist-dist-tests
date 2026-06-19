@@ -103,6 +103,13 @@ namespace ArchivistReleaseTests.Utils
 
         protected virtual void OnDeployContracts(IArchivistContractsSetup setup)
         {
+            Log("TODO: In the current version, nodes will reserve slots even when they don't have enough tokens to fill them.");
+            Log("TODO: This causes the test to fail sometimes: A slot becomes reserved by 3 (default max reservations) hosts");
+            Log("TODO: that are already hosting a slot. They will fail to fill it, and the reservations will prevent anyone");
+            Log("TODO: else from filling the slot.");
+            Log("TODO: Github issue: https://github.com/durability-labs/archivist-node/issues/87");
+            Log("TODO: For now, we override the max-slot-reservations configuration.");
+            setup.WithMaxReservationsOverride(20);
         }
 
         public (IArchivistNodeGroup, IArchivistNodeGroup) JumpStartHostsAndClients()
