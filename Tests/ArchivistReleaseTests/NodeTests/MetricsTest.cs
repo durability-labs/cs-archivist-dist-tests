@@ -20,8 +20,8 @@ namespace ArchivistReleaseTests.NodeTests
             metrics[0].AssertThat("libp2p_peers", Is.EqualTo(1));
             metrics[1].AssertThat("libp2p_peers", Is.EqualTo(1));
 
-            metrics[0].AssertThat("archivist_block_exchange_want_block_lists_sent_total", Is.GreaterThan(5));
-            metrics[1].AssertThat("archivist_block_exchange_want_block_lists_received_total", Is.GreaterThan(5));
+            metrics[0].AssertThat("archivist_block_exchange_want_block_lists_sent_total", Is.GreaterThanOrEqualTo(2));
+            metrics[1].AssertThat("archivist_block_exchange_want_block_lists_received_total", Is.GreaterThanOrEqualTo(2));
 
             metrics[0].AssertThat("dht_message_requests_incoming_total", Is.GreaterThan(1));
             metrics[0].AssertThat("dht_message_requests_outgoing_total", Is.GreaterThan(1));

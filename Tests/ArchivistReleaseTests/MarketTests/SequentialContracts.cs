@@ -24,7 +24,6 @@ namespace ArchivistReleaseTests.MarketTests
 
         protected override int NumberOfHosts => hosts;
         protected override int NumberOfClients => 4;
-        protected override TimeSpan HostAvailabilityMaxDuration => GetContractDuration() * 2;
 
         [Test]
         [Combinatorial]
@@ -88,27 +87,9 @@ namespace ArchivistReleaseTests.MarketTests
             var cid = client.UploadFile(GenerateTestFile(purchaseParams.UploadFilesize));
             var config = GetContracts().Deployment.Config;
             return client.Marketplace.RequestStorage(new StoragePurchaseRequest(cid, p => purchaseParams
-                .WithDuration(GetContractDuration())
-                .WithExpiry(GetContractExpiry())
                 .WithTolerance(1)
                 .WithProofProbability(1)
             ));
-        }
-
-        private TimeSpan GetContractExpiry()
-        {
-            return GetContractDuration() / 2;
-        }
-
-        private TimeSpan GetContractDuration()
-        {
-            return Get8TimesConfiguredPeriodDuration() * 4;
-        }
-
-        private TimeSpan Get8TimesConfiguredPeriodDuration()
-        {
-            var config = GetContracts().Deployment.Config;
-            return TimeSpan.FromSeconds(config.Proofs.Period * 8.0);
         }
     }
 }

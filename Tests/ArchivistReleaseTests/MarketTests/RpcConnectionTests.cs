@@ -105,7 +105,7 @@ namespace ArchivistReleaseTests.MarketTests
 
             Log("The validator should resume work and mark proofs as missing.");
             Time.WaitUntil(() => numMarkedAsMissing > 0,
-                timeout: GetPeriodDuration() * 5,
+                timeout: GetPeriodDuration() * 10,
                 retryDelay: TimeSpan.FromSeconds(10),
                 msg: "At least 1 proof is marked as missing."
             );

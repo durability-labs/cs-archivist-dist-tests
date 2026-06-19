@@ -48,6 +48,7 @@ namespace ArchivistReleaseTests.MarketTests
             Log($"Slot size: {PurchaseParams.Default.SlotSize} - Block size: {contractManifest.Manifest.BlockSize}");
             Log($"We expect {slotBlocks} slot blocks + 1 manifest block");
 
+            ShowBlocks(contract.EncodedContentId, slotHosts);
             foreach (var h in slotHosts)
             {
                 var hostSlots = h.Marketplace.GetSlots();

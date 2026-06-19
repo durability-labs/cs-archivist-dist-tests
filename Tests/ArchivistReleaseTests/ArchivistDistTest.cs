@@ -202,6 +202,16 @@ namespace ArchivistTests
             });
         }
 
+        public void ShowBlocks(ContentId cid, params IArchivistNode[] nodes)
+        {
+            foreach (var n in nodes) n.GetDatasetStatus(cid);
+        }
+
+        public void ShowBlocks(ContentId cid, IArchivistNodeGroup nodes)
+        {
+            ShowBlocks(cid, nodes.ToArray());
+        }
+
         private string GetBasicNodeStatus(IArchivistNode node)
         {
             return JsonConvert.SerializeObject(node.GetDebugInfo(), Formatting.Indented) + Environment.NewLine +

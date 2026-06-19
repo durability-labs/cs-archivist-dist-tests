@@ -135,7 +135,7 @@
 
         public override string ToString()
         {
-            if (Length > 0)
+            if (Length > 0 && Length < 100)
             {
                 var result = "";
                 for (var i = 0; i < Length; i++)
