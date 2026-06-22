@@ -85,7 +85,7 @@ namespace ArchivistPlugin
                 mconfig.GethNode.SendEth(node, mconfig.MarketplaceSetup.InitialEth);
                 mconfig.ArchivistContracts.MintTestTokens(node, mconfig.MarketplaceSetup.InitialTestTokens);
 
-                Log($"Send {mconfig.MarketplaceSetup.InitialEth} and " +
+                Log($"Sent {mconfig.MarketplaceSetup.InitialEth} and " +
                     $"minted {mconfig.MarketplaceSetup.InitialTestTokens} for " +
                     $"{node.GetName()} (address: {node.EthAddress})");
             }

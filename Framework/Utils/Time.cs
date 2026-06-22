@@ -42,14 +42,14 @@ namespace Utils
 
         public static string FormatDuration(TimeSpan d)
         {
-            var result = "";
-            if (d.Days > 0) result += $"{d.Days} days, ";
-            if (d.Hours > 0) result += $"{d.Hours} hours, ";
-            if (d.Minutes > 0) result += $"{d.Minutes} mins, ";
-            if (d.Seconds > 0) result += $"{d.Seconds} secs";
-            if (d.Seconds == 0 && d.Milliseconds > 0) result += $"{d.Milliseconds} ms";
-            if (result == "") result = "0 secs";
-            return result;
+            var tokens = new List<string>();
+            if (d.Days > 0) tokens.Add($"{d.Days} days");
+            if (d.Hours > 0) tokens.Add($"{d.Hours} hours");
+            if (d.Minutes > 0) tokens.Add($"{d.Minutes} mins");
+            if (d.Seconds > 0) tokens.Add($"{d.Seconds} secs");
+            if (d.Seconds == 0 && d.Milliseconds > 0) tokens.Add($"{d.Milliseconds} ms");
+            if (tokens.Count == 0) return "0 secs";
+            return string.Join(", ", tokens);
         }
 
         public static string FormatTimestamp(DateTime d)

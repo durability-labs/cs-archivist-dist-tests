@@ -6,6 +6,8 @@ using Utils;
 
 namespace ArchivistReleaseTests.MarketTests
 {
+    [NonParallelizable]
+    [TestFixture(6, 4, 2, 20)]
     [TestFixture(5, 10, 5, 10)]
     public class SequentialContracts : MarketplaceAutoBootstrapDistTest
     {
@@ -30,14 +32,14 @@ namespace ArchivistReleaseTests.MarketTests
         public void Sequential(
             [Values(5)] int numGenerations)
         {
-            var (hosts, clients, validator) = JumpStart();
+            var (_, clients, _) = JumpStart();
 
             for (var i = 0; i < numGenerations; i++)
             {
                 Log("Generation: " + i);
                 try
                 {
-                    Generation(clients, hosts);
+                    Generation(clients);
                 }
                 catch (Exception ex)
                 {
@@ -48,7 +50,7 @@ namespace ArchivistReleaseTests.MarketTests
             Sleep(TimeSpan.FromSeconds(12.0));
         }
 
-        private void Generation(IArchivistNodeGroup clients, IArchivistNodeGroup hosts)
+        private void Generation(IArchivistNodeGroup clients)
         {
             var requests = All(clients.ToArray(), CreateStorageRequest);
 
@@ -85,11 +87,7 @@ namespace ArchivistReleaseTests.MarketTests
         private IStoragePurchaseContract CreateStorageRequest(IArchivistNode client)
         {
             var cid = client.UploadFile(GenerateTestFile(purchaseParams.UploadFilesize));
-            var config = GetContracts().Deployment.Config;
-            return client.Marketplace.RequestStorage(new StoragePurchaseRequest(cid, p => purchaseParams
-                .WithTolerance(1)
-                .WithProofProbability(1)
-            ));
+            return client.Marketplace.RequestStorage(new StoragePurchaseRequest(cid, purchaseParams));
         }
     }
 }

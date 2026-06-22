@@ -453,7 +453,10 @@ namespace ArchivistReleaseTests.Utils
 
                 var requestId = r.PurchaseId.ToLowerInvariant();
                 var calls = new List<ReserveSlotFunction>();
-                GetContracts().GetEvents(GetTestRunTimeRange()).GetReserveSlotCalls(calls.Add);
+                GetContracts().GetEvents(GetTestRunTimeRange()).GetReserveSlotCalls(c =>
+                {
+                    if (c.RequestId.ToHex().ToLowerInvariant() == requestId) calls.Add(c);
+                });
 
                 Log($"Request '{requestId}' failed to start. There were {calls.Count} hosts who called reserve-slot for it:");
                 foreach (var c in calls)
