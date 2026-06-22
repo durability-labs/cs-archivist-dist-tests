@@ -288,7 +288,14 @@ namespace ArchivistClient
             var address = GetAddress();
             var api = new ArchivistApiClient(client);
             api.BaseUrl = $"{address.Host}:{address.Port}/api/archivist/v1";
-            return CrashCheck(() => Time.Wait(action(api)));
+            try
+            {
+                return CrashCheck(() => Time.Wait(action(api)));
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Call to {GetName()} threw:", ex);
+            }
         }
 
         private T CrashCheck<T>(Func<T> action)
