@@ -169,6 +169,8 @@ namespace ArchivistReleaseTests.Repair
 
         protected override void OnPeriod(PeriodReport report)
         {
+            report.Log(GetTestLog());
+
             proofsMissed += report.GetNumberOfProofsMissed();
 
             // There can't be any calls to FreeSlot.
