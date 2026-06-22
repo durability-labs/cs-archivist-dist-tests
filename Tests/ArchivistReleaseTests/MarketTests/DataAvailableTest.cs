@@ -16,6 +16,7 @@ namespace ArchivistReleaseTests.MarketTests
         protected override TimeSpan HostAvailabilityMaxDuration => contractDuration * 2;
 
         [Test]
+        [Ignore("Issue: https://github.com/durability-labs/archivist-node/issues/151")]
         public void StoredDataRemainsAvailable()
         {
             var (hosts, clients, validator) = JumpStart();

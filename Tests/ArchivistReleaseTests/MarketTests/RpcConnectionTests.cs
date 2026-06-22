@@ -103,9 +103,12 @@ namespace ArchivistReleaseTests.MarketTests
             Log("The RPC connection provider is restored.");
             rpcNode.Resume();
 
+            var allowedTimeout = CalculateAllowedTimeout(delayMinutes);
             Log("The validator should resume work and mark proofs as missing.");
+            Log("Because the validator uses an exponential-backoff for the RPC connection,");
+            Log($"a delay of {delayMinutes} minutes implies an allowed timeout of {Time.FormatDuration(allowedTimeout)}");
             Time.WaitUntil(() => numMarkedAsMissing > 0,
-                timeout: GetPeriodDuration() * 10,
+                timeout: allowedTimeout,
                 retryDelay: TimeSpan.FromSeconds(10),
                 msg: "At least 1 proof is marked as missing."
             );
@@ -174,6 +177,18 @@ namespace ArchivistReleaseTests.MarketTests
                 .WithDuration(HostAvailabilityMaxDuration * 0.75)
                 .WithProofProbability(1)
             ));
+        }
+
+        private TimeSpan CalculateAllowedTimeout(int delayMinutes)
+        {
+            var gracePeriod = 10 * GetPeriodDuration();
+            var delaySeconds = 1;
+            while (delaySeconds < (delayMinutes * 60))
+            {
+                delaySeconds += delaySeconds + 1;
+            }
+            delaySeconds += delaySeconds + 1;
+            return TimeSpan.FromSeconds(delaySeconds) + gracePeriod;
         }
     }
 }
