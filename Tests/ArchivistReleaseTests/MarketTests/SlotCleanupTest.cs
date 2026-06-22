@@ -15,6 +15,7 @@ namespace ArchivistReleaseTests.MarketTests
         protected override TimeSpan HostBlockTTL => TimeSpan.FromMinutes(1.0);
 
         [Test]
+        [Ignore("PR: https://github.com/durability-labs/archivist-node/pull/149")]
         public void SlotCleanup()
         {
             var (hosts, clients) = JumpStartHostsAndClients();

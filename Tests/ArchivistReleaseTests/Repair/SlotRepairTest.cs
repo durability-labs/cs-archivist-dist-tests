@@ -10,6 +10,7 @@ using Utils;
 
 namespace ArchivistReleaseTests.Repair
 {
+    [NonParallelizable]
     [TestFixture]
     public class SlotRepairTest : MarketplaceAutoBootstrapDistTest
     {
@@ -31,6 +32,14 @@ namespace ArchivistReleaseTests.Repair
         public void Setup()
         {
             originalFile = GenerateTestFile(PurchaseParams.Default.UploadFilesize);
+        }
+
+        [Test]
+        public void SingleFailure()
+        {
+            RollingRepairTest(
+                numHostsPerFailure: 1
+            );
         }
 
         [Test]
