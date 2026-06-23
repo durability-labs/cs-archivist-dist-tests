@@ -15,7 +15,6 @@ namespace ArchivistReleaseTests.MarketTests
         protected override TimeSpan HostBlockTTL => TimeSpan.FromMinutes(1.0);
 
         [Test]
-        [Ignore("PR: https://github.com/durability-labs/archivist-node/pull/149")]
         public void SlotCleanup()
         {
             var (hosts, clients) = JumpStartHostsAndClients();
@@ -50,18 +49,24 @@ namespace ArchivistReleaseTests.MarketTests
             Log($"We expect {slotBlocks} slot blocks + 1 manifest block");
 
             ShowBlocks(contract.EncodedContentId, slotHosts);
-            foreach (var h in slotHosts)
+            Assert.Multiple(() =>
             {
-                var hostSlots = h.Marketplace.GetSlots();
-                var space = h.Space();
-                Assert.That(hostSlots.Length, Is.EqualTo(1));
-                Assert.That(space.TotalBlocks, Is.EqualTo(slotBlocks + 1));
-            }
+                foreach (var h in slotHosts)
+                {
+                    var hostSlots = h.Marketplace.GetSlots();
+                    var space = h.Space();
+                    Assert.That(hostSlots.Length, Is.EqualTo(1));
+                    Assert.That(space.TotalBlocks, Is.EqualTo(slotBlocks + 1));
+                }
+            });
 
-            foreach (var f in fills)
+            Assert.Multiple(() =>
             {
-                AssertHostHoldsSlot(f, contract, allowExtras: false);
-            }
+                foreach (var f in fills)
+                {
+                    AssertHostHoldsSlot(f, contract, allowExtras: false);
+                }
+            });
 
             Log("Now we wait till the contract is finished. Then all hosts should return to empty.");
             contract.WaitForStorageContractFinished();

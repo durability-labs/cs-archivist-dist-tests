@@ -16,6 +16,7 @@ using NUnit.Framework;
 using NUnit.Framework.Constraints;
 using OverwatchTranscript;
 using Utils;
+using ArchivistOpenApi;
 
 namespace ArchivistTests
 {
@@ -204,7 +205,23 @@ namespace ArchivistTests
 
         public void ShowBlocks(ContentId cid, params IArchivistNode[] nodes)
         {
-            foreach (var n in nodes) n.GetDatasetStatus(cid);
+            foreach (var n in nodes)
+            {
+                var localFiles = n.LocalFiles();
+                if (localFiles.Content.Any(c => c.Cid == cid))
+                {
+                    try
+                    {
+                        n.GetDatasetStatus(cid);
+                        continue;
+                    }
+                    catch (ApiException e)
+                    {
+                        if (e.Message != "Dataset specified by the CID is not found") throw;
+                    }
+                }
+                Log($"Dataset {cid} not present in node {n.GetName()}");
+            }
         }
 
         public void ShowBlocks(ContentId cid, IArchivistNodeGroup nodes)
